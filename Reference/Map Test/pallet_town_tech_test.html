@@ -2,8 +2,270 @@
 <html>
 	<head>
 		<title>Pokemon World Technical Test</title>
+		<script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
 	</head>
 	<body>
-		<canvas id="gameCanvas" width="480" height="320"></canvas>
+		<canvas id="gameCanvas" width="480" height="320" style="border: 1px solid black;"></canvas>
+		<script>
+
+var camX = 8;
+var camY = 8;
+var c;
+var ctx;
+var selected_resource_pack = "default";
+var resource_pack_manifest;
+var resource_pack_assets;
+var resources_to_load = 0;
+var resources_loaded = 0;
+var map_sections;
+var game_loaded = false;
+var frame_count = 0;
+var last_frame_count = 0;
+var desired_framerate = 30;
+var gameLoopInterval;
+var frCheckInterval;
+var loop_running = false;
+var framerate = 0;
+
+function startGame() {
+	gameInit();
+	// loop
+	gameLoopInterval = setInterval(gameLoop, 1000/desired_framerate);
+	frCheckInterval = setInterval(frCheck, 1000);
+}
+
+function frCheck() {
+	framerate = frame_count-last_frame_count;
+	last_frame_count = frame_count;
+	if (framerate < desired_framerate) {
+		console.warn("Low framerate: " + framerate);
+	}
+}
+
+function gameInit() {
+	c = document.getElementById("gameCanvas");
+	ctx = c.getContext("2d");
+	
+	// get resources
+	//resource_pack_manifest = $.getJSON("resource packs/" + selected_resource_pack + "/manifest.json");
+	$.getJSON("https://api.myjson.com/bins/ir4ka", function(data) {
+		//resource_pack_manifest = data;
+		resource_pack_manifest = temp_manifest;
+		loadResources();
+	});
+}
+
+function loadResources() {
+	var tileId;
+	var tileData;
+	resources_to_load = Object.keys(resource_pack_manifest.tile_textures).length;
+	resources_loaded = 0;
+	resource_pack_assets = {};
+	resource_pack_assets.tile_textures = {};
+	for (tileId in resource_pack_manifest.tile_textures) {
+		tileData = resource_pack_manifest.tile_textures[tileId];
+		if (tileData !== null && typeof tileData === "object") {
+			// more complex tile loading
+			switch (tileData.type) {
+				case "static":
+					loadTileImage(tileId, tileData.src[0]);
+					break;
+				default:
+					console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
+					loadTileImage(tileId, "placeholder.png");
+			}
+			continue;
+		}
+		if (typeof tileData !== "string") {
+			// error in pack manifest, also covers null
+			console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
+			// make a placeholder tile image with tileId text on it
+			loadTileImage(tileId, "placeholder.png");
+			continue;
+		}
+		// should just be a string representing the texture's src now, shorthand for above 'static' type
+		loadTileImage(tileId, tileData);
+	}
+}
+
+function loadTileImage(tileId, src) {
+	resource_pack_assets.tile_textures[tileId] = new Image();
+	resource_pack_assets.tile_textures[tileId].onload = function() {
+		resources_loaded++;
+		checkResourceLoadProgress();
+	}
+	resource_pack_assets.tile_textures[tileId].onerror = function() {
+		console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
+		// make a placeholder tile image with tileId text on it
+		this.src = "resource packs/default/placeholder.png";
+	}
+	resource_pack_assets.tile_textures[tileId].src = "resource packs/" + selected_resource_pack + "/" + src;
+}
+
+function checkResourceLoadProgress() {
+	if (resources_loaded >= resources_to_load) {
+		tempLoadSections();
+	}
+}
+
+function tempLoadSections() {
+	map_sections = {};
+	// get map section 0,0
+	$.getJSON("https://api.myjson.com/bins/1bc636", parseMapSection);
+}
+
+function parseMapSection(data) {
+	map_sections[0] = {};
+	map_sections[0][0] = data;
+	console.log("Map section 0,0 loaded.");
+	game_loaded = true;
+}
+
+function gameLoop() {
+	if (loop_running) {
+		console.warn("Too slow!");
+		return;
+	}
+	loop_running = true;
+	
+	clear();
+	
+	if (!game_loaded) {
+		ctx.font = "30px Arial";
+		ctx.fillText("Loading... " + resources_loaded + "/" + resources_to_load, 30, 30);
+		loop_running = false;
+		return;
+	}
+	
+	showMap();
+	
+	ctx.font = "15px Arial";
+	ctx.fillText(frame_count, 30, 30);
+	ctx.fillText(framerate, 400, 30);
+	
+	frame_count++
+	loop_running = false;
+}
+
+function clear() {
+	ctx.clearRect(0, 0, c.width, c.height);
+}
+
+function showMap() {
+	var left = (c.width/2)-(camX*16);
+	var top = (c.height/2)-(camY*16);
+	//for each section {
+		num_layers = map_sections[0][0].tile_layers.length;
+		entity_layer = map_sections[0][0].entity_layer;
+		for (layer=0;layer<num_layers;layer++) {
+			for (x=0;x<16;x++) {
+				for (y=0;y<16;y++) {
+					palletId = map_sections[0][0].tile_layers[layer][y][x];
+					tileId = map_sections[0][0].tile_pallet[palletId];
+					ctx.drawImage(resource_pack_assets.tile_textures[tileId], left+(x*16), top+(y*16));
+				}
+			}
+			if (layer === entity_layer) {
+				// draw entities
+			}
+		}
+	// }
+}
+
+$(document).ready(function() {
+	startGame();
+});
+
+
+temp_manifest = {
+	"tile_textures": {
+		"gen3:void": {
+			"type": "static",
+			"src": [
+				"gen3/void.png"
+			]
+		},
+		"gen3:tree_md_bottomleft": "gen3/tree_md_bottomleft.png",
+		"gen3:tree_md_bottomright": "gen3/tree_md_bottomright.png",
+		"gen3:grass1_variant1": "gen3/grass1_variant1.png",
+		"gen3:grass1_variant2": "gen3/grass1_variant2.png",
+		"gen3:tree_md_midleft_nobg": "gen3/tree_md_midleft_nobg.png",
+		"gen3:tree_md_midright_nobg": "gen3/tree_md_midright_nobg.png",
+		"gen3:tree_md_topleft_nobg": "gen3/tree_md_topleft_nobg.png",
+		"gen3:tree_md_topright_nobg": "gen3/tree_md_topright_nobg.png",
+		"gen3:path1_outsidecorner_topleft_thick": "gen3/path/path1_outsidecorner_topleft_thick.png",
+		"gen3:path1_outsidecorner_topright_thick": "gen3/path/path1_outsidecorner_topright_thick.png",
+		"gen3:path1_side_left_thick": "gen3/path/path1_side_left_thick.png",
+		"gen3:path1_center": "gen3/path/path1_center.png",
+		"gen3:path1_side_right_thick": "gen3/path/path1_side_right_thick.png",
+		"gen3:path1_side_top_thick": "gen3/path/path1_side_top_thick.png",
+		"gen3:path1_insidecorner_topleft_thick_variant1": "gen3/path/path1_insidecorner_topleft_thick_variant1.png",
+		"gen3:path1_insidecorner_topright_thick": "gen3/path/path1_insidecorner_topright_thick.png",
+		"gen3:path1_insidecorner_bottomright_thin": "gen3/path/path1_insidecorner_bottomright_thin.png",
+		"gen3:path1_insidecorner_bottomleft_thin": "gen3/path/path1_insidecorner_bottomleft_thin.png",
+		"gen3:path1_side_bottom_thin": "gen3/path/path1_side_bottom_thin_variant1.png",
+		"gen3:path1_side_right_thin": "gen3/path/path1_side_right_thin.png",
+		"gen3:path1_insidecorner_topright_thickthin": "gen3/path/path1_insidecorner_topright_thickthin.png",
+		"gen3:path1_insidecorner_topleft_thickthin": "gen3/path/path1_insidecorner_topleft_thickthin.png",
+		"gen3:path1_side_left_thin": "gen3/path/path1_side_left_thin.png",
+		"gen3:grass1_variant5": "gen3/grass1_variant5.png",
+		"gen3:path1_side_bottom_thin_variant2": "gen3/path/path1_side_bottom_thin_variant2.png",
+		"gen3:grass1_variant3": "gen3/grass1_variant3.png",
+		"gen3:grass1_variant4": "gen3/grass1_variant4.png",
+		"gen3:fence1_horizontal": "gen3/fence1_horizontal.png",
+		"gen3:sign1": "gen3/sign1.png",
+		"gen3:sign2": "gen3/sign2.png",
+		"gen3:flower1": {
+			"type": "animated",
+			"src": [
+				"gen3/flower1_frame1.png",
+				"gen3/flower1_frame2.png",
+				"gen3/flower1_frame3.png",
+				"gen3/flower1_frame4.png",
+				"gen3/flower1_frame5.png"
+			],
+			"trigger": "load",
+			"frame_time": 450,
+			"repeat": 0
+		},
+		"gen3:tallgrass1_base": "gen3/tallgrass1_base.png",
+		"gen3:tallgrass1_top": {
+			"type": "animated",
+			"src": [
+				"gen3/tallgrass1_top_frame1.png",
+				"gen3/tallgrass1_top_frame2.png",
+				"gen3/tallgrass1_top_frame3.png",
+				"gen3/tallgrass1_top_frame4.png"
+			],
+			"trigger": "entity_enter",
+			"frame_time": 100,
+			"repeat": 1
+		},
+		"gen3:mailbox1_part1": "gen3/mailbox1_part1.png",
+		"gen3:mailbox1_part2": "gen3/mailbox1_part2.png",
+		"gen3:house1_roof_red_n": "gen3/buildings/house1_roof_red_n.png",
+		"gen3:house1_roof_red_nw": "gen3/buildings/house1_roof_red_nw.png",
+		"gen3:house1_roof_red_ne": "gen3/buildings/house1_roof_red_ne.png",
+		"gen3:house1_roof_red_w": "gen3/buildings/house1_roof_red_w.png",
+		"gen3:house1_roof_red": "gen3/buildings/house1_roof_red.png",
+		"gen3:house1_roof_red_e": "gen3/buildings/house1_roof_red_e.png",
+		"gen3:house1_roof_red_sw": "gen3/buildings/house1_roof_red_sw.png",
+		"gen3:house1_roof_red_s": "gen3/buildings/house1_roof_red_s.png",
+		"gen3:house1_roof_red_se": "gen3/buildings/house1_roof_red_se.png",
+		"gen3:house1_wall_w2": "gen3/buildings/house1_wall_w2.png",
+		"gen3:house1_wall_w1": "gen3/buildings/house1_wall_w1.png",
+		"gen3:house1_wall_2_part1": "gen3/buildings/house1_wall_2_part1.png",
+		"gen3:house1_wall_2_part2": "gen3/buildings/house1_wall_2_part2.png",
+		"gen3:house1_wall_2_part3": "gen3/buildings/house1_wall_2_part3.png",
+		"gen3:house1_wall_e2": "gen3/buildings/house1_wall_e2.png",
+		"gen3:house1_wall_e1": "gen3/buildings/house1_wall_e1.png",
+		"gen3:house1_wall_1_part2": "gen3/buildings/house1_wall_1_part2.png",
+		"gen3:house1_wall_1_part1": "gen3/buildings/house1_wall_1_part1.png",
+		"gen3:house1_door1_red": "gen3/buildings/house1_door1_red.png"
+	},
+	"entity_textures": {},
+	"sounds": {}
+};
+		</script>
 	</body>
 </html>
