@@ -21,11 +21,12 @@ var map_sections;
 var game_loaded = false;
 var frame_count = 0;
 var last_frame_count = 0;
-var desired_framerate = 30;
+var desired_framerate = 50;
 var gameLoopInterval;
 var frCheckInterval;
 var loop_running = false;
 var framerate = 0;
+var animations = {};
 
 function startGame() {
 	gameInit();
@@ -68,11 +69,16 @@ function loadResources() {
 			// more complex tile loading
 			switch (tileData.type) {
 				case "static":
-					loadTileImage(tileId, tileData.src[0]);
+					loadTileTextures(tileId, tileData.src);
+					break;
+				case "animated":
+					// now we have a multiple tile textures to load
+					resources_to_load += (tileData.src.length-1);
+					loadTileTextures(tileId, tileData.src);
 					break;
 				default:
 					console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
-					loadTileImage(tileId, "placeholder.png");
+					loadTileTextures(tileId, ["placeholder.png"]);
 			}
 			continue;
 		}
@@ -80,26 +86,31 @@ function loadResources() {
 			// error in pack manifest, also covers null
 			console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
 			// make a placeholder tile image with tileId text on it
-			loadTileImage(tileId, "placeholder.png");
+			loadTileTextures(tileId, ["placeholder.png"]);
 			continue;
 		}
 		// should just be a string representing the texture's src now, shorthand for above 'static' type
-		loadTileImage(tileId, tileData);
+		loadTileTextures(tileId,[tileData]);
 	}
 }
 
-function loadTileImage(tileId, src) {
-	resource_pack_assets.tile_textures[tileId] = new Image();
-	resource_pack_assets.tile_textures[tileId].onload = function() {
-		resources_loaded++;
-		checkResourceLoadProgress();
+function loadTileTextures(tileId, srcs) {
+	var src;
+	resource_pack_assets.tile_textures[tileId] = [];
+	for (src of srcs) {
+		img = new Image();
+		img.onload = function() {
+			resources_loaded++;
+			checkResourceLoadProgress();
+		}
+		img.onerror = function() {
+			console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
+			// make a placeholder tile image with tileId text on it
+			this.src = "resource packs/default/placeholder.png";
+		}
+		img.src = "resource packs/" + selected_resource_pack + "/" + src;
+		resource_pack_assets.tile_textures[tileId].push(img);
 	}
-	resource_pack_assets.tile_textures[tileId].onerror = function() {
-		console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
-		// make a placeholder tile image with tileId text on it
-		this.src = "resource packs/default/placeholder.png";
-	}
-	resource_pack_assets.tile_textures[tileId].src = "resource packs/" + selected_resource_pack + "/" + src;
 }
 
 function checkResourceLoadProgress() {
@@ -162,7 +173,8 @@ function showMap() {
 				for (y=0;y<16;y++) {
 					palletId = map_sections[0][0].tile_layers[layer][y][x];
 					tileId = map_sections[0][0].tile_pallet[palletId];
-					ctx.drawImage(resource_pack_assets.tile_textures[tileId], left+(x*16), top+(y*16));
+					frame = getAnimationFrameOrDefault(0, 0, x, y, layer, tileId);
+					ctx.drawImage(resource_pack_assets.tile_textures[tileId][frame], left+(x*16), top+(y*16));
 				}
 			}
 			if (layer === entity_layer) {
@@ -170,6 +182,52 @@ function showMap() {
 			}
 		}
 	// }
+}
+
+
+function getAnimationFrameOrDefault(sx, sy, x, y, layer, tileId) {
+	if (resource_pack_manifest.tile_textures[tileId].type != "animated") {
+		return 0;
+	}
+	
+	animKey = "" + sx + "-" + sy + "-" + x + "-" + y + "-" + layer;
+	
+	if (!(animKey in animations)) {
+		animations[animKey] = {
+			trigger: resource_pack_manifest.tile_textures[tileId].trigger,
+			frame_time: resource_pack_manifest.tile_textures[tileId].frame_time,
+			repeat: resource_pack_manifest.tile_textures[tileId].repeat,
+			numFrames: resource_pack_manifest.tile_textures[tileId].src.length,
+			currentFrame: 0,
+			currentFrameCounter: 0,
+			plays: 0,
+			triggered: false,
+			triggered_by: null
+		}
+	}
+	
+	if (animations[animKey].trigger == "load") {
+		animations[animKey].triggered = true;
+	}
+	
+	if (animations[animKey].triggered) {
+		animations[animKey].currentFrameCounter++;
+		if (animations[animKey].currentFrameCounter > animations[animKey].frame_time) {
+			animations[animKey].currentFrame++;
+			animations[animKey].currentFrameCounter = 0;
+		}
+	}
+	
+	if (animations[animKey].currentFrame >= animations[animKey].numFrames) {
+		animations[animKey].currentFrame%=animations[animKey].numFrames;
+		if (animations[animKey].repeat != 0) {
+			if (animations[animKey].plays++ >= animations[animKey].repeat) {
+				animations[animKey].triggered = false;
+			}
+		}
+	}
+	
+	return animations[animKey].currentFrame;
 }
 
 $(document).ready(function() {
@@ -225,7 +283,7 @@ temp_manifest = {
 				"gen3/flower1_frame5.png"
 			],
 			"trigger": "load",
-			"frame_time": 450,
+			"frame_time": 20,
 			"repeat": 0
 		},
 		"gen3:tallgrass1_base": "gen3/tallgrass1_base.png",
@@ -238,7 +296,7 @@ temp_manifest = {
 				"gen3/tallgrass1_top_frame4.png"
 			],
 			"trigger": "entity_enter",
-			"frame_time": 100,
+			"frame_time": 5,
 			"repeat": 1
 		},
 		"gen3:mailbox1_part1": "gen3/mailbox1_part1.png",
