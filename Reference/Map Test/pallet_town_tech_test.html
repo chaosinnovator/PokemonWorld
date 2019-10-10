@@ -5,9 +5,10 @@
 		<script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
 	</head>
 	<body>
-		<canvas id="gameCanvas" width="480" height="320" style="border: 1px solid black;"></canvas>
+		<canvas id="gameCanvas" width="900" height="600" style="border: 1px solid black;"></canvas>
 		<script>
 
+var tile_width = 32;
 var camX = 8;
 var camY = 8;
 var c;
@@ -47,6 +48,7 @@ function frCheck() {
 function gameInit() {
 	c = document.getElementById("gameCanvas");
 	ctx = c.getContext("2d");
+	ctx.imageSmoothingEnabled = false;
 	
 	// get resources
 	//resource_pack_manifest = $.getJSON("resource packs/" + selected_resource_pack + "/manifest.json");
@@ -164,8 +166,8 @@ function clear() {
 }
 
 function showMap() {
-	var left = (c.width/2)-(camX*16);
-	var top = (c.height/2)-(camY*16);
+	var left = (c.width/2)-(camX*tile_width);
+	var top = (c.height/2)-(camY*tile_width);
 	//for each section {
 		num_layers = map_sections[0][0].tile_layers.length;
 		entity_layer = map_sections[0][0].entity_layer;
@@ -175,7 +177,7 @@ function showMap() {
 					palletId = map_sections[0][0].tile_layers[layer][y][x];
 					tileId = map_sections[0][0].tile_pallet[palletId];
 					frame = getAnimationFrameOrDefault(0, 0, x, y, layer, tileId);
-					ctx.drawImage(resource_pack_assets.tile_textures[tileId][frame], left+(x*16), top+(y*16));
+					ctx.drawImage(resource_pack_assets.tile_textures[tileId][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
 				}
 			}
 			if (layer === entity_layer) {
@@ -278,7 +280,7 @@ temp_manifest = {
 		"gen3:flower1": {
 			"type": "animated",
 			"src": [
-				"gen3/flower1_frame1.png",
+				"gen3/flower1_frame1_hd.png",
 				"gen3/flower1_frame2.png",
 				"gen3/flower1_frame3.png",
 				"gen3/flower1_frame4.png",
