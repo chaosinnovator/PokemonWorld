@@ -1,0 +1,590 @@
+ENTRY(Start)
+
+gNumMusicPlayers = 4;
+gMaxLines = 0;
+
+SECTIONS {
+    . = 0x2000000;
+
+    ewram (NOLOAD) :
+    ALIGN(4)
+    {
+        gHeap = .;
+
+        . = 0x1C000;
+
+<EWRAM>
+
+        *libc.a:impure.o(.data);
+        *libc.a:locale.o(.data);
+        *libc.a:mallocr.o(.data);
+        . = 0x40000;
+    }
+
+    . = 0x3000000;
+
+    iwram (NOLOAD) :
+    ALIGN(4)
+    {
+        /* .bss starts at 0x3000000 */
+<BSS>
+
+        /* .bss.code starts at 0x30028E0 */
+        src/m4a.o(.bss.code);
+
+        /* COMMON starts at 0x30030E0 */
+<COMMON>
+
+        *libc.a:sbrkr.o(COMMON);
+        end = .;
+
+        . = 0x8000;
+    }
+
+    . = 0x8000000;
+
+    .text :
+    ALIGN(4)
+    {
+        asm/crt0.o(.text);
+        src/main.o(.text);
+        src/gpu_regs.o(.text);
+        src/dma3_manager.o(.text);
+        src/bg.o(.text);
+        src/malloc.o(.text);
+        src/text_printer.o(.text);
+        asm/text_printer.o(.text);
+        src/window.o(.text);
+        src/blit.o(.text);
+        src/window_8bpp.o(.text);
+        src/text.o(.text);
+        src/sprite.o(.text);
+        src/string_util.o(.text);
+        src/link.o(.text);
+        src/multiboot.o(.text);
+        asm/main_menu.o(.text);
+        src/battle_controllers.o(.text);
+        src/decompress.o(.text);
+        asm/battle_1.o(.text);
+        asm/battle_2.o(.text);
+        src/battle_util.o(.text);
+        src/battle_script_commands.o(.text);
+        src/battle_util2.o(.text);
+        src/battle_controller_player.o(.text);
+        src/battle_gfx_sfx_util.o(.text);
+        src/battle_controller_opponent.o(.text);
+        src/battle_ai_switch_items.o(.text);
+        src/battle_controller_link_opponent.o(.text);
+        src/pokemon.o(.text);
+        src/trig.o(.text);
+        src/random.o(.text);
+        src/util.o(.text);
+        src/blend_palette.o(.text);
+        src/daycare.o(.text);
+        asm/battle_interface.o(.text);
+        asm/smokescreen.o(.text);
+        asm/pokeball.o(.text);
+        src/load_save.o(.text);
+        asm/trade.o(.text);
+        src/play_time.o(.text);
+        src/new_game.o(.text);
+        asm/overworld.o(.text);
+        src/fieldmap.o(.text);
+        src/metatile_behavior.o(.text);
+        asm/field_camera.o(.text);
+        asm/field_door.o(.text);
+        asm/field_player_avatar.o(.text);
+        asm/field_map_obj.o(.text);
+        asm/field_ground_effect.o(.text);
+        asm/map_obj_80688E4.o(.text);
+        asm/field_message_box.o(.text);
+        src/map_obj_lock.o(.text);
+        src/text_window_graphics.o(.text);
+        src/script.o(.text);
+        src/scrcmd.o(.text);
+        asm/field_control_avatar.o(.text);
+        asm/event_data.o(.text);
+        src/coord_event_weather.o(.text);
+        asm/field_tasks.o(.text);
+        asm/start_menu.o(.text);
+        src/tileset_anims.o(.text);
+        src/palette.o(.text);
+        src/sound.o(.text);
+        asm/battle_anim.o(.text);
+        asm/battle_anim_mons.o(.text);
+        src/task.o(.text);
+        src/reshow_battle_screen.o(.text);
+        asm/battle_anim_status_effects.o(.text);
+        src/title_screen.o(.text);
+        src/reset_save_heap.o(.text);
+        asm/field_weather.o(.text);
+        asm/field_weather_effects.o(.text);
+        src/field_fadetransition.o(.text);;
+        asm/field_screen_effect.o(.text);
+        asm/battle_setup.o(.text);
+        asm/cable_club.o(.text);
+        asm/trainer_see.o(.text);
+        asm/wild_encounter.o(.text);
+        asm/field_effect.o(.text);
+        src/scanline_effect.o(.text);
+        asm/option_menu.o(.text);
+        src/pokedex.o(.text);
+        asm/trainer_card.o(.text);
+        asm/pokemon_storage_system.o(.text);
+        asm/pokemon_icon.o(.text);
+        asm/script_movement.o(.text);
+        asm/fldeff_cut.o(.text);
+        src/mail_data.o(.text);
+        asm/map_name_popup.o(.text);
+        src/item_menu_icons.o(.text);
+        src/battle_anim_mon_movement.o(.text);
+        src/item.o(.text);
+        asm/shop.o(.text);
+        src/berry.o(.text);
+        asm/script_menu.o(.text);
+        asm/naming_screen.o(.text);
+        src/money.o(.text);
+        asm/script_pokemon_util_80A0058.o(.text);
+        src/field_poison.o(.text);
+        asm/pokemon_size_record.o(.text);
+        asm/pc_screen_effect.o(.text);
+        src/fldeff_poison.o(.text);
+        src/fldeff_berrytree.o(.text);
+        src/field_special_scene.o(.text);
+        src/safari_zone.o(.text);
+        src/item_use.o(.text);
+        asm/battle_anim_effects_1.o(.text);
+        asm/battle_anim_effects_2.o(.text);
+        asm/water.o(.text);
+        asm/fire.o(.text);
+        asm/electric.o(.text);
+        asm/ice.o(.text);
+        asm/fighting.o(.text);
+        asm/poison.o(.text);
+        asm/flying.o(.text);
+        asm/psychic.o(.text);
+        asm/bug.o(.text);
+        asm/rock.o(.text);
+        asm/ghost.o(.text);
+        asm/dragon.o(.text);
+        asm/dark.o(.text);
+        asm/ground.o(.text);
+        asm/normal.o(.text);
+        asm/battle_anim_utility_funcs.o(.text);
+        asm/bike.o(.text);
+        asm/easy_chat.o(.text);
+        asm/mon_markings.o(.text);
+        asm/mail.o(.text);
+        src/menu_helpers.o(.text);
+        asm/script_pokemon_util_80BF8FC.o(.text);
+        src/heal_location.o(.text);
+        asm/region_map.o(.text);
+        src/battle_ai_script_commands.o(.text);
+        src/fldeff_rocksmash.o(.text);
+        src/fldeff_dig.o(.text);
+        asm/fldeff_flash.o(.text);
+        asm/post_battle_event_funcs.o(.text);
+        src/prof_pc.o(.text);
+        src/hof_pc.o(.text);
+        asm/field_specials.o(.text);
+        src/battle_records.o(.text);
+        asm/evolution_scene.o(.text);
+        src/coins.o(.text);
+        src/fldeff_strength.o(.text);
+        src/battle_transition.o(.text);
+        src/battle_controller_link_partner.o(.text);
+        asm/battle_message.o(.text);
+        src/math_util.o(.text);
+        src/roulette_util.o(.text);
+        src/cable_car_util.o(.text);
+        src/save.o(.text);
+        src/mystery_event_script.o(.text);
+        asm/field_effect_helpers.o(.text);
+        asm/battle_anim_sound_tasks.o(.text);
+        src/battle_controller_safari.o(.text);
+        src/fldeff_sweetscent.o(.text);
+        asm/battle_anim_effects_3.o(.text);
+        asm/learn_move.o(.text);
+        src/fldeff_softboiled.o(.text);
+        asm/battle_tower.o(.text);
+        asm/battle_controller_oak.o(.text);
+        asm/player_pc.o(.text);
+        src/intro.o(.text);
+        asm/battle_anim_special.o(.text);
+        asm/hall_of_fame.o(.text);
+        src/credits.o(.text);
+        src/diploma.o(.text);
+        asm/save_failed_screen.o(.text);
+        asm/clear_save_data_screen.o(.text);
+        asm/evolution_graphics.o(.text);
+        src/fldeff_teleport.o(.text);
+        src/new_menu_helpers.o(.text);
+        asm/box_party_pokemon_dropdown.o(.text);
+        asm/save_menu_util.o(.text);
+        src/map_preview_screen.o(.text);
+        asm/link_rfu_2.o(.text);
+        asm/link_rfu.o(.text);
+        asm/pokedex_screen.o(.text);
+        src/list_menu.o(.text);
+        asm/item_menu.o(.text);
+        src/save_location.o(.text);
+        src/bag.o(.text);
+        src/trainer_pokemon_sprites.o(.text);
+        src/vs_seeker.o(.text);
+        src/item_pc.o(.text);
+        src/mailbox_pc.o(.text);
+        src/menu.o(.text);
+        src/quest_log.o(.text);
+        asm/link_rfu_3.o(.text);
+        asm/pokemon_special_anim.o(.text);
+        asm/party_menu.o(.text);
+        asm/union_room_chat.o(.text);
+        src/help_system_812B1E0.o(.text);
+        src/quest_log_battle.o(.text);
+        src/fame_checker.o(.text);
+        src/menu2.o(.text);
+        src/oak_speech.o(.text);
+        src/tm_case.o(.text);
+        src/menu_indicators.o(.text);
+        src/pokedex_area_markers.o(.text);
+        asm/pokemon_summary_screen.o(.text);
+        src/help_system.o(.text);
+        src/wild_pokemon_area.o(.text);
+        src/dynamic_placeholder_text_util.o(.text);
+        src/berry_pouch.o(.text);
+        src/itemfinder.o(.text);
+        src/buy_menu_helpers.o(.text);
+        src/slot_machine.o(.text);
+        src/roamer.o(.text);
+        src/mystery_gift_menu.o(.text);
+        src/mevent.o(.text);
+        src/mevent_server_helpers.o(.text);
+        src/mevent_server.o(.text);
+        src/mevent_8145654.o(.text);
+        src/menews_jisan.o(.text);
+        src/seagallop.o(.text);
+        asm/pokemon_jump.o(.text);
+        asm/pokemon_jump_2.o(.text);
+        asm/berry_crush.o(.text);
+        asm/berry_crush_2.o(.text);
+        asm/berry_crush_3.o(.text);
+        src/wireless_communication_status_screen.o(.text);
+        src/braille_text.o(.text);
+        src/text_window.o(.text);
+        src/quest_log_8150454.o(.text);
+        asm/dodrio_berry_picking.o(.text);
+        asm/battle_controller_pokedude.o(.text);
+        src/unk_8159F40.o(.text);
+        src/dodrio_berry_picking_2.o(.text);
+        asm/dodrio_berry_picking_2.o(.text);
+        src/teachy_tv.o(.text);
+        src/ereader_helpers.o(.text);
+        src/unk_815C980.o(.text);
+        src/ss_anne.o(.text);
+        src/cereader_tool.o(.text);
+        src/trainer_tower.o(.text);
+        src/berry_powder.o(.text);
+        src/unk_815F138.o(.text);
+        src/berry_fix_program.o(.text);
+    } =0
+
+    script_data :
+    ALIGN(4)
+    {
+        data/event_scripts.o(script_data);
+        data/battle_anim_scripts.o(script_data);
+        data/battle_scripts_1.o(script_data);
+        data/field_effect_scripts.o(script_data);
+        data/battle_scripts_2.o(script_data);
+        data/battle_ai_scripts.o(script_data);
+        data/mystery_event_script_cmd_table.o(script_data);
+    } =0
+
+    lib_text :
+    ALIGN(4)
+    {
+        asm/libgcnmultiboot.o(.text);
+        asm/m4a_1.o(.text);
+        src/m4a.o(.text);
+        src/agb_flash.o(.text);
+        src/agb_flash_1m.o(.text);
+        src/agb_flash_mx.o(.text);
+        src/agb_flash_le.o(.text);
+        asm/librfu.o(.text);
+        src/isagbprn.o(.text);
+        asm/libagbsyscall.o(.text);
+        *libgcc.a:_call_via_rX.o(.text);
+        *libgcc.a:_divdi3.o(.text);
+        *libgcc.a:_divsi3.o(.text);
+        *libgcc.a:_dvmd_tls.o(.text);
+        *libgcc.a:_fixunsdfsi.o(.text);
+        *libgcc.a:_modsi3.o(.text);
+        *libgcc.a:_muldi3.o(.text);
+        *libgcc.a:_udivdi3.o(.text);
+        *libgcc.a:_udivsi3.o(.text);
+        *libgcc.a:_umodsi3.o(.text);
+        *libgcc.a:dp-bit.o(.text);
+        *libgcc.a:fp-bit.o(.text);
+        *libgcc.a:_lshrdi3.o(.text);
+        *libgcc.a:_negdi2.o(.text);
+        *libc.a:memcpy.o(.text);
+        *libc.a:memset.o(.text);
+        *libc.a:strcmp.o(.text);
+        *libc.a:strcpy.o(.text);
+        *libc.a:impure.o(.text);
+        *libc.a:vsprintf.o(.text);
+        *libc.a:vfprintf.o(.text);
+        *libc.a:wsetup.o(.text);
+        *libc.a:dtoa.o(.text);
+        *libc.a:fflush.o(.text);
+        *libc.a:findfp.o(.text);
+        *libc.a:freer.o(.text);
+        *libc.a:mtrim.o(.text);
+        *libc.a:fvwrite.o(.text);
+        *libc.a:fwalk.o(.text);
+        *libc.a:locale.o(.text);
+        *libc.a:makebuf.o(.text);
+        *libc.a:mallocr.o(.text);
+        *libc.a:mbtowc_r.o(.text);
+        *libc.a:memchr.o(.text);
+        *libc.a:memmove.o(.text);
+        *libc.a:mlock.o(.text);
+        *libc.a:mprec.o(.text);
+        *libc.a:s_isinf.o(.text);
+        *libc.a:s_isnan.o(.text);
+        *libc.a:sbrkr.o(.text);
+        *libc.a:stdio.o(.text);
+        *libc.a:strlen.o(.text);
+        *libc.a:syscalls.o(.text);
+        *libc.a:writer.o(.text);
+        *libc.a:callocr.o(.text);
+        *libc.a:closer.o(.text);
+        *libc.a:errno.o(.text);
+        *libc.a:fstatr.o(.text);
+        *libc.a:libcfunc.o(.text);
+        *libc.a:lseekr.o(.text);
+        *libc.a:readr.o(.text);
+    } =0
+
+    .rodata :
+    ALIGN(4)
+    {
+        src/main.o(.rodata);
+        src/bg.o(.rodata);
+        src/malloc.o(.rodata);
+        src/malloc.o(.rodata.str1.4);
+        src/text_printer.o(.rodata);
+        src/window.o(.rodata);
+        src/text.o(.rodata);
+        src/sprite.o(.rodata);
+        src/bg_regs.o(.rodata);
+        src/string_util.o(.rodata);
+        src/link.o(.rodata);
+        data/data.o(.rodata);
+        src/battle_util.o(.rodata);
+        src/battle_script_commands.o(.rodata);
+        src/battle_controller_player.o(.rodata);
+        data/smokescreen.o(.rodata);
+        src/battle_controller_opponent.o(.rodata);
+        src/battle_controller_link_opponent.o(.rodata);
+        src/pokemon.o(.rodata);
+        src/trig.o(.rodata);
+        src/util.o(.rodata);
+        src/daycare.o(.rodata);
+        src/battle_gfx_sfx_util.o(.rodata);
+        data/data.o(.rodata.8260270);
+        data/tilesets.o(.rodata);
+        data/maps.o(.rodata);
+        src/fieldmap.o(.rodata);
+        src/metatile_behavior.o(.rodata);
+        data/metatile_behavior.o(.rodata);
+        data/field_door.o(.rodata);
+        data/field_player_avatar.o(.rodata);
+        data/field_map_obj.o(.rodata);
+        data/field_ground_effect.o(.rodata);
+        data/map_obj_80688E4.o(.rodata);
+        src/scrcmd.o(.rodata);
+        src/coord_event_weather.o(.rodata);
+        data/field_tasks.o(.rodata);
+        data/start_menu.o(.rodata);
+        data/tileset_anims.o(.rodata);
+        src/palette.o(.rodata);
+        src/sound.o(.rodata);
+        data/battle_anim.o(.rodata);
+        data/map_events.o(.rodata);
+        data/battle_anim_status_effects.o(.rodata);
+        src/title_screen.o(.rodata);
+        data/field_weather.o(.rodata);
+        data/data_835B488.o(.rodata);
+        src/item_menu_icons.o(.rodata);
+        src/battle_anim_mon_movement.o(.rodata);
+        src/item.o(.rodata);
+        data/data_835B488.o(.rodata.83DF09C);
+        src/heal_location.o(.rodata);
+        data/data_835B488.o(.rodata.83EEC98);
+        src/battle_ai_script_commands.o(.rodata);
+        data/data_83F5738.o(.rodata);
+        src/battle_records.o(.rodata);
+        data/data_83F5738.o(.rodata.83F6C90);
+        src/battle_transition.o(.rodata);
+        src/battle_controller_link_partner.o(.rodata);
+        data/data_83F5738.o(.rodata.83FB218);
+        src/save.o(.rodata);
+        data/data_83FECCC.o(.rodata);
+        src/battle_controller_safari.o(.rodata);
+        data/data_83FECCC.o(.rodata.83FEDE4);
+        src/intro.o(.rodata);
+        data/data_83FECCC.o(.rodata.battle_anim_special);
+        src/credits.o(.rodata);
+        src/diploma.o(.rodata);
+        data/strings.o(.rodata);
+        data/data_83FECCC.o(.rodata.841EE44);
+        src/new_menu_helpers.o(.rodata);
+        data/data_83FECCC.o(.rodata.841F4B4);
+        src/map_preview_screen.o(.rodata);
+        data/data_83FECCC.o(.rodata.843EBB4);
+        src/pokedex.o(.rodata);
+        data/data_83FECCC.o(.rodata.8451EBC);
+        src/list_menu.o(.rodata);
+        data/data_83FECCC.o(.rodata.8452CF4);
+        src/save_location.o(.rodata);
+        src/bag.o(.rodata);
+        src/trainer_pokemon_sprites.o(.rodata);
+        src/vs_seeker.o(.rodata);
+        src/item_pc.o(.rodata);
+        src/mailbox_pc.o(.rodata);
+        data/decorations.o(.rodata);
+        src/menu.o(.rodata);
+        src/quest_log.o(.rodata);
+        data/data_83FECCC.o(.rodata.8456C74);
+        src/help_system_812B1E0.o(.rodata);
+        src/fame_checker.o(.rodata);
+        src/menu2.o(.rodata);
+        src/oak_speech.o(.rodata);
+        src/tm_case.o(.rodata);
+        src/menu_indicators.o(.rodata);
+        src/pokedex_area_markers.o(.rodata);
+        data/pokemon_summary_screen.o(.rodata);
+        src/help_system.o(.rodata);
+        src/wild_pokemon_area.o(.rodata);
+        src/dynamic_placeholder_text_util.o(.rodata);
+        src/berry_pouch.o(.rodata);
+        src/itemfinder.o(.rodata);
+        src/buy_menu_helpers.o(.rodata);
+        src/slot_machine.o(.rodata);
+        src/roamer.o(.rodata);
+        src/mystery_gift_menu.o(.rodata);
+        src/mevent.o(.rodata);
+        src/mevent_server_helpers.o(.rodata);
+        src/mevent_server.o(.rodata);
+        src/mevent_8145654.o(.rodata);
+        data/data_8466FB8.o(.rodata);
+        src/menews_jisan.o(.rodata);
+        src/menews_jisan.o(.rodata.str1.4);
+        . = ALIGN(4);
+        src/seagallop.o(.rodata);
+        data/data_8468C98.o(.rodata);
+        src/wireless_communication_status_screen.o(.rodata);
+        src/braille_text.o(.rodata);
+        src/text_window_graphics.o(.rodata);
+        src/quest_log_8150454.o(.rodata);
+        data/data_8471F00.o(.rodata);
+        src/teachy_tv.o(.rodata);
+        src/unk_815C980.o(.rodata);
+        data/data_8471F00.o(.rodata.8479668);
+        src/ss_anne.o(.rodata);
+        src/cereader_tool.o(.rodata);
+        src/trainer_tower.o(.rodata);
+        src/unk_815F138.o(.rodata);
+        src/berry_fix_program.o(.rodata);
+        data/data_8471F00.o(.rodata.after_trainer_tower);
+        src/mystery_event_msg.o(.rodata);
+        data/mystery_event_msg.o(.rodata);
+        src/m4a_tables.o(.rodata);
+        data/sound_data.o(.rodata);
+    } =0
+
+    lib_rodata :
+    ALIGN(4)
+    {
+        src/agb_flash.o(.rodata);
+        src/agb_flash_1m.o(.rodata);
+        src/agb_flash_mx.o(.rodata);
+        src/agb_flash_le.o(.rodata);
+        data/librfu_rodata.o(.rodata);
+        src/isagbprn.o(.rodata);
+        *libgcc.a:_divdi3.o(.rodata);
+        *libgcc.a:_udivdi3.o(.rodata);
+        *libc.a:memcpy.o(.rodata);
+        *libc.a:memset.o(.rodata);
+        *libc.a:strcmp.o(.rodata);
+        *libc.a:strcpy.o(.rodata);
+        *libc.a:impure.o(.rodata);
+        *libc.a:vsprintf.o(.rodata);
+        *libc.a:vfprintf.o(.rodata);
+        *libc.a:wsetup.o(.rodata);
+        *libc.a:dtoa.o(.rodata);
+        *libc.a:fflush.o(.rodata);
+        *libc.a:findfp.o(.rodata);
+        *libc.a:freer.o(.rodata);
+        *libc.a:mtrim.o(.rodata);
+        *libc.a:fvwrite.o(.rodata);
+        *libc.a:fwalk.o(.rodata);
+        *libc.a:locale.o(.rodata);
+        *libc.a:makebuf.o(.rodata);
+        *libc.a:mallocr.o(.rodata);
+        *libc.a:mbtowc_r.o(.rodata);
+        *libc.a:memchr.o(.rodata);
+        *libc.a:memmove.o(.rodata);
+        *libc.a:mlock.o(.rodata);
+        *libc.a:mprec.o(.rodata);
+        *libc.a:s_isinf.o(.rodata);
+        *libc.a:s_isnan.o(.rodata);
+        *libc.a:sbrkr.o(.rodata);
+        *libc.a:stdio.o(.rodata);
+        *libc.a:strlen.o(.rodata);
+        *libc.a:syscalls.o(.rodata);
+        *libc.a:writer.o(.rodata);
+        *libc.a:callocr.o(.rodata);
+        *libc.a:closer.o(.rodata);
+        *libc.a:errno.o(.rodata);
+        *libc.a:fstatr.o(.rodata);
+        *libc.a:libcfunc.o(.rodata);
+        *libc.a:lseekr.o(.rodata);
+        *libc.a:readr.o(.rodata);
+
+        . = ALIGN(4);
+    } =0
+
+    other_data :
+    ALIGN(4)
+    {
+        data/unknown_serial_data.o(.rodata);
+        data/multiboot_berry_glitch_fix.o(.rodata);
+        data/multiboot_pokemon_colosseum.o(.rodata);
+    } =0
+
+    . = 0x08D00000;
+    gfx_data :
+    ALIGN(4)
+    {
+        data/graphics.o(gfx_data);
+    } =0
+
+    /* DWARF 2 sections */
+    .debug_aranges  0 : { *(.debug_aranges) }
+    .debug_pubnames 0 : { *(.debug_pubnames) }
+    .debug_info     0 : { *(.debug_info) }
+    .debug_abbrev   0 : { *(.debug_abbrev) }
+    .debug_line     0 : { *(.debug_line) }
+    .debug_frame    0 : { *(.debug_frame) }
+    .debug_str      0 : { *(.debug_str) }
+    .debug_loc      0 : { *(.debug_loc) }
+    .debug_macinfo  0 : { *(.debug_macinfo) }
+
+    /* Discard everything not specifically mentioned above. */
+    /DISCARD/ :
+    {
+        *(*);
+    }
+}
