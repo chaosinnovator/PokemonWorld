@@ -6,8 +6,32 @@
 	</head>
 	<body>
 		<canvas id="gameCanvas" width="900" height="600" style="border: 1px solid black;"></canvas>
+		<div>
+			<p>
+				Frame:&nbsp;<span id="frame_count">-</span><br />
+				Target framerate:&nbsp;<span id="desired_framerate">-</span><br />
+				Actual framerate:&nbsp;<span id="framerate">-</span><br />
+			    Game state:&nbsp;<span id="game_state">-</span>
+			</p>
+			
+			<p>
+				Hero position:&nbsp;<span id="hero_pos">-</span><br />
+				Camera position:&nbsp;<span id="cam_pos">-</span><br />
+			    Tile size:&nbsp;<span id="tile_size">-</span>&nbsp;
+				<button onclick="tile_width++">Bigger</button>&nbsp;
+				<button onclick="tile_width--">Smaller</button><br />
+			    Resource pack:&nbsp;<span id="selected_pack">-</span>
+			</p>
+			
+			<p>
+				Tile animation count:&nbsp;<span id="num_anims">-</span>&nbsp;
+				(triggered: <span id="num_triggered_anims">-</span>)<br />
+				Entity count:&nbsp;<span id="num_entities">-</span>
+			</p>
+		</div>
 		<script>
 
+var our_player_id = "testid";
 var tile_width = 32;
 var camX = 8;
 var camY = 8;
@@ -19,7 +43,6 @@ var resource_pack_assets;
 var resources_to_load = 0;
 var resources_loaded = 0;
 var map_sections;
-var game_loaded = false;
 var frame_count = 0;
 var last_frame_count = 0;
 var desired_framerate = 50;
@@ -27,8 +50,21 @@ var gameLoopInterval;
 var frCheckInterval;
 var loop_running = false;
 var framerate = 0;
+var num_animations = 0;
+var num_triggered_animations = 0;
+var num_entities = 0;
 var animations = {};
 var entities = {};
+var game_state = "starting";
+// states:
+//  starting - initial state
+//  loading - loading resources
+//  loaded - resources loaded but not playing yet
+//  intro - playing game intro/splash screen(s)
+//  main_menu - at game menu
+//  playing - playing the game
+// future:
+//  auth_waiting - game waiting for user to sign in to an account
 
 function startGame() {
 	gameInit();
@@ -40,12 +76,13 @@ function startGame() {
 function frCheck() {
 	framerate = frame_count-last_frame_count;
 	last_frame_count = frame_count;
-	if (framerate < desired_framerate) {
+	if (desired_framerate < 500 && framerate < desired_framerate) {
 		console.warn("Low framerate: " + framerate);
 	}
 }
 
 function gameInit() {
+	game_state = "loading";
 	c = document.getElementById("gameCanvas");
 	ctx = c.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
@@ -132,19 +169,21 @@ function parseMapSection(data) {
 	map_sections[0] = {};
 	map_sections[0][0] = data;
 	console.log("Map section 0,0 loaded.");
-	game_loaded = true;
+	game_state="loaded";
 }
 
 function gameLoop() {
 	if (loop_running) {
-		console.warn("Too slow!");
+		console.warn("Too slow! Skipping frame.");
 		return;
 	}
 	loop_running = true;
 	
 	clear();
 	
-	if (!game_loaded) {
+	updateDebug();
+	
+	if (game_state=="starting" || game_state == "loading") {
 		ctx.font = "30px Arial";
 		ctx.fillText("Loading... " + resources_loaded + "/" + resources_to_load, 30, 30);
 		loop_running = false;
@@ -153,12 +192,28 @@ function gameLoop() {
 	
 	showMap();
 	
-	ctx.font = "15px Arial";
-	ctx.fillText(frame_count, 30, 30);
-	ctx.fillText(framerate, 400, 30);
-	
 	frame_count++
 	loop_running = false;
+}
+
+function updateDebug() {
+	var secX, secY;
+	
+	$("#frame_count").text(frame_count);
+	$("#desired_framerate").text(desired_framerate);
+	$("#framerate").text(framerate);
+	$("#game_state").text(game_state);
+	
+	secX = Math.floor(camX/16);
+	secY = Math.floor(camY/16);
+	
+	$("#cam_pos").text("x: "+camX+" x: "+camY+" sx: "+secX+" sy: "+secY);
+	$("#tile_size").text(tile_width);
+	$("#selected_pack").text(selected_resource_pack);
+	
+	$("#num_anims").text(num_animations);
+	$("#num_triggered_anims").text(num_triggered_animations);
+	$("#num_entities").text(num_entities);
 }
 
 function clear() {
@@ -166,8 +221,8 @@ function clear() {
 }
 
 function showMap() {
-	var left = (c.width/2)-(camX*tile_width);
-	var top = (c.height/2)-(camY*tile_width);
+	var left = (c.width/2)-(camX*tile_width)-(tile_width/2);
+	var top = (c.height/2)-(camY*tile_width)-(tile_width/2);
 	//for each section {
 		num_layers = map_sections[0][0].tile_layers.length;
 		entity_layer = map_sections[0][0].entity_layer;
@@ -208,10 +263,12 @@ function getAnimationFrameOrDefault(sx, sy, x, y, layer, tileId) {
 			triggered: false,
 			triggered_by: null
 		}
+		num_animations++;
 	}
 	
-	if (animations[animKey].trigger == "load") {
+	if (!animations[animKey].triggered && animations[animKey].trigger == "load") {
 		animations[animKey].triggered = true;
+		num_triggered_animations++;
 	}
 	
 	if (animations[animKey].triggered) {
@@ -227,6 +284,7 @@ function getAnimationFrameOrDefault(sx, sy, x, y, layer, tileId) {
 		if (animations[animKey].repeat != 0) {
 			if (animations[animKey].plays++ >= animations[animKey].repeat) {
 				animations[animKey].triggered = false;
+				num_triggered_animations--;
 			}
 		}
 	}
@@ -287,7 +345,7 @@ temp_manifest = {
 				"gen3/flower1_frame5.png"
 			],
 			"trigger": "load",
-			"frame_time": 20,
+			"frame_time": 16,
 			"repeat": 0
 		},
 		"gen3:tallgrass1_base": "gen3/tallgrass1_base.png",
