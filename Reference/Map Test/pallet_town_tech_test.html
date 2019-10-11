@@ -1,40 +1,40 @@
 <!doctype HTML>
 <html>
-	<head>
-		<title>Pokemon World Technical Test</title>
-		<script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
-	</head>
-	<body>
-		<canvas id="gameCanvas" width="900" height="600" style="border: 1px solid black;"></canvas>
-		<div>
-			<p>
-				Frame:&nbsp;<span id="frame_count">-</span><br />
-				Target framerate:&nbsp;<span id="desired_framerate">-</span><br />
-				Actual framerate:&nbsp;<span id="framerate">-</span><br />
-			    Game state:&nbsp;<span id="game_state">-</span>
-			</p>
-			
-			<p>
-				Hero position:&nbsp;<span id="hero_pos">-</span><br />
-				Camera position:&nbsp;<span id="cam_pos">-</span><br />
-			    Tile size:&nbsp;<span id="tile_size">-</span>&nbsp;
-				<button onclick="tile_width++">Bigger</button>&nbsp;
-				<button onclick="tile_width--">Smaller</button><br />
-			    Resource pack:&nbsp;<span id="selected_pack">-</span>
-			</p>
-			
-			<p>
-				Tile animation count:&nbsp;<span id="num_anims">-</span>&nbsp;
-				(triggered: <span id="num_triggered_anims">-</span>)<br />
-				Entity count:&nbsp;<span id="num_entities">-</span>
-			</p>
-		</div>
-		<script>
+    <head>
+        <title>Pokemon World Technical Test</title>
+        <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
+    </head>
+    <body>
+        <canvas id="gameCanvas" width="900" height="600" style="border: 1px solid black;"></canvas>
+        <div>
+            <p>
+                Frame:&nbsp;<span id="frame_count">-</span><br />
+                Target framerate:&nbsp;<span id="desired_framerate">-</span><br />
+                Actual framerate:&nbsp;<span id="framerate">-</span><br />
+                Game state:&nbsp;<span id="game_state">-</span>
+            </p>
+            
+            <p>
+                Hero position:&nbsp;<span id="hero_pos">-</span><br />
+                Camera position:&nbsp;<span id="cam_pos">-</span><br />
+                Tile size:&nbsp;<span id="tile_size">-</span>&nbsp;
+                <button onclick="tile_width++">Bigger</button>&nbsp;
+                <button onclick="tile_width--">Smaller</button><br />
+                Resource pack:&nbsp;<span id="selected_pack">-</span>
+            </p>
+            
+            <p>
+                Tile animation count:&nbsp;<span id="num_anims">-</span>&nbsp;
+                (triggered: <span id="num_triggered_anims">-</span>)<br />
+                Entity count:&nbsp;<span id="num_entities">-</span>
+            </p>
+        </div>
+        <script>
 
 class PokemonWorldGame {
-	canvas = null;
-	context = null;
-	state = "starting";
+    canvas = null;
+    context = null;
+    state = "starting";
 // states:
 //  starting - initial state
 //  loading - loading resources
@@ -44,136 +44,424 @@ class PokemonWorldGame {
 //  playing - playing the game
 // future:
 //  auth_waiting - game waiting for user to sign in to an account
-	resourceManager;
-	frame_count = 0;
-	last_frame_count = 0;
-	desired_framerate = 50;
-	gameLoopInterval;
-	loop_running = false;
+    inputManager;
+    resourceManager;
+    mapManager;
+    entityManager;
+    thePlayer;
+    
+    frame_count = 0;
+    last_frame_count = 0;
+    desired_framerate = 500;
+    gameLoopInterval;
+    loop_running = false;
+    
+    start() {
+        this.state = "loading";
+        
+        this.canvas = document.getElementById("gameCanvas");
+        this.context = this.canvas.getContext("2d");
+        this.context.imageSmoothingEnabled = false;
+        
+        this.inputManager = new InputManager();
+        window.onkeyup = this.inputManager.keyup.bind(this.inputManager);
+        window.onkeydown = this.inputManager.keydown.bind(this.inputManager);
+        
+        this.resourceManager = new ResourceManager();
+        this.mapManager = new MapManager();
+        this.entityManager = new EntityManager();
+        
+        this.thePlayer = new Player(this.inputManager, this.mapManager, 8, 8, 180);
+        
+        // get resources
+        this.resourceManager.loadResources();
+        
+        // loop
+        var self = this;
+        this.gameLoopInterval = setInterval(function() {self.update.bind(self)();}, 1000/this.desired_framerate);
+    }
+    
+    update() {
+        if (this.loop_running) {
+            console.warn("Too slow! Skipping frame.");
+            return;
+        }
+        this.loop_running = true;
+        
+        this.inputManager.getInputs();
+        
+        if (this.state == "starting" || this.state == "loading") {
+            this.clear();
+            this.context.font = "30px Arial";
+            this.context.fillText("Loading... " + this.resourceManager.resources_loaded + "/" + this.resourceManager.resources_to_load, 30, 30);
+            if (this.resourceManager.resources_loaded >= this.resourceManager.resources_to_load) {
+                this.mapManager.tempLoadSections();
+            }
+            this.loop_running = false;
+            return;
+        }
+        
+        if (this.state == "loaded") {
+            this.state = "playing";
+        }
+        
+        if (this.state == "playing") {
+            // [components].update();
+			this.thePlayer.update();
+            this.clear();
+            // [components].draw();
+            this.drawMap();
+        }
+        
+        this.frame_count++
+        this.loop_running = false;
+    }
+    
+    clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
+    drawMap() {
+        var layer,x,y,palletId,tileId,frame;
+        var left = (this.canvas.width/2)-(camX*tile_width)-(tile_width/2);
+        var top = (this.canvas.height/2)-(camY*tile_width)-(tile_width/2);
+        //for each section {
+            var num_layers = this.mapManager.map_sections[0][0].tile_layers.length;
+            var entity_layer = this.mapManager.map_sections[0][0].entity_layer;
+            for (layer=0;layer<num_layers;layer++) {
+                for (x=0;x<16;x++) {
+                    for (y=0;y<16;y++) {
+                        palletId = this.mapManager.map_sections[0][0].tile_layers[layer][y][x];
+                        tileId = this.mapManager.map_sections[0][0].tile_pallet[palletId];
+                        frame = getAnimationFrameOrDefault(0, 0, x, y, layer, tileId);
+                        this.context.drawImage(this.resourceManager.resource_pack_assets.tile_textures[tileId][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
+                    }
+                }
+                if (layer === entity_layer) {
+                    // draw entities
+                    // draw player(s)
+					var playerTexture;
+					switch (this.thePlayer.rotation.z) {
+						case 0:
+							playerTexture = "gen3:male1_walk_back";
+							break;
+						case 90:
+							playerTexture = "gen3:male1_walk_right";
+							break;
+						case 180:
+							playerTexture = "gen3:male1_walk_front";
+							break;
+						case 270:
+							playerTexture = "gen3:male1_walk_left";
+							break;
+						default:
+					}
+					this.context.drawImage(this.resourceManager.resource_pack_assets.player_textures[playerTexture][0], left+(this.thePlayer.position.x*tile_width), top+(this.thePlayer.position.y*tile_width)-tile_width, tile_width, 2*tile_width);
+                }
+            }
+        // }
+    }
+}
+
+class InputManager {
+	// TODO: Add gamepad support
+	key_state = {};
+	control_state = {};
 	
-	start() {
-		this.state = "loading";
-		
-		this.canvas = document.getElementById("gameCanvas");
-		this.context = this.canvas.getContext("2d");
-		this.context.imageSmoothingEnabled = false;
-		
-		this.resourceManager = new ResourceManager();
-		
-		// get resources
-		this.resourceManager.loadResources();
-		
-		// loop
-		var self = this;
-		this.gameLoopInterval = setInterval(function() {self.update.bind(self)();}, 1000/this.desired_framerate);
-	}
-	
-	update() {
-		if (this.loop_running) {
-			console.warn("Too slow! Skipping frame.");
+	keydown(e) {
+		if (this.key_state[e.keyCode]) {
 			return;
 		}
-		this.loop_running = true;
-		
-		this.clear();
-		
-		updateDebug();
-		
-		if (this.state == "starting" || this.state == "loading") {
-			this.context.font = "30px Arial";
-			this.context.fillText("Loading... " + this.resourceManager.resources_loaded + "/" + this.resourceManager.resources_to_load, 30, 30);
-			if (this.resourceManager.resources_loaded >= this.resourceManager.resources_to_load) {
-				tempLoadSections();
+		this.key_state[e.keyCode] = keyStateEnum.Rising;
+	}
+	
+	keyup(e) {
+		this.key_state[e.keyCode] = keyStateEnum.Falling;
+	}
+	
+	getInputs() {
+		var control_name, keyCode;
+		for (control_name in this.control_map) {
+			this.control_state[control_name] = 0;
+		    for (keyCode of this.control_map[control_name]) {
+				if (this.key_state[keyCode] > this.control_state[control_name]) {
+					this.control_state[control_name] = this.key_state[keyCode];
+				}
 			}
-			this.loop_running = false;
-			return;
 		}
 		
-		showMap();
+		for (keyCode in this.key_state) {
+			switch (this.key_state[keyCode]) {
+				case keyStateEnum.Falling:
+					this.key_state[keyCode] = keyStateEnum.Released;
+					break;
+				case keyStateEnum.Rising:
+					this.key_state[keyCode] = keyStateEnum.Pressed;
+					break;
+				default:
+			}
+		}
 		
-		this.frame_count++
-		this.loop_running = false;
+		return this.control_state;
 	}
 	
-	clear() {
-		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	
+	control_map = {
+		"xMove-":[keyEnum.A, keyEnum.LeftArrow],
+		"xMove+":[keyEnum.D, keyEnum.RightArrow],
+		"xMoveAxis":[],
+		"yMove-":[keyEnum.W, keyEnum.UpArrow],
+		"yMove+":[keyEnum.S, keyEnum.DownArrow]
+	};
+}
+
+keyStateEnum = {Released:0, Falling:0.4, Rising:1, Pressed:2}; // numbered such that boolean works if state doesn't matter
+keyEnum = {
+	Backspace:8,
+	Tab:9,
+	Enter:13,
+	Return:13,
+	Shift:16,
+	Control:17,
+	Alt:18,
+	PauseBreak:19,
+	CapsLock:20,
+	Space:32,
+	End:35,
+	LeftArrow:37,
+	UpArrow:38,
+	RightArrow:39,
+	DownArrow:40,
+	Num1:49,
+	A:65,
+	D:68,
+	S:83,
+	W:87,
+	X:88,
+	WindowsKeyLeft:91,
+	WindowsKeyRight:92,
+	ContextMenu:93,
+	NumPad0:96,
+	NumPad1:97,
+	F1:112,
+	F2:113,
+	NumLock:144,
+	ScrollLock:145
+};
+
+class ResourceManager {
+    resources_to_load = 0;
+    resources_loaded = 0;
+    resource_pack_assets = {};
+    resource_pack_manifest = {};
+    selected_resource_pack = "default";
+    resource_pack_manifest;
+    
+    loadResources() {
+        var self = this;
+        //$.getJSON("resource packs/" + selected_resource_pack + "/manifest.json");
+        $.getJSON("https://api.myjson.com/bins/ir4ka", function(data) {
+            //resource_pack_manifest = data;
+            self.resource_pack_manifest = temp_manifest;
+            console.log();
+            self.loadResourcesFromManifest();
+        });
+    }
+    
+    loadResourcesFromManifest() {
+        var tileId;
+        var tileData;
+        this.resources_to_load = Object.keys(this.resource_pack_manifest.tile_textures).length;
+        this.resources_loaded = 0;
+        this.resource_pack_assets = {};
+        this.resource_pack_assets.tile_textures = {};
+		this.resource_pack_assets.player_textures = {};
+        for (tileId in this.resource_pack_manifest.tile_textures) {
+            tileData = this.resource_pack_manifest.tile_textures[tileId];
+            if (tileData !== null && typeof tileData === "object") {
+                // more complex tile loading
+                switch (tileData.type) {
+                    case "static":
+                        this.loadTileTextures(tileId, tileData.src);
+                        break;
+                    case "animated":
+                        // now we have a multiple tile textures to load
+                        this.resources_to_load += (tileData.src.length-1);
+                        this.loadTileTextures(tileId, tileData.src);
+                        break;
+                    default:
+                        console.warn("Resource pack '" + this.selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
+                        this.loadTileTextures(tileId, ["placeholder.png"]);
+                }
+                continue;
+            }
+            if (typeof tileData !== "string") {
+                // error in pack manifest, also covers null
+                console.warn("Resource pack '" + this.selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
+                // make a placeholder tile image with tileId text on it
+                this.loadTileTextures(tileId, ["placeholder.png"]);
+                continue;
+            }
+            // should just be a string representing the texture's src now, shorthand for above 'static' type
+            this.loadTileTextures(tileId,[tileData]);
+        }
+		for (tileId in this.resource_pack_manifest.player_textures) {
+            var srcs = this.resource_pack_manifest.player_textures[tileId];
+			this.resources_to_load += srcs.length;
+			this.resource_pack_assets.player_textures[tileId] = [];
+			var self = this;
+			var src, img;
+			for (src of srcs) {
+				img = new Image();
+				img.onload = function() {
+					self.resources_loaded++;
+				}
+				img.onerror = function() {
+					// make a placeholder tile image with tileId text on it
+					this.src = "resource packs/default/placeholder.png";
+					console.warn("Resource pack '" + self.selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
+				}
+				img.src = "resource packs/" + this.selected_resource_pack + "/" + src;
+				this.resource_pack_assets.player_textures[tileId].push(img);
+			}
+        }
+    }
+    
+    loadTileTextures(tileId, srcs) {
+        var src, img;
+        this.resource_pack_assets.tile_textures[tileId] = [];
+        var self = this;
+        for (src of srcs) {
+            img = new Image();
+            img.onload = function() {
+                self.resources_loaded++;
+            }
+            img.onerror = function() {
+                console.warn("Resource pack '" + self.selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
+                // make a placeholder tile image with tileId text on it
+                this.src = "resource packs/default/placeholder.png";
+            }
+            img.src = "resource packs/" + this.selected_resource_pack + "/" + src;
+            this.resource_pack_assets.tile_textures[tileId].push(img);
+        }
+    }
+}
+
+class MapManager {
+    map_sections;
+    
+    tempLoadSections() {
+        this.map_sections = {};
+        // get map section 0,0
+        var self = this;
+        $.getJSON("https://api.myjson.com/bins/1bc636", function(data) {
+            self.map_sections[0] = {};
+            //self.map_sections[0][0] = data;
+			self.map_sections[0][0] = temp_map_section;
+            pokemonWorldGame.state="loaded";
+        });
+    }
+	
+	getTileDataAt(x, y) {
+		var data = {movement:null,layers:[]}
+		var secX = Math.floor(x/16);
+		var secY = Math.floor(y/16);
+		var layer, palletId;
+        var num_layers = this.map_sections[secX][secY].tile_layers.length;
+		for (layer=0;layer<num_layers;layer++) {
+            palletId = this.map_sections[secX][secY].tile_layers[layer][y][x];
+            data.layers.push(this.map_sections[secX][secY].tile_pallet[palletId]);
+		}
+		palletId = this.map_sections[secX][secY].movement[y][x];
+        data.movement = this.map_sections[secX][secY].movement_pallet[palletId];
+		return data;
+	}
+	
+	canExitTile(x, y, rot) {
+		var rotFlag = 1<<(rot/90);
+		var d = this.getTileDataAt(x, y);
+		return d.movement.exit & rotFlag === rotFlag;
+	}
+	
+	canEnterTile(x, y, rot) {
+		rot = (rot+180)%360;
+		var rotFlag = 1<<(rot/90);
+		var d = this.getTileDataAt(x, y);
+		return d.movement.entry & rotFlag === rotFlag;
 	}
 }
 
-class ResourceManager {
-	resources_to_load = 0;
-	resources_loaded = 0;
-	resource_pack_assets = {};
-	resource_pack_manifest = {};
-	selected_resource_pack = "default";
-	resource_pack_manifest;
+class EntityManager {
+    entities = {};
+}
+
+class Player {
+    position = {x:0, y:0};
+    rotation = {z:0};
+	velocity = 0;
+	framesPerTile = {walk:25};
+	inputManager;
+	mapManager;
+    
+    constructor(inputManager, mapManager, posX, posY, rotZ) {
+		this.inputManager = inputManager;
+		this.mapManager = mapManager;
+        this.position.x = posX;
+        this.position.y = posY;
+        this.rotation.z = rotZ;
+    }
 	
-	loadResources() {
-		var self = this;
-		//$.getJSON("resource packs/" + selected_resource_pack + "/manifest.json");
-		$.getJSON("https://api.myjson.com/bins/ir4ka", function(data) {
-			//resource_pack_manifest = data;
-			self.resource_pack_manifest = temp_manifest;
-			console.log();
-			self.loadResourcesFromManifest();
-		});
-	}
-	
-	loadResourcesFromManifest() {
-		var tileId;
-		var tileData;
-		this.resources_to_load = Object.keys(this.resource_pack_manifest.tile_textures).length;
-		this.resources_loaded = 0;
-		this.resource_pack_assets = {};
-		this.resource_pack_assets.tile_textures = {};
-		for (tileId in this.resource_pack_manifest.tile_textures) {
-			tileData = this.resource_pack_manifest.tile_textures[tileId];
-			if (tileData !== null && typeof tileData === "object") {
-				// more complex tile loading
-				switch (tileData.type) {
-					case "static":
-						this.loadTileTextures(tileId, tileData.src);
-						break;
-					case "animated":
-						// now we have a multiple tile textures to load
-						this.resources_to_load += (tileData.src.length-1);
-						this.loadTileTextures(tileId, tileData.src);
-						break;
-					default:
-						console.warn("Resource pack '" + this.selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
-						this.loadTileTextures(tileId, ["placeholder.png"]);
-				}
-				continue;
-			}
-			if (typeof tileData !== "string") {
-				// error in pack manifest, also covers null
-				console.warn("Resource pack '" + this.selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
-				// make a placeholder tile image with tileId text on it
-				this.loadTileTextures(tileId, ["placeholder.png"]);
-				continue;
-			}
-			// should just be a string representing the texture's src now, shorthand for above 'static' type
-			this.loadTileTextures(tileId,[tileData]);
+	update() {
+		this.velocity = 0;
+		if (this.inputManager.control_state["xMove-"] === keyStateEnum.Rising) {
+			this.rotation.z = 270;
+			this.velocity = 1;
+		}
+		
+		if (this.inputManager.control_state["xMove+"] === keyStateEnum.Rising) {
+			this.rotation.z = 90;
+			this.velocity = 1;
+		}
+		
+		if (this.inputManager.control_state["yMove-"] === keyStateEnum.Rising) {
+			this.rotation.z = 0;
+			this.velocity = 1;
+		}
+		
+		if (this.inputManager.control_state["yMove+"] === keyStateEnum.Rising) {
+			this.rotation.z = 180;
+			this.velocity = 1;
+		}
+		if (this.velocity === 0) {
+			return;
+		}
+		var newPos = this.facingPosition();
+		if (this.mapManager.canExitTile(this.position.x, this.position.y, this.rotation.x) &&
+		    this.mapManager.canEnterTile(newPos.x, newPos.y, this.rotation.x)) {
+			this.position.x += newPos.x-this.position.x;
+			this.position.y += newPos.y-this.position.y;
 		}
 	}
 	
-	loadTileTextures(tileId, srcs) {
-		var src, img;
-		this.resource_pack_assets.tile_textures[tileId] = [];
-		var self = this;
-		for (src of srcs) {
-			img = new Image();
-			img.onload = function() {
-				self.resources_loaded++;
-			}
-			img.onerror = function() {
-				console.warn("Resource pack '" + self.selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
-				// make a placeholder tile image with tileId text on it
-				self.src = "resource packs/default/placeholder.png";
-			}
-			img.src = "resource packs/" + this.selected_resource_pack + "/" + src;
-			this.resource_pack_assets.tile_textures[tileId].push(img);
+	facingPosition() {
+		var p = {x:this.position.x,y:this.position.y};
+		switch (this.rotation.z) {
+			case 0:
+				p.y--;
+				break;
+			case 90:
+				p.x++;
+				break;
+			case 180:
+				p.y++;
+				break;
+			case 270:
+				p.x--;
+				break;
+			default:
 		}
+		//p.tile = this.mapManager.getTileDataAt(p.x, p.y);
+		return p;
 	}
 }
 
@@ -181,9 +469,7 @@ var our_player_id = "testid";
 var tile_width = 32;
 var camX = 8;
 var camY = 8;
-var map_sections;
-var frCheckInterval;
-var loop_running = false;
+var debugInterval;
 var framerate = 0;
 var num_animations = 0;
 var num_triggered_animations = 0;
@@ -191,136 +477,96 @@ var num_entities = 0;
 var animations = {};
 var entities = {};
 
-function tempLoadSections() {
-	map_sections = {};
-	// get map section 0,0
-	$.getJSON("https://api.myjson.com/bins/1bc636", parseMapSection);
-}
-
-function parseMapSection(data) {
-	map_sections[0] = {};
-	map_sections[0][0] = data;
-	console.log("Map section 0,0 loaded.");
-	pokemonWorldGame.state="loaded";
-}
-
 function frCheck() {
-	pokemonWorldGame.framerate = pokemonWorldGame.frame_count-pokemonWorldGame.last_frame_count;
-	pokemonWorldGame.last_frame_count = pokemonWorldGame.frame_count;
-	if (pokemonWorldGame.desired_framerate < 500 && pokemonWorldGame.framerate < pokemonWorldGame.desired_framerate) {
-		console.warn("Low framerate: " + pokemonWorldGame.framerate);
-	}
+    pokemonWorldGame.framerate = (pokemonWorldGame.frame_count-pokemonWorldGame.last_frame_count)*2;
+    pokemonWorldGame.last_frame_count = pokemonWorldGame.frame_count;
+    $("#framerate").css("color", pokemonWorldGame.framerate < pokemonWorldGame.desired_framerate ? "#FF0000" : "#000000");
 }
 
 function updateDebug() {
-	var secX, secY;
-	
-	$("#frame_count").text(pokemonWorldGame.frame_count);
-	$("#desired_framerate").text(pokemonWorldGame.desired_framerate);
-	$("#framerate").text(pokemonWorldGame.framerate);
-	$("#game_state").text(pokemonWorldGame.state);
-	
-	secX = Math.floor(camX/16);
-	secY = Math.floor(camY/16);
-	
-	$("#cam_pos").text("x: "+camX+" x: "+camY+" sx: "+secX+" sy: "+secY);
-	$("#tile_size").text(tile_width);
-	$("#selected_pack").text(pokemonWorldGame.selected_resource_pack);
-	
-	$("#num_anims").text(num_animations);
-	$("#num_triggered_anims").text(num_triggered_animations);
-	$("#num_entities").text(num_entities);
-}
-
-function showMap() {
-	var left = (pokemonWorldGame.canvas.width/2)-(camX*tile_width)-(tile_width/2);
-	var top = (pokemonWorldGame.canvas.height/2)-(camY*tile_width)-(tile_width/2);
-	//for each section {
-		num_layers = map_sections[0][0].tile_layers.length;
-		entity_layer = map_sections[0][0].entity_layer;
-		for (layer=0;layer<num_layers;layer++) {
-			for (x=0;x<16;x++) {
-				for (y=0;y<16;y++) {
-					palletId = map_sections[0][0].tile_layers[layer][y][x];
-					tileId = map_sections[0][0].tile_pallet[palletId];
-					frame = getAnimationFrameOrDefault(0, 0, x, y, layer, tileId);
-					pokemonWorldGame.context.drawImage(pokemonWorldGame.resourceManager.resource_pack_assets.tile_textures[tileId][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
-				}
-			}
-			if (layer === entity_layer) {
-				// draw entities
-				// draw player(s)
-			}
-		}
-	// }
+    var secX, secY;
+    
+    $("#frame_count").text(pokemonWorldGame.frame_count);
+    $("#desired_framerate").text(pokemonWorldGame.desired_framerate);
+    $("#framerate").text(pokemonWorldGame.framerate);
+    $("#game_state").text(pokemonWorldGame.state);
+    
+    secX = Math.floor(camX/16);
+    secY = Math.floor(camY/16);
+    
+    $("#cam_pos").text("x: "+camX+" x: "+camY+" sx: "+secX+" sy: "+secY);
+    $("#tile_size").text(tile_width);
+    $("#selected_pack").text(pokemonWorldGame.selected_resource_pack);
+    
+    $("#num_anims").text(num_animations);
+    $("#num_triggered_anims").text(num_triggered_animations);
+    $("#num_entities").text(num_entities);
 }
 
 
 function getAnimationFrameOrDefault(sx, sy, x, y, layer, tileId) {
-	if (pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].type != "animated") {
-		return 0;
-	}
-	
-	animKey = "" + sx + "-" + sy + "-" + x + "-" + y + "-" + layer;
-	
-	if (!(animKey in animations)) {
-		animations[animKey] = {
-			trigger: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].trigger,
-			frame_time: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].frame_time,
-			repeat: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].repeat,
-			numFrames: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].src.length,
-			currentFrame: 0,
-			currentFrameCounter: 0,
-			plays: 0,
-			triggered: false,
-			triggered_by: null
-		}
-		num_animations++;
-	}
-	
-	if (!animations[animKey].triggered && animations[animKey].trigger == "load") {
-		animations[animKey].triggered = true;
-		num_triggered_animations++;
-	}
-	
-	if (animations[animKey].triggered) {
-		animations[animKey].currentFrameCounter++;
-		if (animations[animKey].currentFrameCounter > animations[animKey].frame_time) {
-			animations[animKey].currentFrame++;
-			animations[animKey].currentFrameCounter = 0;
-		}
-	}
-	
-	if (animations[animKey].currentFrame >= animations[animKey].numFrames) {
-		animations[animKey].currentFrame%=animations[animKey].numFrames;
-		if (animations[animKey].repeat != 0) {
-			if (animations[animKey].plays++ >= animations[animKey].repeat) {
-				animations[animKey].triggered = false;
-				num_triggered_animations--;
-			}
-		}
-	}
-	
-	return animations[animKey].currentFrame;
+    if (pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId] == null) {
+        return 0;
+    }
+    if (pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].type != "animated") {
+        return 0;
+    }
+    
+    animKey = "" + sx + "-" + sy + "-" + x + "-" + y + "-" + layer;
+    
+    if (!(animKey in animations)) {
+        animations[animKey] = {
+            trigger: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].trigger,
+            frame_time: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].frame_time,
+            repeat: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].repeat,
+            numFrames: pokemonWorldGame.resourceManager.resource_pack_manifest.tile_textures[tileId].src.length,
+            currentFrame: 0,
+            currentFrameCounter: 0,
+            plays: 0,
+            triggered: false,
+            triggered_by: null
+        }
+        num_animations++;
+    }
+    
+    if (!animations[animKey].triggered && animations[animKey].trigger == "load") {
+        animations[animKey].triggered = true;
+        num_triggered_animations++;
+    }
+    
+    if (animations[animKey].triggered) {
+        animations[animKey].currentFrameCounter++;
+        if (animations[animKey].currentFrameCounter > animations[animKey].frame_time) {
+            animations[animKey].currentFrame++;
+            animations[animKey].currentFrameCounter = 0;
+        }
+    }
+    
+    if (animations[animKey].currentFrame >= animations[animKey].numFrames) {
+        animations[animKey].currentFrame%=animations[animKey].numFrames;
+        if (animations[animKey].repeat != 0) {
+            if (animations[animKey].plays++ >= animations[animKey].repeat) {
+                animations[animKey].triggered = false;
+                num_triggered_animations--;
+            }
+        }
+    }
+    
+    return animations[animKey].currentFrame;
 }
 
 var pokemonWorldGame;
 
 $(document).ready(function() {
-	pokemonWorldGame = new PokemonWorldGame();
-	pokemonWorldGame.start();
-	frCheckInterval = setInterval(frCheck, 1000);
+    pokemonWorldGame = new PokemonWorldGame();
+    pokemonWorldGame.start();
+    debugInterval = setInterval(function() {frCheck(); updateDebug();}, 500);
 });
 
 
 temp_manifest = {
 	"tile_textures": {
-		"gen3:void": {
-			"type": "static",
-			"src": [
-				"gen3/void.png"
-			]
-		},
+		"gen3:void": "gen3/void.png",
 		"gen3:tree_md_bottomleft": "gen3/tree_md_bottomleft.png",
 		"gen3:tree_md_bottomright": "gen3/tree_md_bottomright.png",
 		"gen3:grass1_variant1": "gen3/grass1_variant1.png",
@@ -400,8 +646,162 @@ temp_manifest = {
 		"gen3:house1_door1_red": "gen3/buildings/house1_door1_red.png"
 	},
 	"entity_textures": {},
+	"player_textures": {
+		"gen3:male1_walk_front": ["gen3/entity/player/male1/walk_front1.png", "gen3/entity/player/male1/walk_front2.png", "gen3/entity/player/male1/walk_front3.png"],
+		"gen3:male1_walk_back": ["gen3/entity/player/male1/walk_back1.png", "gen3/entity/player/male1/walk_back2.png", "gen3/entity/player/male1/walk_back3.png"],
+		"gen3:male1_walk_left": ["gen3/entity/player/male1/walk_left1.png", "gen3/entity/player/male1/walk_left2.png", "gen3/entity/player/male1/walk_left3.png"],
+		"gen3:male1_walk_right": ["gen3/entity/player/male1/walk_right1.png", "gen3/entity/player/male1/walk_right2.png", "gen3/entity/player/male1/walk_right3.png"]
+	},
 	"sounds": {}
 };
-		</script>
-	</body>
+
+temp_map_section = {
+	"entity_layer": 1,
+	
+	"tile_pallet": [
+		"gen3:void",
+		"gen3:tree_md_bottomleft",
+		"gen3:tree_md_bottomright",
+		"gen3:grass1_variant1",
+		"gen3:grass1_variant2",
+		"gen3:tree_md_midleft_nobg",
+		"gen3:tree_md_midright_nobg",
+		"gen3:tree_md_topleft_nobg",
+		"gen3:tree_md_topright_nobg",
+		"gen3:path1_outsidecorner_topleft_thick",
+		"gen3:path1_outsidecorner_topright_thick",
+		"gen3:path1_side_left_thick",
+		"gen3:path1_center",
+		"gen3:path1_side_right_thick",
+		"gen3:path1_side_top_thick",
+		"gen3:path1_insidecorner_topleft_thick_variant1",
+		"gen3:path1_insidecorner_topright_thick",
+		"gen3:path1_insidecorner_bottomright_thin",
+		"gen3:path1_insidecorner_bottomleft_thin",
+		"gen3:path1_side_bottom_thin",
+		"gen3:path1_side_right_thin",
+		"gen3:path1_insidecorner_topright_thickthin",
+		"gen3:path1_insidecorner_topleft_thickthin",
+		"gen3:path1_side_left_thin",
+		"gen3:grass1_variant5",
+		"gen3:path1_side_bottom_thin_variant2",
+		"gen3:grass1_variant3",
+		"gen3:grass1_variant4",
+		"gen3:fence1_horizontal",
+		"gen3:sign1",
+		"gen3:sign2",
+		"gen3:flower1",
+		"gen3:mailbox1_part1",
+		"gen3:mailbox1_part2",
+		"gen3:house1_roof_red_n",
+		"gen3:house1_roof_red_nw",
+		"gen3:house1_roof_red_ne",
+		"gen3:house1_roof_red_w",
+		"gen3:house1_roof_red",
+		"gen3:house1_roof_red_e",
+		"gen3:house1_roof_red_sw",
+		"gen3:house1_roof_red_s",
+		"gen3:house1_roof_red_se",
+		"gen3:house1_wall_w2",
+		"gen3:house1_wall_w1",
+		"gen3:house1_wall_2_part1",
+		"gen3:house1_wall_2_part2",
+		"gen3:house1_wall_2_part3",
+		"gen3:house1_wall_e2",
+		"gen3:house1_wall_e1",
+		"gen3:house1_wall_1_part2",
+		"gen3:house1_wall_1_part1",
+		"gen3:house1_door1_red"
+	],
+	
+	"movement_pallet": [
+		{"entry":15,"exit":15,"modes":31},
+		{"entry":0,"exit":0,"modes":0}
+	],
+	
+	"border": {
+		"tile_width": 2,
+		"tile_height": 2,
+		"tile_layers": [
+			[[4, 3],
+			 [1, 2]],
+			[[5, 6],
+			 [7, 8]]
+		]
+	},
+	
+	"tile_layers": [
+		[[4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9,10, 4, 3],
+		 [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,11,13, 1, 2],
+		 [4, 3, 9,14,14,14,14,14,14,14,14,14,15,16,14,14],
+		 [1, 2,11,12,12,12,12,12,12,12,12,12,12,12,12,12],
+		 [4, 3,11,17,19,24,24,24,24,24,18,12,17,19,24,24],
+		 [1, 2,11,20, 3,24,24,24,24,24,23,12,20, 3,24,24],
+		 [4, 3,11,20,24,24,24,24,24,24,23,12,20,24,24,24],
+		 [1, 2,11,20,24,24,24,24,24,24,23,12,20,24,24,24],
+		 [4, 3,11,21,14,22,12,21,14,14,22,12,21,14,22,12],
+		 [1, 2,11,12,12,12,12,12,12,12,12,12,12,12,12,12],
+		 [4, 3,11,12,12,12,12,12,12,12,12,12,17,24,24,24],
+		 [1, 2,11,12,17,25,25,25,25,24,18,12,20,24,24,24],
+		 [4, 3,11,12,20,26,26,26,26, 3,23,12,20,24,24,24],
+		 [1, 2,11,12,20,26,26,26,26,26,23,12,20,24,24,24],
+		 [4, 3,11,12,20,24,27, 3,27, 3,23,12,21,14,14,22],
+		 [1, 2,11,12,21,14,14,14,14,14,22,12,17,19,19,19]],
+		 
+		[[5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 0, 0, 5, 6],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [5, 6, 0, 0, 0,37,38,38,38,39, 0, 0, 0, 0,37,38],
+		 [0, 0, 0, 0, 0,40,41,41,41,42, 0, 0, 0, 0,40,41],
+		 [5, 6, 0, 0, 0,43,45,46,47,48, 0, 0, 0, 0,43,45],
+		 [0, 0, 0, 0,32,44,52,51,50,49, 0, 0, 0,32,44,52],
+		 [5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0,28,28,28,28,29, 0, 0, 0, 0, 0, 0],
+		 [5, 6, 0, 0, 0,31,31,31,31, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0,31,31,31,31, 0, 0, 0, 0, 0, 0, 0],
+		 [5, 6, 0, 0, 0,30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
+		 
+		[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [7, 8, 0, 0, 0,35,34,34,34,36, 0, 0, 0, 0,35,34],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0,33, 0, 0, 0, 0, 0, 0, 0, 0,33, 0, 0],
+		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+	],
+	
+	"movement": [
+		[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
+		[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1],
+		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1],
+		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1],
+		[1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	]
+};
+        </script>
+    </body>
 </html>
