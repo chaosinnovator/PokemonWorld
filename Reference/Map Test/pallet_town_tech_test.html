@@ -31,6 +31,87 @@
 		</div>
 		<script>
 
+class PokemonWorldGame {
+	canvas = null;
+	context = null;
+	state = "starting";
+// states:
+//  starting - initial state
+//  loading - loading resources
+//  loaded - resources loaded but not playing yet
+//  intro - playing game intro/splash screen(s)
+//  main_menu - at game menu
+//  playing - playing the game
+// future:
+//  auth_waiting - game waiting for user to sign in to an account
+	resources_to_load = 0;
+	resources_loaded = 0;
+	resource_pack_assets = {};
+	resource_pack_manifest = {};
+	selected_resource_pack = "default";
+	resource_pack_manifest;
+	
+	loadResources() {
+		var tileId;
+		var tileData;
+		this.resources_to_load = Object.keys(this.resource_pack_manifest.tile_textures).length;
+		this.resources_loaded = 0;
+		this.resource_pack_assets = {};
+		this.resource_pack_assets.tile_textures = {};
+		for (tileId in this.resource_pack_manifest.tile_textures) {
+			tileData = this.resource_pack_manifest.tile_textures[tileId];
+			if (tileData !== null && typeof tileData === "object") {
+				// more complex tile loading
+				switch (tileData.type) {
+					case "static":
+						loadTileTextures(tileId, tileData.src);
+						break;
+					case "animated":
+						// now we have a multiple tile textures to load
+						this.resources_to_load += (tileData.src.length-1);
+						loadTileTextures(tileId, tileData.src);
+						break;
+					default:
+						console.warn("Resource pack '" + this.selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
+						loadTileTextures(tileId, ["placeholder.png"]);
+				}
+				continue;
+			}
+			if (typeof tileData !== "string") {
+				// error in pack manifest, also covers null
+				console.warn("Resource pack '" + this.selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
+				// make a placeholder tile image with tileId text on it
+				loadTileTextures(tileId, ["placeholder.png"]);
+				continue;
+			}
+			// should just be a string representing the texture's src now, shorthand for above 'static' type
+			loadTileTextures(tileId,[tileData]);
+		}
+	}
+	
+	start() {
+		this.state = "loading";
+		
+		this.canvas = document.getElementById("gameCanvas");
+		this.context = this.canvas.getContext("2d");
+		this.context.imageSmoothingEnabled = false;
+		
+		// get resources
+		//resource_pack_manifest = $.getJSON("resource packs/" + selected_resource_pack + "/manifest.json");
+		var self = this;
+		$.getJSON("https://api.myjson.com/bins/ir4ka", function(data) {
+			//resource_pack_manifest = data;
+			self.resource_pack_manifest = temp_manifest;
+			console.log();
+			self.loadResources();
+		});
+		
+		// loop
+		gameLoopInterval = setInterval(gameLoop, 1000/desired_framerate);
+		frCheckInterval = setInterval(frCheck, 1000);
+	}
+}
+
 var our_player_id = "testid";
 var tile_width = 32;
 var camX = 8;
@@ -56,22 +137,6 @@ var num_entities = 0;
 var animations = {};
 var entities = {};
 var game_state = "starting";
-// states:
-//  starting - initial state
-//  loading - loading resources
-//  loaded - resources loaded but not playing yet
-//  intro - playing game intro/splash screen(s)
-//  main_menu - at game menu
-//  playing - playing the game
-// future:
-//  auth_waiting - game waiting for user to sign in to an account
-
-function startGame() {
-	gameInit();
-	// loop
-	gameLoopInterval = setInterval(gameLoop, 1000/desired_framerate);
-	frCheckInterval = setInterval(frCheck, 1000);
-}
 
 function frCheck() {
 	framerate = frame_count-last_frame_count;
@@ -81,80 +146,27 @@ function frCheck() {
 	}
 }
 
-function gameInit() {
-	game_state = "loading";
-	c = document.getElementById("gameCanvas");
-	ctx = c.getContext("2d");
-	ctx.imageSmoothingEnabled = false;
-	
-	// get resources
-	//resource_pack_manifest = $.getJSON("resource packs/" + selected_resource_pack + "/manifest.json");
-	$.getJSON("https://api.myjson.com/bins/ir4ka", function(data) {
-		//resource_pack_manifest = data;
-		resource_pack_manifest = temp_manifest;
-		loadResources();
-	});
-}
-
-function loadResources() {
-	var tileId;
-	var tileData;
-	resources_to_load = Object.keys(resource_pack_manifest.tile_textures).length;
-	resources_loaded = 0;
-	resource_pack_assets = {};
-	resource_pack_assets.tile_textures = {};
-	for (tileId in resource_pack_manifest.tile_textures) {
-		tileData = resource_pack_manifest.tile_textures[tileId];
-		if (tileData !== null && typeof tileData === "object") {
-			// more complex tile loading
-			switch (tileData.type) {
-				case "static":
-					loadTileTextures(tileId, tileData.src);
-					break;
-				case "animated":
-					// now we have a multiple tile textures to load
-					resources_to_load += (tileData.src.length-1);
-					loadTileTextures(tileId, tileData.src);
-					break;
-				default:
-					console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
-					loadTileTextures(tileId, ["placeholder.png"]);
-			}
-			continue;
-		}
-		if (typeof tileData !== "string") {
-			// error in pack manifest, also covers null
-			console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' doesn't have a valid texture.");
-			// make a placeholder tile image with tileId text on it
-			loadTileTextures(tileId, ["placeholder.png"]);
-			continue;
-		}
-		// should just be a string representing the texture's src now, shorthand for above 'static' type
-		loadTileTextures(tileId,[tileData]);
-	}
-}
-
 function loadTileTextures(tileId, srcs) {
 	var src;
-	resource_pack_assets.tile_textures[tileId] = [];
+	pokemonWorldGame.resource_pack_assets.tile_textures[tileId] = [];
 	for (src of srcs) {
 		img = new Image();
 		img.onload = function() {
-			resources_loaded++;
+			pokemonWorldGame.resources_loaded++;
 			checkResourceLoadProgress();
 		}
 		img.onerror = function() {
-			console.warn("Resource pack '" + selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
+			console.warn("Resource pack '" + pokemonWorldGame.selected_resource_pack + "': tile '" + tileId + "' couldn't load texture from " + src + ".");
 			// make a placeholder tile image with tileId text on it
 			this.src = "resource packs/default/placeholder.png";
 		}
-		img.src = "resource packs/" + selected_resource_pack + "/" + src;
-		resource_pack_assets.tile_textures[tileId].push(img);
+		img.src = "resource packs/" + pokemonWorldGame.selected_resource_pack + "/" + src;
+		pokemonWorldGame.resource_pack_assets.tile_textures[tileId].push(img);
 	}
 }
 
 function checkResourceLoadProgress() {
-	if (resources_loaded >= resources_to_load) {
+	if (pokemonWorldGame.resources_loaded >= pokemonWorldGame.resources_to_load) {
 		tempLoadSections();
 	}
 }
@@ -169,7 +181,7 @@ function parseMapSection(data) {
 	map_sections[0] = {};
 	map_sections[0][0] = data;
 	console.log("Map section 0,0 loaded.");
-	game_state="loaded";
+	pokemonWorldGame.state="loaded";
 }
 
 function gameLoop() {
@@ -183,9 +195,9 @@ function gameLoop() {
 	
 	updateDebug();
 	
-	if (game_state=="starting" || game_state == "loading") {
-		ctx.font = "30px Arial";
-		ctx.fillText("Loading... " + resources_loaded + "/" + resources_to_load, 30, 30);
+	if (pokemonWorldGame.state=="starting" || pokemonWorldGame.state == "loading") {
+		pokemonWorldGame.context.font = "30px Arial";
+		pokemonWorldGame.context.fillText("Loading... " + pokemonWorldGame.resources_loaded + "/" + pokemonWorldGame.resources_to_load, 30, 30);
 		loop_running = false;
 		return;
 	}
@@ -202,14 +214,14 @@ function updateDebug() {
 	$("#frame_count").text(frame_count);
 	$("#desired_framerate").text(desired_framerate);
 	$("#framerate").text(framerate);
-	$("#game_state").text(game_state);
+	$("#game_state").text(pokemonWorldGame.state);
 	
 	secX = Math.floor(camX/16);
 	secY = Math.floor(camY/16);
 	
 	$("#cam_pos").text("x: "+camX+" x: "+camY+" sx: "+secX+" sy: "+secY);
 	$("#tile_size").text(tile_width);
-	$("#selected_pack").text(selected_resource_pack);
+	$("#selected_pack").text(pokemonWorldGame.selected_resource_pack);
 	
 	$("#num_anims").text(num_animations);
 	$("#num_triggered_anims").text(num_triggered_animations);
@@ -217,12 +229,12 @@ function updateDebug() {
 }
 
 function clear() {
-	ctx.clearRect(0, 0, c.width, c.height);
+	pokemonWorldGame.context.clearRect(0, 0, pokemonWorldGame.canvas.width, pokemonWorldGame.canvas.height);
 }
 
 function showMap() {
-	var left = (c.width/2)-(camX*tile_width)-(tile_width/2);
-	var top = (c.height/2)-(camY*tile_width)-(tile_width/2);
+	var left = (pokemonWorldGame.canvas.width/2)-(camX*tile_width)-(tile_width/2);
+	var top = (pokemonWorldGame.canvas.height/2)-(camY*tile_width)-(tile_width/2);
 	//for each section {
 		num_layers = map_sections[0][0].tile_layers.length;
 		entity_layer = map_sections[0][0].entity_layer;
@@ -232,7 +244,7 @@ function showMap() {
 					palletId = map_sections[0][0].tile_layers[layer][y][x];
 					tileId = map_sections[0][0].tile_pallet[palletId];
 					frame = getAnimationFrameOrDefault(0, 0, x, y, layer, tileId);
-					ctx.drawImage(resource_pack_assets.tile_textures[tileId][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
+					pokemonWorldGame.context.drawImage(pokemonWorldGame.resource_pack_assets.tile_textures[tileId][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
 				}
 			}
 			if (layer === entity_layer) {
@@ -245,7 +257,7 @@ function showMap() {
 
 
 function getAnimationFrameOrDefault(sx, sy, x, y, layer, tileId) {
-	if (resource_pack_manifest.tile_textures[tileId].type != "animated") {
+	if (pokemonWorldGame.resource_pack_manifest.tile_textures[tileId].type != "animated") {
 		return 0;
 	}
 	
@@ -253,10 +265,10 @@ function getAnimationFrameOrDefault(sx, sy, x, y, layer, tileId) {
 	
 	if (!(animKey in animations)) {
 		animations[animKey] = {
-			trigger: resource_pack_manifest.tile_textures[tileId].trigger,
-			frame_time: resource_pack_manifest.tile_textures[tileId].frame_time,
-			repeat: resource_pack_manifest.tile_textures[tileId].repeat,
-			numFrames: resource_pack_manifest.tile_textures[tileId].src.length,
+			trigger: pokemonWorldGame.resource_pack_manifest.tile_textures[tileId].trigger,
+			frame_time: pokemonWorldGame.resource_pack_manifest.tile_textures[tileId].frame_time,
+			repeat: pokemonWorldGame.resource_pack_manifest.tile_textures[tileId].repeat,
+			numFrames: pokemonWorldGame.resource_pack_manifest.tile_textures[tileId].src.length,
 			currentFrame: 0,
 			currentFrameCounter: 0,
 			plays: 0,
@@ -292,8 +304,11 @@ function getAnimationFrameOrDefault(sx, sy, x, y, layer, tileId) {
 	return animations[animKey].currentFrame;
 }
 
+var pokemonWorldGame;
+
 $(document).ready(function() {
-	startGame();
+	pokemonWorldGame = new PokemonWorldGame();
+	pokemonWorldGame.start();
 });
 
 
