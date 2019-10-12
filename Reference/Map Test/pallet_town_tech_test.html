@@ -78,10 +78,10 @@ class PokemonWorldGame {
         
         // loop
         var self = this;
-        this.gameLoopInterval = setInterval(function() {self.update.bind(self)();}, 1000/this.desired_framerate);
+        this.gameLoopInterval = setInterval(this.tick.bind(this), 1000/this.desired_framerate);
     }
     
-    update() {
+    tick() {
         if (this.loop_running) {
             console.warn("Too slow! Skipping frame.");
             return;
@@ -107,7 +107,7 @@ class PokemonWorldGame {
         
         if (this.state == "playing") {
             // [components].update();
-			this.thePlayer.update();
+			this.thePlayer.tick();
             this.clear();
             // [components].draw();
             this.drawMap();
@@ -411,11 +411,11 @@ class Player {
         this.rotation.z = rotZ;
     }
 	
-	update() {
 		this.velocity = 0;
 		if (this.inputManager.control_state["xMove-"] === keyStateEnum.Rising) {
 			this.rotation.z = 270;
 			this.velocity = 1;
+	tick() {
 		}
 		
 		if (this.inputManager.control_state["xMove+"] === keyStateEnum.Rising) {
