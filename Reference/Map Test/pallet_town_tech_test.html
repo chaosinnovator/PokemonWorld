@@ -508,9 +508,12 @@ function updateDebug() {
     $("#desired_framerate").text(pokemonWorldGame.desired_framerate);
     $("#game_state").text(pokemonWorldGame.state);
     
+	pSecX = Math.floor(pokemonWorldGame.thePlayer.position.x/16);
+    pSecY = Math.floor(pokemonWorldGame.thePlayer.position.y/16);
     secX = Math.floor(camX/16);
     secY = Math.floor(camY/16);
     
+    $("#hero_pos").text("x: "+pokemonWorldGame.thePlayer.position.x+" x: "+pokemonWorldGame.thePlayer.position.y+" sx: "+pSecX+" sy: "+pSecY);
     $("#cam_pos").text("x: "+camX+" x: "+camY+" sx: "+secX+" sy: "+secY);
     $("#tile_size").text(tile_width);
     $("#selected_pack").text(pokemonWorldGame.selected_resource_pack);
