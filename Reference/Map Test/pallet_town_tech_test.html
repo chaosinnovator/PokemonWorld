@@ -56,6 +56,8 @@ class PokemonWorldGame {
 	framerate = [0];
     gameLoopInterval;
     loop_running = false;
+	
+	camLockToPlayer = true;
     
     start() {
         this.state = "loading";
@@ -109,6 +111,12 @@ class PokemonWorldGame {
         if (this.state == "playing") {
             // [components].update();
 			this.thePlayer.tick();
+			
+			if (this.camLockToPlayer) {
+				camX = this.thePlayer.position.x;
+				camY = this.thePlayer.position.y;
+			}
+			
             this.clear();
             // [components].draw();
             this.drawMap();
