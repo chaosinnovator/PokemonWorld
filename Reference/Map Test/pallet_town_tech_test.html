@@ -53,6 +53,7 @@ class PokemonWorldGame {
     frame_count = 0;
     last_frame_count = 0;
     desired_framerate = 500;
+	framerate = [0];
     gameLoopInterval;
     loop_running = false;
     
@@ -470,7 +471,6 @@ var tile_width = 32;
 var camX = 8;
 var camY = 8;
 var debugInterval;
-var framerate = 0;
 var num_animations = 0;
 var num_triggered_animations = 0;
 var num_entities = 0;
@@ -478,9 +478,19 @@ var animations = {};
 var entities = {};
 
 function frCheck() {
-    pokemonWorldGame.framerate = (pokemonWorldGame.frame_count-pokemonWorldGame.last_frame_count)*2;
+    pokemonWorldGame.framerate.push((pokemonWorldGame.frame_count-pokemonWorldGame.last_frame_count)*10);
     pokemonWorldGame.last_frame_count = pokemonWorldGame.frame_count;
-    $("#framerate").css("color", pokemonWorldGame.framerate < pokemonWorldGame.desired_framerate ? "#FF0000" : "#000000");
+	var l = pokemonWorldGame.framerate.length;
+	var fr = 0;
+	if (l >= 10) {
+		for (var i = 0; i < l; i++) {
+			fr += pokemonWorldGame.framerate[i];
+		}
+		fr = fr/l;
+		pokemonWorldGame.framerate.shift();
+	}
+    $("#framerate").text(fr);
+    $("#framerate").css("color", fr < pokemonWorldGame.desired_framerate ? "#FF0000" : "#000000");
 }
 
 function updateDebug() {
@@ -488,7 +498,6 @@ function updateDebug() {
     
     $("#frame_count").text(pokemonWorldGame.frame_count);
     $("#desired_framerate").text(pokemonWorldGame.desired_framerate);
-    $("#framerate").text(pokemonWorldGame.framerate);
     $("#game_state").text(pokemonWorldGame.state);
     
     secX = Math.floor(camX/16);
@@ -560,7 +569,7 @@ var pokemonWorldGame;
 $(document).ready(function() {
     pokemonWorldGame = new PokemonWorldGame();
     pokemonWorldGame.start();
-    debugInterval = setInterval(function() {frCheck(); updateDebug();}, 500);
+    debugInterval = setInterval(function() {frCheck(); updateDebug();}, 100);
 });
 
 
