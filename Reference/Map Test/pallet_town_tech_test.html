@@ -3,6 +3,13 @@
     <head>
         <title>Pokemon World Technical Test</title>
         <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
+		<style>
+@media screen and (min-width:900px) {
+	#mobileControlContainer {
+		display: none;
+	}
+}
+		</style>
     </head>
     <body>
         <canvas id="gameCanvas" width="900" height="600" style="border: 1px solid black;"></canvas>
@@ -28,6 +35,21 @@
                 (triggered: <span id="num_triggered_anims">-</span>)<br />
                 Entity count:&nbsp;<span id="num_entities">-</span>
             </p>
+			<div id="mobileControlContainer" style="position:fixed;bottom:100px;right:100px;">
+				<table>
+					<tr><td></td><td>
+						<button ontouchstart="setControl('yMove-', true);" ontouchend="setControl('yMove-', false);" style="width:10rem;height:10rem;"></button>
+					</td><td></td></tr>
+					<tr><td>
+						<button ontouchstart="setControl('xMove-', true);" ontouchend="setControl('xMove-', false);" style="width:10rem;height:10rem;"></button>
+					</td><td></td><td>
+						<button ontouchstart="setControl('xMove+', true);" ontouchend="setControl('xMove+', false);" style="width:10rem;height:10rem;"></button>
+					</td></tr>
+					<tr><td></td><td>
+						<button ontouchstart="setControl('yMove+', true);" ontouchend="setControl('yMove+', false);" style="width:10rem;height:10rem;"></button>
+					</td><td></td></tr>
+				</table>
+			</div>
         </div>
         <script>
 
@@ -198,6 +220,7 @@ class InputManager {
 			}
 		}
 		
+		
 		for (keyCode in this.key_state) {
 			switch (this.key_state[keyCode]) {
 				case keyStateEnum.Falling:
@@ -256,6 +279,21 @@ keyEnum = {
 	NumLock:144,
 	ScrollLock:145
 };
+
+// TEMP/TODO: browser input for mobile
+browserControlKeyCodes = {
+	"xMove-":keyEnum.LeftArrow,
+	"xMove+":keyEnum.RightArrow,
+	"yMove-":keyEnum.UpArrow,
+	"yMove+":keyEnum.DownArrow
+};
+function setControl(control_name, state) {
+	if (state) {
+		pokemonWorldGame.inputManager.keydown({keyCode: browserControlKeyCodes[control_name]});
+	} else {
+		pokemonWorldGame.inputManager.keyup({keyCode: browserControlKeyCodes[control_name]});
+	}
+}
 
 class ResourceManager {
     resources_to_load = 0;
@@ -549,7 +587,7 @@ class Player {
 }
 
 var our_player_id = "testid";
-var tile_width = 32;
+var tile_width = 48;
 var camX = 8;
 var camY = 8;
 var debugInterval;
