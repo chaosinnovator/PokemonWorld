@@ -52,7 +52,7 @@ class PokemonWorldGame {
     
     frame_count = 0;
     last_frame_count = 0;
-    desired_framerate = 500;
+    desired_framerate = 60;
 	framerate = [0];
     gameLoopInterval;
     loop_running = false;
@@ -165,7 +165,7 @@ class PokemonWorldGame {
 							break;
 						default:
 					}
-					this.context.drawImage(this.resourceManager.resource_pack_assets.player_textures[playerTexture][0], left+(this.thePlayer.position.x*tile_width), top+(this.thePlayer.position.y*tile_width)-tile_width, tile_width, 2*tile_width);
+					this.context.drawImage(this.resourceManager.resource_pack_assets.player_textures[playerTexture][this.thePlayer.animFrame], left+(this.thePlayer.position.x*tile_width), top+(this.thePlayer.position.y*tile_width)-tile_width, tile_width, 2*tile_width);
                 }
             }
         // }
@@ -406,11 +406,18 @@ class EntityManager {
 
 class Player {
     position = {x:0, y:0};
+	tile_position = {x:0, y:0};
     rotation = {z:0};
-	velocity = 0;
-	framesPerTile = {walk:25};
+	velocity = {x:0, y:0};
+	framesPerTile = {walk:18,run:7,turnCooldown:8,blocked:1};
+	turnCooldownThreshold = -2;
+	cooldown = 0;
 	inputManager;
 	mapManager;
+	isMoving = false;
+	animFrame = 0;
+	lastAnim = 0;
+	animCooldown = 0;
     
     constructor(inputManager, mapManager, posX, posY, rotZ) {
 		this.inputManager = inputManager;
@@ -418,42 +425,107 @@ class Player {
         this.position.x = posX;
         this.position.y = posY;
         this.rotation.z = rotZ;
+		this.tile_position.x = posX;
+		this.tile_position.y = posY;
     }
 	
-		this.velocity = 0;
-		if (this.inputManager.control_state["xMove-"] === keyStateEnum.Rising) {
-			this.rotation.z = 270;
-			this.velocity = 1;
 	tick() {
+		this.cooldown--;
+		this.animCooldown--;
+		var selected_speed = this.framesPerTile.walk;
+		
+		if (this.cooldown <= 0 && this.velocity.x == 0 && this.velocity.y == 0) {
+			if (this.inputManager.control_state["yMove-"]) {
+				if (!this.rotateTo(0, this.cooldown < this.turnCooldownThreshold)) {
+					this.move(selected_speed);
+				}
+			} else if (this.inputManager.control_state["yMove+"]) {
+				if (!this.rotateTo(180, this.cooldown < this.turnCooldownThreshold)) {
+					this.move(selected_speed);
+				}
+			} else if (this.inputManager.control_state["xMove-"]) {
+				if (!this.rotateTo(270, this.cooldown < this.turnCooldownThreshold)) {
+					this.move(selected_speed);
+				}
+			} else if (this.inputManager.control_state["xMove+"]) {
+				if (!this.rotateTo(90, this.cooldown < this.turnCooldownThreshold)) {
+					this.move(selected_speed);
+				}
+			}
 		}
 		
-		if (this.inputManager.control_state["xMove+"] === keyStateEnum.Rising) {
-			this.rotation.z = 90;
-			this.velocity = 1;
+		// select animation frame
+		if (this.velocity.x != 0 || this.velocity.y != 0) {
+			console.log(1);
+			var absX = Math.abs(this.position.x%1);
+			var absY = Math.abs(this.position.y%1);
+			if ((absX > 0.8 || absX < 0.2) && (absY > 0.8 || absY < 0.2)) {
+				this.animFrame = 0;
+			} else if ((this.tile_position.y+this.tile_position.x)%2) {
+				this.animFrame = 1;
+				this.lastAnim = 1;
+			} else {
+				this.animFrame = 2;
+				this.lastAnim = 2;
+			}
 		}
 		
-		if (this.inputManager.control_state["yMove-"] === keyStateEnum.Rising) {
-			this.rotation.z = 0;
-			this.velocity = 1;
+		if (this.cooldown <= 0 && this.animCooldown <= 0) {
+			this.animFrame = 0;
+			this.lastAnim%=100;
 		}
 		
-		if (this.inputManager.control_state["yMove+"] === keyStateEnum.Rising) {
-			this.rotation.z = 180;
-			this.velocity = 1;
+		if (this.position.x != this.tile_position.x || this.position.y != this.tile_position.y) {
+			this.position.x += this.velocity.x;
+			this.position.y += this.velocity.y;
 		}
-		if (this.velocity === 0) {
-			return;
+		
+		if (Math.abs(this.position.x - this.tile_position.x) < Math.abs(this.velocity.x)) {
+			this.position.x = this.tile_position.x;
+			this.velocity.x = 0;
 		}
+		
+		if (Math.abs(this.position.y - this.tile_position.y) < Math.abs(this.velocity.y)) {
+			this.position.y = this.tile_position.y;
+			this.velocity.y = 0;
+		}
+	}
+	
+	rotateTo(rotZ, requiresCooldown) {
+		// returns false if already facing that way, otherwise returns true.
+		var oldRotZ = this.rotation.z;
+		this.rotation.z = rotZ;
+		if (oldRotZ !== rotZ) {
+			if (requiresCooldown) {
+				this.cooldown = this.framesPerTile.turnCooldown;
+			}
+			this.animFrame = 1+(this.lastAnim++%2);
+			// call an "onRotate" event
+			// (will check for interactions)
+			return true;
+		}
+		return false;
+	}
+	
+	move(framesPerTile) {
 		var newPos = this.facingPosition();
-		if (this.mapManager.canExitTile(this.position.x, this.position.y, this.rotation.x) &&
+		if (this.mapManager.canExitTile(this.tile_position.x, this.tile_position.y, this.rotation.x) &&
 		    this.mapManager.canEnterTile(newPos.x, newPos.y, this.rotation.x)) {
-			this.position.x += newPos.x-this.position.x;
-			this.position.y += newPos.y-this.position.y;
+			this.velocity.x = (newPos.x-this.tile_position.x)*(1/framesPerTile);
+			this.velocity.y = (newPos.y-this.tile_position.y)*(1/framesPerTile);
+			this.tile_position.x += newPos.x-this.tile_position.x;
+			this.tile_position.y += newPos.y-this.tile_position.y;
+			this.cooldown = framesPerTile;
+		} else {
+			this.cooldown = this.framesPerTile.blocked;
+			this.animFrame = [1, 0, 2, 0][Math.floor(this.lastAnim++/this.framesPerTile.walk)%4];
+			this.animCooldown = this.framesPerTile.walk;
+			// Play sound for hitting barrier
 		}
 	}
 	
 	facingPosition() {
-		var p = {x:this.position.x,y:this.position.y};
+		var p = {x:this.tile_position.x,y:this.tile_position.y};
 		switch (this.rotation.z) {
 			case 0:
 				p.y--;
