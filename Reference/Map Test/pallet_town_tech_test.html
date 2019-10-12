@@ -1,4 +1,4 @@
-<!doctype HTML>
+<!DOCTYPE html>
 <html>
     <head>
         <title>Pokemon World Technical Test</title>
@@ -80,7 +80,6 @@ class PokemonWorldGame {
         this.resourceManager.loadResources();
         
         // loop
-        var self = this;
         this.gameLoopInterval = setInterval(this.tick.bind(this), 1000/this.desired_framerate);
     }
     
@@ -97,7 +96,7 @@ class PokemonWorldGame {
             this.clear();
             this.context.font = "30px Arial";
             this.context.fillText("Loading... " + this.resourceManager.resources_loaded + "/" + this.resourceManager.resources_to_load, 30, 30);
-            if (this.resourceManager.resources_loaded >= this.resourceManager.resources_to_load) {
+            if (this.resourceManager.resources_loaded >= this.resourceManager.resources_to_load && this.resourceManager.resources_to_load != 0) {
                 this.mapManager.tempLoadSections();
             }
             this.loop_running = false;
@@ -268,10 +267,8 @@ class ResourceManager {
     
     loadResources() {
         var self = this;
-        //$.getJSON("resource packs/" + selected_resource_pack + "/manifest.json");
-        $.getJSON("https://api.myjson.com/bins/ir4ka", function(data) {
-            //resource_pack_manifest = data;
-            self.resource_pack_manifest = temp_manifest;
+        $.getJSON("resource packs/" + this.selected_resource_pack + "/manifest.json", function(data) {
+            self.resource_pack_manifest = data;
             console.log();
             self.loadResourcesFromManifest();
         });
@@ -358,16 +355,21 @@ class ResourceManager {
 
 class MapManager {
     map_sections;
+	loadingMapSections = false;
     
     tempLoadSections() {
+		if (this.loadingMapSections) {
+			return;
+		}
+		this.loadingMapSections = true;
         this.map_sections = {};
         // get map section 0,0
         var self = this;
-        $.getJSON("https://api.myjson.com/bins/1bc636", function(data) {
+        $.getJSON("sections/0-0.json", function(data) {
             self.map_sections[0] = {};
-            //self.map_sections[0][0] = data;
-			self.map_sections[0][0] = temp_map_section;
+            self.map_sections[0][0] = data;
             pokemonWorldGame.state="loaded";
+			this.loadingMapSections = false;
         });
     }
 	
@@ -654,246 +656,6 @@ $(document).ready(function() {
     pokemonWorldGame.start();
     debugInterval = setInterval(function() {frCheck(); updateDebug();}, 100);
 });
-
-
-temp_manifest = {
-	"tile_textures": {
-		"gen3:void": "gen3/void.png",
-		"gen3:tree_md_bottomleft": "gen3/tree_md_bottomleft.png",
-		"gen3:tree_md_bottomright": "gen3/tree_md_bottomright.png",
-		"gen3:grass1_variant1": "gen3/grass1_variant1.png",
-		"gen3:grass1_variant2": "gen3/grass1_variant2.png",
-		"gen3:tree_md_midleft_nobg": "gen3/tree_md_midleft_nobg.png",
-		"gen3:tree_md_midright_nobg": "gen3/tree_md_midright_nobg.png",
-		"gen3:tree_md_topleft_nobg": "gen3/tree_md_topleft_nobg.png",
-		"gen3:tree_md_topright_nobg": "gen3/tree_md_topright_nobg.png",
-		"gen3:path1_outsidecorner_topleft_thick": "gen3/path/path1_outsidecorner_topleft_thick.png",
-		"gen3:path1_outsidecorner_topright_thick": "gen3/path/path1_outsidecorner_topright_thick.png",
-		"gen3:path1_side_left_thick": "gen3/path/path1_side_left_thick.png",
-		"gen3:path1_center": "gen3/path/path1_center.png",
-		"gen3:path1_side_right_thick": "gen3/path/path1_side_right_thick.png",
-		"gen3:path1_side_top_thick": "gen3/path/path1_side_top_thick.png",
-		"gen3:path1_insidecorner_topleft_thick_variant1": "gen3/path/path1_insidecorner_topleft_thick_variant1.png",
-		"gen3:path1_insidecorner_topright_thick": "gen3/path/path1_insidecorner_topright_thick.png",
-		"gen3:path1_insidecorner_bottomright_thin": "gen3/path/path1_insidecorner_bottomright_thin.png",
-		"gen3:path1_insidecorner_bottomleft_thin": "gen3/path/path1_insidecorner_bottomleft_thin.png",
-		"gen3:path1_side_bottom_thin": "gen3/path/path1_side_bottom_thin_variant1.png",
-		"gen3:path1_side_right_thin": "gen3/path/path1_side_right_thin.png",
-		"gen3:path1_insidecorner_topright_thickthin": "gen3/path/path1_insidecorner_topright_thickthin.png",
-		"gen3:path1_insidecorner_topleft_thickthin": "gen3/path/path1_insidecorner_topleft_thickthin.png",
-		"gen3:path1_side_left_thin": "gen3/path/path1_side_left_thin.png",
-		"gen3:grass1_variant5": "gen3/grass1_variant5.png",
-		"gen3:path1_side_bottom_thin_variant2": "gen3/path/path1_side_bottom_thin_variant2.png",
-		"gen3:grass1_variant3": "gen3/grass1_variant3.png",
-		"gen3:grass1_variant4": "gen3/grass1_variant4.png",
-		"gen3:fence1_horizontal": "gen3/fence1_horizontal.png",
-		"gen3:sign1": "gen3/sign1.png",
-		"gen3:sign2": "gen3/sign2.png",
-		"gen3:flower1": {
-			"type": "animated",
-			"src": [
-				"gen3/flower1_frame1.png",
-				"gen3/flower1_frame2.png",
-				"gen3/flower1_frame3.png",
-				"gen3/flower1_frame4.png",
-				"gen3/flower1_frame5.png"
-			],
-			"trigger": "load",
-			"frame_time": 16,
-			"repeat": 0
-		},
-		"gen3:tallgrass1_base": "gen3/tallgrass1_base.png",
-		"gen3:tallgrass1_top": {
-			"type": "animated",
-			"src": [
-				"gen3/tallgrass1_top_frame1.png",
-				"gen3/tallgrass1_top_frame2.png",
-				"gen3/tallgrass1_top_frame3.png",
-				"gen3/tallgrass1_top_frame4.png"
-			],
-			"trigger": "entity_enter",
-			"frame_time": 5,
-			"repeat": 1
-		},
-		"gen3:mailbox1_part1": "gen3/mailbox1_part1.png",
-		"gen3:mailbox1_part2": "gen3/mailbox1_part2.png",
-		"gen3:house1_roof_red_n": "gen3/buildings/house1_roof_red_n.png",
-		"gen3:house1_roof_red_nw": "gen3/buildings/house1_roof_red_nw.png",
-		"gen3:house1_roof_red_ne": "gen3/buildings/house1_roof_red_ne.png",
-		"gen3:house1_roof_red_w": "gen3/buildings/house1_roof_red_w.png",
-		"gen3:house1_roof_red": "gen3/buildings/house1_roof_red.png",
-		"gen3:house1_roof_red_e": "gen3/buildings/house1_roof_red_e.png",
-		"gen3:house1_roof_red_sw": "gen3/buildings/house1_roof_red_sw.png",
-		"gen3:house1_roof_red_s": "gen3/buildings/house1_roof_red_s.png",
-		"gen3:house1_roof_red_se": "gen3/buildings/house1_roof_red_se.png",
-		"gen3:house1_wall_w2": "gen3/buildings/house1_wall_w2.png",
-		"gen3:house1_wall_w1": "gen3/buildings/house1_wall_w1.png",
-		"gen3:house1_wall_2_part1": "gen3/buildings/house1_wall_2_part1.png",
-		"gen3:house1_wall_2_part2": "gen3/buildings/house1_wall_2_part2.png",
-		"gen3:house1_wall_2_part3": "gen3/buildings/house1_wall_2_part3.png",
-		"gen3:house1_wall_e2": "gen3/buildings/house1_wall_e2.png",
-		"gen3:house1_wall_e1": "gen3/buildings/house1_wall_e1.png",
-		"gen3:house1_wall_1_part2": "gen3/buildings/house1_wall_1_part2.png",
-		"gen3:house1_wall_1_part1": "gen3/buildings/house1_wall_1_part1.png",
-		"gen3:house1_door1_red": "gen3/buildings/house1_door1_red.png"
-	},
-	"entity_textures": {},
-	"player_textures": {
-		"gen3:male1_walk_front": ["gen3/entity/player/male1/walk_front1.png", "gen3/entity/player/male1/walk_front2.png", "gen3/entity/player/male1/walk_front3.png"],
-		"gen3:male1_walk_back": ["gen3/entity/player/male1/walk_back1.png", "gen3/entity/player/male1/walk_back2.png", "gen3/entity/player/male1/walk_back3.png"],
-		"gen3:male1_walk_left": ["gen3/entity/player/male1/walk_left1.png", "gen3/entity/player/male1/walk_left2.png", "gen3/entity/player/male1/walk_left3.png"],
-		"gen3:male1_walk_right": ["gen3/entity/player/male1/walk_right1.png", "gen3/entity/player/male1/walk_right2.png", "gen3/entity/player/male1/walk_right3.png"]
-	},
-	"sounds": {}
-};
-
-temp_map_section = {
-	"entity_layer": 1,
-	
-	"tile_pallet": [
-		"gen3:void",
-		"gen3:tree_md_bottomleft",
-		"gen3:tree_md_bottomright",
-		"gen3:grass1_variant1",
-		"gen3:grass1_variant2",
-		"gen3:tree_md_midleft_nobg",
-		"gen3:tree_md_midright_nobg",
-		"gen3:tree_md_topleft_nobg",
-		"gen3:tree_md_topright_nobg",
-		"gen3:path1_outsidecorner_topleft_thick",
-		"gen3:path1_outsidecorner_topright_thick",
-		"gen3:path1_side_left_thick",
-		"gen3:path1_center",
-		"gen3:path1_side_right_thick",
-		"gen3:path1_side_top_thick",
-		"gen3:path1_insidecorner_topleft_thick_variant1",
-		"gen3:path1_insidecorner_topright_thick",
-		"gen3:path1_insidecorner_bottomright_thin",
-		"gen3:path1_insidecorner_bottomleft_thin",
-		"gen3:path1_side_bottom_thin",
-		"gen3:path1_side_right_thin",
-		"gen3:path1_insidecorner_topright_thickthin",
-		"gen3:path1_insidecorner_topleft_thickthin",
-		"gen3:path1_side_left_thin",
-		"gen3:grass1_variant5",
-		"gen3:path1_side_bottom_thin_variant2",
-		"gen3:grass1_variant3",
-		"gen3:grass1_variant4",
-		"gen3:fence1_horizontal",
-		"gen3:sign1",
-		"gen3:sign2",
-		"gen3:flower1",
-		"gen3:mailbox1_part1",
-		"gen3:mailbox1_part2",
-		"gen3:house1_roof_red_n",
-		"gen3:house1_roof_red_nw",
-		"gen3:house1_roof_red_ne",
-		"gen3:house1_roof_red_w",
-		"gen3:house1_roof_red",
-		"gen3:house1_roof_red_e",
-		"gen3:house1_roof_red_sw",
-		"gen3:house1_roof_red_s",
-		"gen3:house1_roof_red_se",
-		"gen3:house1_wall_w2",
-		"gen3:house1_wall_w1",
-		"gen3:house1_wall_2_part1",
-		"gen3:house1_wall_2_part2",
-		"gen3:house1_wall_2_part3",
-		"gen3:house1_wall_e2",
-		"gen3:house1_wall_e1",
-		"gen3:house1_wall_1_part2",
-		"gen3:house1_wall_1_part1",
-		"gen3:house1_door1_red"
-	],
-	
-	"movement_pallet": [
-		{"entry":15,"exit":15,"modes":31},
-		{"entry":0,"exit":0,"modes":0}
-	],
-	
-	"border": {
-		"tile_width": 2,
-		"tile_height": 2,
-		"tile_layers": [
-			[[4, 3],
-			 [1, 2]],
-			[[5, 6],
-			 [7, 8]]
-		]
-	},
-	
-	"tile_layers": [
-		[[4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9,10, 4, 3],
-		 [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,11,13, 1, 2],
-		 [4, 3, 9,14,14,14,14,14,14,14,14,14,15,16,14,14],
-		 [1, 2,11,12,12,12,12,12,12,12,12,12,12,12,12,12],
-		 [4, 3,11,17,19,24,24,24,24,24,18,12,17,19,24,24],
-		 [1, 2,11,20, 3,24,24,24,24,24,23,12,20, 3,24,24],
-		 [4, 3,11,20,24,24,24,24,24,24,23,12,20,24,24,24],
-		 [1, 2,11,20,24,24,24,24,24,24,23,12,20,24,24,24],
-		 [4, 3,11,21,14,22,12,21,14,14,22,12,21,14,22,12],
-		 [1, 2,11,12,12,12,12,12,12,12,12,12,12,12,12,12],
-		 [4, 3,11,12,12,12,12,12,12,12,12,12,17,24,24,24],
-		 [1, 2,11,12,17,25,25,25,25,24,18,12,20,24,24,24],
-		 [4, 3,11,12,20,26,26,26,26, 3,23,12,20,24,24,24],
-		 [1, 2,11,12,20,26,26,26,26,26,23,12,20,24,24,24],
-		 [4, 3,11,12,20,24,27, 3,27, 3,23,12,21,14,14,22],
-		 [1, 2,11,12,21,14,14,14,14,14,22,12,17,19,19,19]],
-		 
-		[[5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 0, 0, 5, 6],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [5, 6, 0, 0, 0,37,38,38,38,39, 0, 0, 0, 0,37,38],
-		 [0, 0, 0, 0, 0,40,41,41,41,42, 0, 0, 0, 0,40,41],
-		 [5, 6, 0, 0, 0,43,45,46,47,48, 0, 0, 0, 0,43,45],
-		 [0, 0, 0, 0,32,44,52,51,50,49, 0, 0, 0,32,44,52],
-		 [5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0,28,28,28,28,29, 0, 0, 0, 0, 0, 0],
-		 [5, 6, 0, 0, 0,31,31,31,31, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0,31,31,31,31, 0, 0, 0, 0, 0, 0, 0],
-		 [5, 6, 0, 0, 0,30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
-		 
-		[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [7, 8, 0, 0, 0,35,34,34,34,36, 0, 0, 0, 0,35,34],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0,33, 0, 0, 0, 0, 0, 0, 0, 0,33, 0, 0],
-		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		 [7, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-	],
-	
-	"movement": [
-		[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
-		[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1],
-		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1],
-		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1],
-		[1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	]
-};
         </script>
     </body>
 </html>
