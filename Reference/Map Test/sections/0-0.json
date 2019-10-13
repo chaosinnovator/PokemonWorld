@@ -70,20 +70,9 @@
 	],
 	
 	"movement_pallet": [
-		{"entry":15,"exit":15,"modes":31},
+		{"entry":15,"exit":15,"modes":15},
 		{"entry":0,"exit":0,"modes":0}
 	],
-	
-	"border": {
-		"tile_width": 2,
-		"tile_height": 2,
-		"tile_layers": [
-			[[4, 3],
-			 [1, 2]],
-			[[5, 6],
-			 [7, 8]]
-		]
-	},
 	
 	"tile_layers": [
 		[[4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9,10, 4, 3],

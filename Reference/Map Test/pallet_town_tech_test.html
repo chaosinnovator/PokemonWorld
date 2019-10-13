@@ -174,39 +174,48 @@ class PokemonWorldGame {
         var left = (this.canvas.width/2)-(camX*tile_width)-(tile_width/2);
         var top = (this.canvas.height/2)-(camY*tile_width)-(tile_width/2);
         //for each section {
-            var num_layers = this.mapManager.map_sections[0][0].tile_layers.length;
-            var entity_layer = this.mapManager.map_sections[0][0].entity_layer;
-            for (layer=0;layer<num_layers;layer++) {
-                for (x=0;x<16;x++) {
-                    for (y=0;y<16;y++) {
-                        palletId = this.mapManager.map_sections[0][0].tile_layers[layer][y][x];
-                        tileId = this.mapManager.map_sections[0][0].tile_pallet[palletId];
-                        frame = getAnimationFrameOrDefault(0, 0, x, y, layer, tileId);
-                        this.context.drawImage(this.resourceManager.resource_pack_assets.tile_textures[tileId][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
-                    }
-                }
-                if (layer === entity_layer) {
-                    // draw entities
-                    // draw player(s)
-					var playerTexture;
-					switch (this.thePlayer.rotation.z) {
-						case 0:
-							playerTexture = "gen3:male1_walk_back";
-							break;
-						case 90:
-							playerTexture = "gen3:male1_walk_right";
-							break;
-						case 180:
-							playerTexture = "gen3:male1_walk_front";
-							break;
-						case 270:
-							playerTexture = "gen3:male1_walk_left";
-							break;
-						default:
+		for (var sX=-1;sX<1;sX++) {
+			for (var sY=-1;sY<1;sY++) {
+				var num_layers = this.mapManager.map_sections[sX][sY].tile_layers.length;
+				var entity_layer = this.mapManager.map_sections[sX][sY].entity_layer;
+				for (layer=0;layer<num_layers;layer++) {
+					for (x=0;x<16;x++) {
+						for (y=0;y<16;y++) {
+							palletId = this.mapManager.map_sections[sX][sY].tile_layers[layer][y][x];
+							tileId = this.mapManager.map_sections[sX][sY].tile_pallet[palletId];
+							if (!tileId) {
+								continue;
+							}
+							frame = getAnimationFrameOrDefault(sX, sY, x, y, layer, tileId);
+							this.context.drawImage(this.resourceManager.resource_pack_assets.tile_textures[tileId][frame], left+((sX*16+x)*tile_width), top+((sY*16+y)*tile_width), tile_width, tile_width);
+						}
 					}
-					this.context.drawImage(this.resourceManager.resource_pack_assets.player_textures[playerTexture][this.thePlayer.animFrame], left+(this.thePlayer.position.x*tile_width), top+(this.thePlayer.position.y*tile_width)-tile_width, tile_width, 2*tile_width);
-                }
-            }
+					if (layer === entity_layer) {
+						// draw entities
+						// draw player(s) if in this section
+						if (Math.floor(this.thePlayer.position.x/16) == sX && Math.floor(this.thePlayer.position.y/16) == sY) {
+							var playerTexture;
+							switch (this.thePlayer.rotation.z) {
+								case 0:
+									playerTexture = "gen3:male1_walk_back";
+									break;
+								case 90:
+									playerTexture = "gen3:male1_walk_right";
+									break;
+								case 180:
+									playerTexture = "gen3:male1_walk_front";
+									break;
+								case 270:
+									playerTexture = "gen3:male1_walk_left";
+									break;
+								default:
+							}
+							this.context.drawImage(this.resourceManager.resource_pack_assets.player_textures[playerTexture][this.thePlayer.animFrame], left+(this.thePlayer.position.x*tile_width), top+(this.thePlayer.position.y*tile_width)-tile_width, tile_width, 2*tile_width);
+						}
+					}
+				}
+			}
+		}
         // }
     }
 }
@@ -411,22 +420,45 @@ class ResourceManager {
 
 class MapManager {
     map_sections;
-	loadingMapSections = false;
+	loadingMapSections = 0;
     
     tempLoadSections() {
 		if (this.loadingMapSections) {
 			return;
 		}
-		this.loadingMapSections = true;
+		this.loadingMapSections = 4;
         this.map_sections = {};
         // get map section 0,0
         var self = this;
+		self.map_sections[0] = {};
+		self.map_sections[-1] = {};
         $.getJSON("sections/0-0.json", function(data) {
-		console.log("hi");
-            self.map_sections[0] = {};
             self.map_sections[0][0] = data;
-            pokemonWorldGame.state="loaded";
-			this.loadingMapSections = false;
+			self.loadingMapSections--;
+			if (!self.loadingMapSections) {
+				pokemonWorldGame.state="loaded";
+			}
+        });
+		$.getJSON("sections/-1-0.json", function(data) {
+            self.map_sections[-1][0] = data;
+			self.loadingMapSections--;
+			if (!self.loadingMapSections) {
+				pokemonWorldGame.state="loaded";
+			}
+        });
+		$.getJSON("sections/-1--1.json", function(data) {
+            self.map_sections[-1][-1] = data;
+			self.loadingMapSections--;
+			if (!self.loadingMapSections) {
+				pokemonWorldGame.state="loaded";
+			}
+        });
+		$.getJSON("sections/0--1.json", function(data) {
+            self.map_sections[0][-1] = data;
+			self.loadingMapSections--;
+			if (!self.loadingMapSections) {
+				pokemonWorldGame.state="loaded";
+			}
         });
     }
 	
@@ -437,10 +469,10 @@ class MapManager {
 		var layer, palletId;
         var num_layers = this.map_sections[secX][secY].tile_layers.length;
 		for (layer=0;layer<num_layers;layer++) {
-            palletId = this.map_sections[secX][secY].tile_layers[layer][y][x];
+            palletId = this.map_sections[secX][secY].tile_layers[layer][mod(y,16)][mod(x,16)];
             data.layers.push(this.map_sections[secX][secY].tile_pallet[palletId]);
 		}
-		palletId = this.map_sections[secX][secY].movement[y][x];
+		palletId = this.map_sections[secX][secY].movement[mod(y,16)][mod(x,16)];
         data.movement = this.map_sections[secX][secY].movement_pallet[palletId];
 		return data;
 	}
@@ -448,15 +480,22 @@ class MapManager {
 	canExitTile(x, y, rot) {
 		var rotFlag = 1<<(rot/90);
 		var d = this.getTileDataAt(x, y);
-		return d.movement.exit & rotFlag === rotFlag;
+		console.log(d.movement.exit, rotFlag, rot/90);
+		return (d.movement.exit & rotFlag) === rotFlag;
 	}
 	
 	canEnterTile(x, y, rot) {
 		rot = (rot+180)%360;
 		var rotFlag = 1<<(rot/90);
 		var d = this.getTileDataAt(x, y);
-		return d.movement.entry & rotFlag === rotFlag;
+		return (d.movement.entry & rotFlag) === rotFlag;
 	}
+}
+
+function mod(x, n) {
+	// deal with negative numbers "properly"
+	// i.e. -1mod16 should be 15, not -1.
+	return (x%n+n)%n;
 }
 
 class EntityManager {
@@ -515,7 +554,6 @@ class Player {
 		
 		// select animation frame
 		if (this.velocity.x != 0 || this.velocity.y != 0) {
-			console.log(1);
 			var absX = Math.abs(this.position.x%1);
 			var absY = Math.abs(this.position.y%1);
 			if ((absX > 0.8 || absX < 0.2) && (absY > 0.8 || absY < 0.2)) {
@@ -568,8 +606,8 @@ class Player {
 	
 	move(framesPerTile) {
 		var newPos = this.facingPosition();
-		if (this.mapManager.canExitTile(this.tile_position.x, this.tile_position.y, this.rotation.x) &&
-		    this.mapManager.canEnterTile(newPos.x, newPos.y, this.rotation.x)) {
+		if (this.mapManager.canExitTile(this.tile_position.x, this.tile_position.y, this.rotation.z) &&
+		    this.mapManager.canEnterTile(newPos.x, newPos.y, this.rotation.z)) {
 			this.velocity.x = (newPos.x-this.tile_position.x)*(1/framesPerTile);
 			this.velocity.y = (newPos.y-this.tile_position.y)*(1/framesPerTile);
 			this.tile_position.x += newPos.x-this.tile_position.x;
@@ -606,7 +644,7 @@ class Player {
 }
 
 var our_player_id = "testid";
-var tile_width = 32;
+var tile_width = 16;
 var camX = 8;
 var camY = 8;
 var debugInterval;
