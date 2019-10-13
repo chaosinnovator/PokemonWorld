@@ -77,7 +77,19 @@
 		"gen3:house1_wall_e1": "gen3/buildings/house1_wall_e1.png",
 		"gen3:house1_wall_1_part2": "gen3/buildings/house1_wall_1_part2.png",
 		"gen3:house1_wall_1_part1": "gen3/buildings/house1_wall_1_part1.png",
-		"gen3:house1_door1_red": "gen3/buildings/house1_door1_red.png"
+		"gen3:house1_door1_red": "gen3/buildings/house1_door1_red.png",
+		"gen3:lab1_roof_nw": "gen3/buildings/lab1_roof_nw.png",
+		"gen3:lab1_roof_n": "gen3/buildings/lab1_roof_n.png",
+		"gen3:lab1_roof_w": "gen3/buildings/lab1_roof_w.png",
+		"gen3:lab1_roof": "gen3/buildings/lab1_roof.png",
+		"gen3:lab1_roof_sw": "gen3/buildings/lab1_roof_sw.png",
+		"gen3:lab1_roof_s": "gen3/buildings/lab1_roof_s.png",
+		"gen3:lab1_wall_2_part1": "gen3/buildings/lab1_wall_2_part1.png",
+		"gen3:lab1_wall_2_part2": "gen3/buildings/lab1_wall_2_part2.png",
+		"gen3:lab1_wall_2_part3": "gen3/buildings/lab1_wall_2_part3.png",
+		"gen3:lab1_wall_1_part1": "gen3/buildings/lab1_wall_1_part1.png",
+		"gen3:lab1_wall_1_part2": "gen3/buildings/lab1_wall_1_part2.png",
+		"gen3:lab1_wall_1_part3": "gen3/buildings/lab1_wall_1_part3.png"
 	},
 	"entity_textures": {},
 	"player_textures": {

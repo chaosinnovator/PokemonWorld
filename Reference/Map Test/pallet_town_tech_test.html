@@ -422,6 +422,7 @@ class MapManager {
         // get map section 0,0
         var self = this;
         $.getJSON("sections/0-0.json", function(data) {
+		console.log("hi");
             self.map_sections[0] = {};
             self.map_sections[0][0] = data;
             pokemonWorldGame.state="loaded";
@@ -605,7 +606,7 @@ class Player {
 }
 
 var our_player_id = "testid";
-var tile_width = 48;
+var tile_width = 32;
 var camX = 8;
 var camY = 8;
 var debugInterval;
