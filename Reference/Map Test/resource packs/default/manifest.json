@@ -40,11 +40,24 @@
 				"gen3/flower1_frame4.png",
 				"gen3/flower1_frame5.png"
 			],
-			"trigger": "load",
+			"trigger": {
+				"load":[0,1,2,3,4]
+			},
 			"frame_time": 16,
 			"repeat": 0
 		},
-		"gen3:tallgrass1_base": "gen3/tallgrass1_base.png",
+		"gen3:tallgrass1_base": {
+			"type": "animated",
+			"src": [
+				"gen3/tallgrass1_base.png",
+				"gen3/tallgrass1_base_frame1.png"
+			],
+			"trigger": {
+				"entity_entering":[1,0]
+			},
+			"frame_time": 16,
+			"repeat": 1
+		},
 		"gen3:tallgrass1_top": {
 			"type": "animated",
 			"src": [
@@ -53,8 +66,10 @@
 				"gen3/tallgrass1_top_frame3.png",
 				"gen3/tallgrass1_top_frame4.png"
 			],
-			"trigger": "entity_enter",
-			"frame_time": 5,
+			"trigger": {
+				"entity_entered":[1,2,3,0]
+			},
+			"frame_time": 10,
 			"repeat": 1
 		},
 		"gen3:mailbox1_part1": "gen3/mailbox1_part1.png",
