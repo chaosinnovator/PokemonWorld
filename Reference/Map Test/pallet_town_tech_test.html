@@ -30,8 +30,10 @@
 		</style>
     </head>
     <body>
-        <canvas id="gameCanvas" width="900" height="600" style="border: 1px solid black;"></canvas>
-        <div>
+		<div style="float:left;">
+			<canvas id="gameCanvas" width="900" height="600" style="border: 1px solid black;"></canvas>
+		</div>
+        <div style="float:left;width:100%;">
             <p>
                 Frame:&nbsp;<span id="frame_count">-</span><br />
                 Target framerate:&nbsp;<span id="desired_framerate">-</span><br />
@@ -113,7 +115,7 @@ class PokemonWorldGame {
         
         this.resourceManager = new ResourceManager();
 		this.tileAnimationManager = new TileAnimationManager(this.resourceManager);
-        this.mapManager = new MapManager(this.tileAnimationManager);
+        this.mapManager = new MapManager(this.tileAnimationManager, this.cachecontext);
         this.entityManager = new EntityManager();
         
         this.thePlayer = new Player(this.inputManager, this.mapManager, this.tileAnimationManager, 72, 280, 180);
@@ -159,9 +161,10 @@ class PokemonWorldGame {
 				camY = this.thePlayer.position.y;
 			}
 			
-            this.clear();
-            // [components].draw();
+            this.clear(); // is this actually necessary?
+			this.tileAnimationManager.updateCaches(this.mapManager);
             this.drawMap();
+            // [components].draw();
         }
         
         this.frame_count++
@@ -173,26 +176,31 @@ class PokemonWorldGame {
     }
     
     drawMap() {
-        var layer,x,y,palletId,tileId,frame;
-        var left = ((this.canvas.width/(2*tile_width))-camX-0.5)*tile_width; // canvas x at 0,0
-        var top = ((this.canvas.height/(2*tile_width))-camY+0.5)*tile_width; // canvas y at 0,0
-		var x1 = Math.floor(camX-(this.canvas.width/2)/tile_width)-1; // leftmost visible column x1,?
-		var x2 = x1+Math.floor(this.canvas.width/tile_width)+3;
-		var y1 = Math.floor(camY-(this.canvas.height/2)/tile_width)-1;
-		var y2 = y1+Math.floor(this.canvas.height/tile_width)+3;
+        var layer,secX,secY,palletId,tileId,frame;
+        var canvas_x0 = ((this.canvas.width/(2*tile_width))-camX-0.5)*tile_width; // canvas x at 0,0
+        var canvas_y0 = ((this.canvas.height/(2*tile_width))-camY+0.5)*tile_width; // canvas y at 0,0
+		var secX1 = Math.floor((camX/16)-(this.canvas.width/2)/(16*tile_width)); // leftmost visible section column x1,?
+		var secX2 = Math.floor((camX/16)+(this.canvas.width/2)/(16*tile_width));
+		var secY1 = Math.floor(((camY-1)/16)-(this.canvas.height/2)/(16*tile_width)); // topmost visible section row ?,y1
+		var secY2 = Math.floor((camY/16)+(this.canvas.height/2)/(16*tile_width));
 		this.context.fillStyle = "#000000";
 		var tile_data;
 		
-		for (var x=x1;x<x2;x++) {
-			for (var y=y1;y<y2;y++) {
-				tile_data = this.mapManager.getTileDataAt(x, y);
-				if (tile_data === null) {
-					this.context.fillRect(left+(x*tile_width), top+(y*tile_width), tile_width+1, tile_width+1);
+		for (secX=secX1;secX<=secX2;secX++) {
+			if (!(secX in this.mapManager.map_sections)) {
+				// black rect, whole column
+				this.context.fillRect(canvas_x0+(secX*16*tile_width), 0, 16*tile_width+1, this.canvas.height);
+				continue;
+			}
+			for (secY=secY1;secY<=secY2;secY++) {
+				if (!(secY in this.mapManager.map_sections[secX])) {
+					// black rect, section only
+					this.context.fillRect(canvas_x0+(secX*16*tile_width), canvas_y0+(secY*16*tile_width), 16*tile_width+1, 16*tile_width+1);
 					continue;
 				}
-				for (layer=0;layer<tile_data.num_layers;layer++) {
-					frame = this.tileAnimationManager.getAnimationFrameOrDefault(x, y, layer, tile_data.layers[layer]);
-					this.context.drawImage(this.resourceManager.resource_pack_assets.tile_textures[tile_data.layers[layer]][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
+				
+				for (layer=0;layer<this.mapManager.map_sections[secX][secY].num_layers;layer++) {
+					this.context.drawImage(this.mapManager.map_sections[secX][secY].cache_canvas, layer*16*cache_tile_width, 0, 16*cache_tile_width, 16*cache_tile_width, canvas_x0+(secX*16*tile_width), canvas_y0+(secY*16*tile_width), 16*tile_width, 16*tile_width);
 				}
 			}
 		}
@@ -214,18 +222,18 @@ class PokemonWorldGame {
 				break;
 			default:
 		}
-		this.context.drawImage(this.resourceManager.resource_pack_assets.player_textures[playerTexture][this.thePlayer.animFrame], left+(this.thePlayer.position.x*tile_width), top+(this.thePlayer.position.y*tile_width)-tile_width, tile_width, 2*tile_width);
-		// redraw the top layers in the nearby tiles. This fixes top laye occlusion in y<entity_y  
+		this.context.drawImage(this.resourceManager.resource_pack_assets.player_textures[playerTexture][this.thePlayer.animFrame], canvas_x0+(this.thePlayer.position.x*tile_width), canvas_y0+(this.thePlayer.position.y*tile_width)-tile_width, tile_width, 2*tile_width);
+		// redraw the top layers in the nearby tiles. This fixes top layer occlusion in y<entity_y  
 		for (var x=Math.ceil(this.thePlayer.position.x)-1;x<Math.ceil(this.thePlayer.position.x)+1;x++) {
 			for (var y=Math.ceil(this.thePlayer.position.y);y<Math.ceil(this.thePlayer.position.y)+1;y++) {
 				tile_data = this.mapManager.getTileDataAt(x, y);
 				if (tile_data === null) {
-					this.context.fillRect(left+(x*tile_width), top+(y*tile_width), tile_width+1, tile_width+1);
+					this.context.fillRect(canvas_x0+(x*tile_width), canvas_y0+(y*tile_width), tile_width+1, tile_width+1);
 					continue;
 				}
 				for (layer=tile_data.entity_layer+1;layer<tile_data.num_layers;layer++) {
 					frame = this.tileAnimationManager.getAnimationFrameOrDefault(x, y, layer, tile_data.layers[layer]);
-					this.context.drawImage(this.resourceManager.resource_pack_assets.tile_textures[tile_data.layers[layer]][frame], left+(x*tile_width), top+(y*tile_width), tile_width, tile_width);
+					this.context.drawImage(this.resourceManager.resource_pack_assets.tile_textures[tile_data.layers[layer]][frame], canvas_x0+(x*tile_width), canvas_y0+(y*tile_width), tile_width, tile_width);
 				}
 			}
 		}
@@ -435,9 +443,11 @@ class MapManager {
     map_sections = {};
 	loadingMapSections = 0;
 	tileAnimationManager;
+	cacheContext;
 	
-	constructor(tileAnimationManager) {
+	constructor(tileAnimationManager, cacheContext) {
 		this.tileAnimationManager = tileAnimationManager;
+		this.cacheContext = cacheContext;
 	}
     
     tempLoadSections() {
@@ -460,15 +470,23 @@ class MapManager {
 			this.map_sections[secX] = {};
 		}
 		$.getJSON("sections/"+secX+"-"+secY+".json", function(data) {
-			this.map_sections[secX][secY] = data;
 			var x,y,layer,palletId,tileId;
-			var num_layers = data.tile_layers.length;
+			data["num_layers"] = data.tile_layers.length;
+			this.map_sections[secX][secY] = data;
+			this.map_sections[secX][secY]["cache_canvas"] = document.createElement("canvas");
+			this.map_sections[secX][secY]["cache_canvas"].width = data.num_layers*16*cache_tile_width;
+			this.map_sections[secX][secY]["cache_canvas"].height = 16*cache_tile_width;
+			this.map_sections[secX][secY]["cache_context"] = this.map_sections[secX][secY]["cache_canvas"].getContext("2d");
+			this.map_sections[secX][secY]["cache_context"].imageSmoothingEnabled = false;
 			for (x=0;x<16;x++) {
 				for (y=0;y<16;y++) {
-					for (layer=0;layer<num_layers;layer++) {
+					for (layer=0;layer<data.num_layers;layer++) {
 						palletId = data.tile_layers[layer][y][x];
 						tileId = data.tile_pallet[palletId];
 						this.tileAnimationManager.addAnimation((secX*16)+x, (secY*16)+y, layer, tileId);
+						
+						// cache layer
+						this.map_sections[secX][secY]["cache_context"].drawImage(pokemonWorldGame.resourceManager.resource_pack_assets.tile_textures[tileId][0], (layer*16+x)*cache_tile_width, y*cache_tile_width, cache_tile_width, cache_tile_width);
 					}
 				}
 			}
@@ -689,6 +707,7 @@ var degrees = {"n":0, "e":90, "s":180, "w":270};
 
 class TileAnimationManager {
 	animations = {};
+	animationsToRedraw = [];
 	num_animations = 0;
 	num_triggered_animations = 0;
 	resourceManager;
@@ -713,6 +732,7 @@ class TileAnimationManager {
 		}
 		
 		this.animations[animKey] = {
+			position: {x:x, y:y, layer:layer},
 			trigger: this.resourceManager.resource_pack_manifest.tile_textures[tileId].trigger,
 			frame_time: this.resourceManager.resource_pack_manifest.tile_textures[tileId].frame_time,
 			repeat: this.resourceManager.resource_pack_manifest.tile_textures[tileId].repeat,
@@ -753,6 +773,7 @@ class TileAnimationManager {
 			
 			if (anim.currentFrameIndex < anim.trigger[anim.trigger_type].length) {
 				anim.currentFrame = anim.trigger[anim.trigger_type][anim.currentFrameIndex];
+				this.animationsToRedraw.push([anim.position.x, anim.position.y]);
 				continue;
 			}
 			
@@ -770,7 +791,29 @@ class TileAnimationManager {
 			}
 			anim.currentFrameIndex %= anim.trigger[anim.trigger_type].length;
 			anim.currentFrame = anim.trigger[anim.trigger_type][anim.currentFrameIndex];
+			this.animationsToRedraw.push([anim.position.x, anim.position.y]);
 		}
+	}
+	
+	updateCaches(mapManager) {
+		var secX, secY, layer, palletId, tileId, frame, x, y;
+		for (var animToRedraw of this.animationsToRedraw) {
+			secX = Math.floor(animToRedraw[0]/16);
+			secY = Math.floor(animToRedraw[1]/16);
+			x = mod(animToRedraw[0], 16);
+			y = mod(animToRedraw[1], 16);
+			if (!(secX in mapManager.map_sections) || !(secY in mapManager.map_sections[secX])) {
+				continue;
+			}
+			for (layer=0;layer<mapManager.map_sections[secX][secY].num_layers;layer++) {
+				palletId = mapManager.map_sections[secX][secY].tile_layers[layer][y][x];
+				tileId = mapManager.map_sections[secX][secY].tile_pallet[palletId];
+				frame = this.getAnimationFrameOrDefault(animToRedraw[0], animToRedraw[1], layer, tileId);
+				mapManager.map_sections[secX][secY]["cache_context"].clearRect((layer*16+x)*cache_tile_width, y*cache_tile_width, cache_tile_width, cache_tile_width);
+				mapManager.map_sections[secX][secY]["cache_context"].drawImage(this.resourceManager.resource_pack_assets.tile_textures[tileId][frame], (layer*16+x)*cache_tile_width, y*cache_tile_width, cache_tile_width, cache_tile_width);
+			}
+		}
+		this.animationsToRedraw = [];
 	}
 	
 	getAnimationFrameOrDefault(x, y, layer, tileId) {
@@ -890,6 +933,7 @@ class TileAnimationManager {
 
 var our_player_id = "testid";
 var tile_width = 32;
+var cache_tile_width = 32;
 var camX = 0;
 var camY = 0;
 var debugInterval;
