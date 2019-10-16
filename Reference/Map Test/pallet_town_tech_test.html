@@ -116,7 +116,7 @@ class PokemonWorldGame {
         this.mapManager = new MapManager(this.tileAnimationManager);
         this.entityManager = new EntityManager();
         
-        this.thePlayer = new Player(this.inputManager, this.mapManager, this.tileAnimationManager, 8, 8, 180);
+        this.thePlayer = new Player(this.inputManager, this.mapManager, this.tileAnimationManager, 72, 280, 180);
         
         // get resources
         this.resourceManager.loadResources();
@@ -448,10 +448,10 @@ class MapManager {
 		
 		//this.addAnimation(x, y, layer, tileId);
 		
-		this.loadSection(-1, -1);
-		this.loadSection(-1, 0);
-		this.loadSection(0, -1);
-		this.loadSection(0, 0);
+		this.loadSection(3, 16);
+		this.loadSection(3, 17);
+		this.loadSection(4, 16);
+		this.loadSection(4, 17);
     }
 	
 	loadSection(secX, secY) {
@@ -890,8 +890,8 @@ class TileAnimationManager {
 
 var our_player_id = "testid";
 var tile_width = 32;
-var camX = 8;
-var camY = 8;
+var camX = 0;
+var camY = 0;
 var debugInterval;
 var num_animations = 0;
 var num_triggered_animations = 0;
