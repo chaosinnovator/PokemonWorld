@@ -38,7 +38,7 @@
 	"movement_pallet": [
 		{"entry":0,"exit":0,"modes":0},
 		{"entry":15,"exit":15,"modes":15},
-		{"entry":1,"exit":4,"modes":15,"force_move":[180, 1, "jump"]}
+		{"entry":1,"exit":4,"modes":15,"force_move":[{"trigger":"entering","type":"jump","direction":180,"distance":1}]}
 	],
 	
 	"tile_layers": [

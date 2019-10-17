@@ -586,7 +586,7 @@ class Player {
 			this.tileAnimationManager.entity_entered(this.tile_position.x, this.tile_position.y, cardinal[(this.rotation.z+180)%360]);
 		}
 		
-		if (this.cooldown <= 0 && this.velocity.x == 0 && this.velocity.y == 0) {
+		if (this.cooldown <= 0) {
 			if (this.inputManager.control_state["yMove-"]) {
 				if (!this.rotateTo(0, this.cooldown < this.turnCooldownThreshold)) {
 					this.move(selected_speed);
@@ -662,16 +662,34 @@ class Player {
 		var newPos = this.facingPosition();
 		if (this.mapManager.canExitTile(this.tile_position.x, this.tile_position.y, this.rotation.z) &&
 		    this.mapManager.canEnterTile(newPos.x, newPos.y, this.rotation.z)) {
+			var movement = this.mapManager.getTileDataAt(newPos.x, newPos.y).movement;
 			this.tileAnimationManager.entity_exiting(this.tile_position.x, this.tile_position.y, cardinal[this.rotation.z]);
 			this.tileAnimationManager.entity_entering(newPos.x, newPos.y, cardinal[(this.rotation.z+180)%360]);
-			this.velocity.x = (newPos.x-this.tile_position.x)*(1/framesPerTile);
-			this.velocity.y = (newPos.y-this.tile_position.y)*(1/framesPerTile);
+			this.velocity.x = (newPos.x-this.tile_position.x)/framesPerTile;
+			this.velocity.y = (newPos.y-this.tile_position.y)/framesPerTile;
 			this.last_tile_position.x = this.tile_position.x;
 			this.last_tile_position.y = this.tile_position.y;
-			this.tile_position.x += newPos.x-this.tile_position.x;
-			this.tile_position.y += newPos.y-this.tile_position.y;
+			this.tile_position.x = newPos.x;
+			this.tile_position.y = newPos.y;
 			this.cooldown = framesPerTile;
 			this.isMoving = true;
+			if ("force_move" in movement) {
+				var forces = movement.force_move;
+				for (var force of forces) {
+					if (force.trigger == "entering") {
+						if (force.type == "jump") {
+							console.log("jump");
+							newPos = this.facingPosition();
+							this.tileAnimationManager.entity_entering(newPos.x, newPos.y, cardinal[(this.rotation.z+180)%360]);
+							this.velocity.x = (newPos.x-this.tile_position.x)/this.framesPerTile.walk;
+							this.velocity.y = (newPos.y-this.tile_position.y)/this.framesPerTile.walk;
+							this.tile_position.x = newPos.x;
+							this.tile_position.y = newPos.y;
+							this.cooldown = 2*this.framesPerTile.walk;
+						}
+					}
+				}
+			}
 		} else {
 			this.cooldown = this.framesPerTile.blocked;
 			this.animFrame = [1, 0, 2, 0][Math.floor(this.lastAnim++/this.framesPerTile.walk)%4];
@@ -848,12 +866,14 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			} else if ("entity_entering" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_entering";
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			}
 		}
 	}
@@ -872,12 +892,14 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			} else if ("entity_entered" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_entered";
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			}
 		}
 	}
@@ -896,12 +918,14 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			} else if ("entity_exiting" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_exiting";
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			}
 		}
 	}
@@ -920,12 +944,14 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			} else if ("entity_exited" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_exited";
 				this.animations[animKey].currentFrameCounter = 0;
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
+				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
 			}
 		}
 	}
