@@ -869,6 +869,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			} else if ("entity_entering" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_entering";
@@ -876,6 +877,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			}
 		}
 	}
@@ -895,6 +897,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			} else if ("entity_entered" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_entered";
@@ -902,6 +905,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			}
 		}
 	}
@@ -921,6 +925,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			} else if ("entity_exiting" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_exiting";
@@ -928,6 +933,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			}
 		}
 	}
@@ -947,6 +953,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			} else if ("entity_exited" in this.animations[animKey].trigger) {
 				this.animations[animKey].triggered = true;
 				this.animations[animKey].trigger_type = "entity_exited";
@@ -954,6 +961,7 @@ class TileAnimationManager {
 				this.animations[animKey].currentFrameIndex = 0;
 				this.animations[animKey].currentFrame = this.animations[animKey].trigger[this.animations[animKey].trigger_type][0];
 				this.animationsToRedraw.push([this.animations[animKey].position.x, this.animations[animKey].position.y]);
+				this.num_triggered_animations++;
 			}
 		}
 	}
@@ -1002,10 +1010,10 @@ function updateDebug() {
     $("#hero_pos").text("x: "+pokemonWorldGame.thePlayer.position.x+" x: "+pokemonWorldGame.thePlayer.position.y+" sx: "+pSecX+" sy: "+pSecY);
     $("#cam_pos").text("x: "+camX+" x: "+camY+" sx: "+secX+" sy: "+secY);
     $("#tile_size").text(tile_width);
-    $("#selected_pack").text(pokemonWorldGame.selected_resource_pack);
+    $("#selected_pack").text(pokemonWorldGame.resourceManager.selected_resource_pack);
     
-    $("#num_anims").text(num_animations);
-    $("#num_triggered_anims").text(num_triggered_animations);
+    $("#num_anims").text(pokemonWorldGame.tileAnimationManager.num_animations);
+    $("#num_triggered_anims").text(pokemonWorldGame.tileAnimationManager.num_triggered_animations);
     $("#num_entities").text(num_entities);
 }
 
