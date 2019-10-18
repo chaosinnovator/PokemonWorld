@@ -180,7 +180,7 @@ class PokemonWorldGame {
         var canvas_x0 = ((this.canvas.width/(2*tile_width))-camX-0.5)*tile_width; // canvas x at 0,0
         var canvas_y0 = ((this.canvas.height/(2*tile_width))-camY+0.5)*tile_width; // canvas y at 0,0
 		var secX1 = Math.floor((camX/16)-(this.canvas.width/2)/(16*tile_width)); // leftmost visible section column x1,?
-		var secX2 = Math.floor((camX/16)+(this.canvas.width/2)/(16*tile_width));
+		var secX2 = Math.floor((camX+1/16)+(this.canvas.width/2)/(16*tile_width));
 		var secY1 = Math.floor(((camY-1)/16)-(this.canvas.height/2)/(16*tile_width)); // topmost visible section row ?,y1
 		var secY2 = Math.floor((camY/16)+(this.canvas.height/2)/(16*tile_width));
 		this.context.fillStyle = "#000000";
