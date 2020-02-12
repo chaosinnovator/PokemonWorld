@@ -73,7 +73,7 @@ void CopyItemName(u16 itemId, u8 * dest)
 {
     if (itemId == ITEM_ENIGMA_BERRY)
     {
-        StringCopy(dest, sub_809C8A0(43)->name);
+        StringCopy(dest, GetBerryInfo(ITEM_TO_BERRY(ITEM_ENIGMA_BERRY))->name);
         StringAppend(dest, gUnknown_84162BD);
     }
     else
@@ -245,11 +245,11 @@ bool8 AddBagItem(u16 itemId, u16 count)
             return FALSE;
         gBagPockets[POCKET_KEY_ITEMS - 1].itemSlots[idx].itemId = ITEM_BERRY_POUCH;
         SetBagItemQuantity(&gBagPockets[POCKET_KEY_ITEMS - 1].itemSlots[idx].quantity, 1);
-        FlagSet(FLAG_0x847);
+        FlagSet(FLAG_SYS_GOT_BERRY_POUCH);
     }
 
     if (itemId == ITEM_BERRY_POUCH)
-        FlagSet(FLAG_0x847);
+        FlagSet(FLAG_SYS_GOT_BERRY_POUCH);
 
     idx = BagPocketGetFirstEmptySlot(pocket);
     if (idx == -1)
@@ -412,7 +412,7 @@ bool8 AddPCItem(u16 itemId, u16 count)
     return TRUE;
 }
 
-void RemoveItemFromPC(u16 itemId, u16 count)
+void RemovePCItem(u16 itemId, u16 count)
 {
     u32 i;
     u16 quantity;
@@ -564,13 +564,15 @@ u16 BagGetQuantityByItemId(u16 itemId)
     return 0;
 }
 
-void sub_809A824(u16 itemId)
+void TrySetObtainedItemQuestLogEvent(u16 itemId)
 {
     struct QuestLogStruct_809A824
     {
         u16 itemId;
         u8 mapSectionId;
     } * ptr;
+
+    // Only some key items trigger this event
     if
     (
         itemId == ITEM_OAKS_PARCEL
@@ -600,7 +602,7 @@ void sub_809A824(u16 itemId)
             ptr = malloc(sizeof(*ptr));
             ptr->itemId = itemId;
             ptr->mapSectionId = gMapHeader.regionMapSectionId;
-            sub_8113550(40, (void *)ptr);
+            SetQuestLogEvent(QL_EVENT_OBTAINED_ITEM, (void *)ptr);
             free(ptr);
         }
     }

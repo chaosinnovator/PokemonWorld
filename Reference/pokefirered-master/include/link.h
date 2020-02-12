@@ -65,6 +65,19 @@
 #define LINKCMD_SEND_HELD_KEYS_2   0xCAFE
 #define LINKCMD_0xCCCC             0xCCCC
 
+#define LINKTYPE_0x1111              0x1111  // trade
+#define LINKTYPE_0x1122              0x1122  // trade
+#define LINKTYPE_0x1133              0x1133  // trade
+#define LINKTYPE_0x1144              0x1144  // trade
+#define LINKTYPE_BATTLE              0x2211
+#define LINKTYPE_0x2222              0x2222  // unused battle?
+#define LINKTYPE_SINGLE_BATTLE       0x2233
+#define LINKTYPE_DOUBLE_BATTLE       0x2244
+#define LINKTYPE_MULTI_BATTLE        0x2255
+#define LINKTYPE_BATTLE_TOWER_50     0x2266
+#define LINKTYPE_BATTLE_TOWER_OPEN   0x2277
+#define LINKTYPE_BATTLE_TOWER        0x2288
+
 #define MASTER_HANDSHAKE 0x8FFF
 #define SLAVE_HANDSHAKE  0xB9A0
 
@@ -181,13 +194,14 @@ extern u32 gLinkStatus;
 extern u16 gBlockRecvBuffer[MAX_RFU_PLAYERS][BLOCK_BUFFER_SIZE / 2];
 extern u16 gSendCmd[CMD_LENGTH];
 extern u8 gShouldAdvanceLinkState;
-extern struct LinkPlayer gLinkPlayers[];
+extern struct LinkPlayer gLinkPlayers[MAX_RFU_PLAYERS];
 extern u16 word_3002910[];
 extern bool8 gReceivedRemoteLinkPlayers;
 extern bool8 gLinkVSyncDisabled;
 extern u8 gWirelessCommType;
 
 extern u8 gShouldAdvanceLinkState;
+extern u16 gLinkPartnersHeldKeys[6];
 
 void Task_DestroySelf(u8);
 void OpenLink(void);
@@ -212,6 +226,7 @@ u8 GetBlockReceivedStatus(void);
 void ResetBlockReceivedFlags(void);
 void ResetBlockReceivedFlag(u8);
 void SetLinkDebugValues(u32, u32);
+u8 GetSavedPlayerCount(void);
 u8 GetLinkPlayerCount_2(void);
 bool8 IsLinkMaster(void);
 void CB2_LinkError(void);
@@ -232,10 +247,10 @@ bool8 sub_800A520(void);
 bool8 sub_8010500(void);
 void sub_800DFB4(u8, u8);
 void sub_800AB9C(void);
-void sub_800B488(void);
+void sub_800B1F4(void);
 void sub_8009734(void);
 void sub_800A620(void);
-void sub_8011BD0(void);
+void sub_80FBB4C(void);
 u8 sub_800ABAC(void);
 u8 sub_800ABBC(void);
 void sub_800AAC0(void);
@@ -256,5 +271,13 @@ void sub_8009FE8(void);
 void ClearLinkCallback_2(void);
 void sub_80FA42C(void);
 void sub_800B284(struct LinkPlayer * linkPlayer);
+bool8 IsWirelessAdapterConnected(void);
+bool8 sub_800A474(u8 a0);
+void LinkVSync(void);
+bool8 HandleLinkConnection(void);
+void sub_800B0B4(void);
+void sub_800B110(u32 who);
+void sub_800ACBC(u32 status, u8 lastSendQueueCount, u8 lastRecvQueueCount, u8 unk_06);
+u8 sub_800A8D4(void);
 
 #endif // GUARD_LINK_H

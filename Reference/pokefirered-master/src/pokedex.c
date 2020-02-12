@@ -1,13 +1,7 @@
 #include "global.h"
 #include "pokedex.h"
+#include "pokedex_screen.h"
 #include "constants/species.h"
-
-extern s8 sub_8104AB0(u16 nationalDexNo, u8 caseID, u8 unk);
-
-ALIGNED(4) static const u8 gExpandedPlaceholder_PokedexDescription[] = _("");
-
-#include "data/pokemon/pokedex_text.h"
-#include "data/pokemon/pokedex_entries.h"
 
 const u8 *sub_8088E20(u16 dexNum)
 {
@@ -88,7 +82,7 @@ bool16 HasAllHoennMons(void)
     return TRUE;
 }
 
-bool8 HasAllKantoMons(void)
+bool16 HasAllKantoMons(void)
 {
     u16 i;
 

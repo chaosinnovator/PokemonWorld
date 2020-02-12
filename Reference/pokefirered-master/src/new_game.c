@@ -25,6 +25,7 @@
 #include "easy_chat.h"
 #include "union_room_chat.h"
 #include "mevent.h"
+#include "renewable_hidden_items.h"
 #include "trainer_tower.h"
 #include "script.h"
 #include "berry_powder.h"
@@ -66,7 +67,7 @@ static void SetDefaultOptions(void)
     gSaveBlock2Ptr->optionsBattleStyle = OPTIONS_BATTLE_STYLE_SHIFT;
     gSaveBlock2Ptr->optionsBattleSceneOff = FALSE;
     gSaveBlock2Ptr->regionMapZoom = FALSE;
-    gSaveBlock2Ptr->optionsButtonMode = OPTIONS_BUTTON_MODE_NORMAL;
+    gSaveBlock2Ptr->optionsButtonMode = OPTIONS_BUTTON_MODE_HELP;
 }
 
 static void ClearPokedexFlags(void)
@@ -77,7 +78,7 @@ static void ClearPokedexFlags(void)
 
 static void sub_80549D4(void)
 {
-    CpuFill32(0, &gSaveBlock2Ptr->unk_B0, sizeof(gSaveBlock2Ptr->unk_B0));
+    CpuFill32(0, &gSaveBlock2Ptr->battleTower, sizeof(gSaveBlock2Ptr->battleTower));
 }
 
 static void WarpToPlayersRoom(void)
@@ -97,17 +98,17 @@ void ResetMenuAndMonGlobals(void)
     gDifferentSaveFile = FALSE;
     ZeroPlayerPartyMons();
     ZeroEnemyPartyMons();
-    sub_81089BC();
+    ResetBagCursorPositions();
     ResetTMCaseCursorPos();
     BerryPouch_CursorResetToTop();
-    sub_811089C();
-    sub_8083214(Random());
-    sub_806E6FC();
+    ResetQuestLog();
+    SeedWildEncounterRng(Random());
+    ResetSpecialVars();
 }
 
 void NewGameInitData(void)
 {
-    u8 rivalName[PLAYER_NAME_LENGTH];
+    u8 rivalName[PLAYER_NAME_LENGTH + 1];
 
     StringCopy(rivalName, gSaveBlock1Ptr->rivalName);
     gDifferentSaveFile = TRUE;
@@ -129,8 +130,8 @@ void NewGameInitData(void)
     SetMoney(&gSaveBlock1Ptr->money, 3000);
     ResetGameStats();
     ClearPlayerLinkBattleRecords();
-    sub_80A0904();
-    sub_80A0958();
+    InitHeracrossSizeRecord();
+    InitMagikarpSizeRecord();
     sub_806E190();
     gPlayerPartyCount = 0;
     ZeroPlayerPartyMons();
@@ -141,11 +142,11 @@ void NewGameInitData(void)
     NewGameInitPCItems();
     sub_809C794();
     InitEasyChatPhrases();
-    sub_8113044();
-    copy_strings_to_sav1();
+    ResetTrainerFanClub();
+    UnionRoomChat_InitializeRegisteredTexts();
     ResetMiniGamesResults();
     sub_8143D24();
-    sub_815D838();
+    SetAllRenewableItemFlags();
     WarpToPlayersRoom();
     ScriptContext2_RunNewScript(EventScript_ResetAllMapFlags);
     StringCopy(gSaveBlock1Ptr->rivalName, rivalName);

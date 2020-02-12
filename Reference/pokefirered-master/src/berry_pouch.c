@@ -457,7 +457,7 @@ static void CB2_InitBerryPouch(void)
 {
     while (1)
     {
-        if (sub_80BF72C() == TRUE)
+        if ((u8)sub_80BF72C() == TRUE)
             break;
         if (RunBerryPouchInit() == TRUE)
             break;
@@ -704,7 +704,7 @@ static void BerryPouchMoveCursorFunc(s32 itemIndex, bool8 onInit, struct ListMen
 {
     if (onInit != TRUE)
     {
-        PlaySE(SE_W287B);
+        PlaySE(SE_BAG1);
         StartBerryPouchSpriteWobbleAnim();
     }
     DestroyItemMenuIcon(sResources->itemMenuIconId ^ 1);
@@ -765,7 +765,7 @@ static void PrintSelectedBerryDescription(s32 itemIdx)
 
 static void SetDescriptionWindowBorderPalette(s32 pal)
 {
-    SetBgRectPal(1, 0, 16, 30, 4, pal + 1);
+    SetBgTilemapPalette(1, 0, 16, 30, 4, pal + 1);
     ScheduleBgCopyTilemapToVram(1);
 }
 
@@ -934,7 +934,7 @@ static void Task_BerryPouchMain(u8 taskId)
 {
     s16 * data = gTasks[taskId].data;
     s32 menuInput;
-    if (!gPaletteFade.active && sub_80BF72C() != TRUE)
+    if (!gPaletteFade.active && (u8)sub_80BF72C() != TRUE)
     {
         menuInput = ListMenu_ProcessInput(data[0]);
         ListMenuGetScrollAndRow(data[0], &sStaticCnt.listMenuScrollOffset, &sStaticCnt.listMenuSelectedRow);
@@ -1040,7 +1040,7 @@ static void Task_NormalContextMenu(u8 taskId)
 static void Task_NormalContextMenu_HandleInput(u8 taskId)
 {
     s8 input;
-    if (sub_80BF72C() != TRUE)
+    if ((u8)sub_80BF72C() != TRUE)
     {
         input = Menu_ProcessInputNoWrapAround();
         switch (input)
@@ -1194,7 +1194,7 @@ static void Task_BerryPouch_Give(u8 taskId)
         Task_Give_PrintThereIsNoPokemon(taskId);
     else
     {
-        sResources->exitCallback = sub_8126EDC;
+        sResources->exitCallback = CB2_ChooseMonToGiveItem;
         gTasks[taskId].func = BerryPouch_StartFadeToExitCallback;
     }
 }
@@ -1251,7 +1251,7 @@ static void Task_ContextMenu_FromPartyGiveMenu(u8 taskId)
     }
     else
     {
-        sResources->exitCallback = c2_8123744;
+        sResources->exitCallback = CB2_GiveHoldItem;
         gTasks[taskId].func = BerryPouch_StartFadeToExitCallback;
     }
 }
@@ -1269,7 +1269,7 @@ static void Task_ContextMenu_Sell(u8 taskId)
     {
         CopyItemName(gSpecialVar_ItemId, gStringVar1);
         StringExpandPlaceholders(gStringVar4, gText_OhNoICantBuyThat);
-        DisplayItemMessageInBerryPouch(taskId, sub_80BF8E4(), gStringVar4, Task_BerryPouch_DestroyDialogueWindowAndRefreshListMenu);
+        DisplayItemMessageInBerryPouch(taskId, GetDialogBoxFontId(), gStringVar4, Task_BerryPouch_DestroyDialogueWindowAndRefreshListMenu);
     }
     else
     {
@@ -1285,7 +1285,7 @@ static void Task_ContextMenu_Sell(u8 taskId)
                 data[2] = 99;
             CopyItemName(gSpecialVar_ItemId, gStringVar1);
             StringExpandPlaceholders(gStringVar4, gText_HowManyWouldYouLikeToSell);
-            DisplayItemMessageInBerryPouch(taskId, sub_80BF8E4(), gStringVar4, Task_Sell_PrintSelectMultipleUI);
+            DisplayItemMessageInBerryPouch(taskId, GetDialogBoxFontId(), gStringVar4, Task_Sell_PrintSelectMultipleUI);
         }
     }
 }
@@ -1295,7 +1295,7 @@ static void Task_AskSellMultiple(u8 taskId)
     s16 * data = gTasks[taskId].data;
     ConvertIntToDecimalStringN(gStringVar3, itemid_get_market_price(BagGetItemIdByPocketPosition(POCKET_BERRY_POUCH, data[1])) / 2 * data[8], STR_CONV_MODE_LEFT_ALIGN, 6);
     StringExpandPlaceholders(gStringVar4, gText_ICanPayThisMuch_WouldThatBeOkay);
-    DisplayItemMessageInBerryPouch(taskId, sub_80BF8E4(), gStringVar4, Task_SellMultiple_CreateYesNoMenu);
+    DisplayItemMessageInBerryPouch(taskId, GetDialogBoxFontId(), gStringVar4, Task_SellMultiple_CreateYesNoMenu);
 }
 
 static void Task_SellMultiple_CreateYesNoMenu(u8 taskId)
@@ -1381,10 +1381,10 @@ static void Task_SellYes(u8 taskId)
 static void Task_SellBerries_PlaySfxAndRemoveBerries(u8 taskId)
 {
     s16 * data = gTasks[taskId].data;
-    PlaySE(SE_CASHIER);
+    PlaySE(SE_SHOP);
     RemoveBagItem(gSpecialVar_ItemId, data[8]);
     AddMoney(&gSaveBlock1Ptr->money, itemid_get_market_price(gSpecialVar_ItemId) / 2 * data[8]);
-    sub_809C09C(gSpecialVar_ItemId, data[8], 2);
+    RecordItemPurchase(gSpecialVar_ItemId, data[8], 2);
     DestroyListMenuTask(data[0], &sStaticCnt.listMenuScrollOffset, &sStaticCnt.listMenuSelectedRow);
     SortAndCountBerries();
     SanitizeListMenuSelectionParams();

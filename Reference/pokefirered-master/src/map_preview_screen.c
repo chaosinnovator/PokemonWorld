@@ -366,7 +366,7 @@ bool8 sub_80F8110(u8 mapsec, u8 forceFirstTime)
 
 bool8 sub_80F8154(u8 mapsec, u8 forceFirstTime)
 {
-    if (gUnknown_203ADFA == 2)
+    if (gQuestLogState == 2)
     {
         return FALSE;
     }
@@ -495,7 +495,7 @@ static void sub_80F83D0(u8 taskId)
         }
         break;
     case 2:
-        if (sub_807AA70())
+        if (IsWeatherNotFadingIn())
         {
             Overworld_PlaySpecialMapMusic();
             data[0]++;
@@ -552,7 +552,7 @@ static void sub_80F83D0(u8 taskId)
     }
 }
 
-const struct MapPreviewScreen * sub_80F8544(u8 mapsec)
+const struct MapPreviewScreen * GetDungeonMapPreviewScreenInfo(u8 mapsec)
 {
     u8 idx;
 

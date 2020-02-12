@@ -2,11 +2,11 @@
 #define GUARD_CONSTANTS_MAP_GROUPS_H
 
 // Map Group 0
-#define MAP_UNKNOWN_MAP_00_00 (0 | (0 << 8))
-#define MAP_UNKNOWN_MAP_00_01 (1 | (0 << 8))
-#define MAP_UNKNOWN_MAP_00_02 (2 | (0 << 8))
-#define MAP_UNKNOWN_MAP_00_03 (3 | (0 << 8))
-#define MAP_UNKNOWN_MAP_00_04 (4 | (0 << 8))
+#define MAP_BATTLE_COLOSSEUM_2P (0 | (0 << 8))
+#define MAP_TRADE_CENTER        (1 | (0 << 8))
+#define MAP_RECORD_CENTER       (2 | (0 << 8))
+#define MAP_BATTLE_COLOSSEUM_4P (3 | (0 << 8))
+#define MAP_UNION_ROOM          (4 | (0 << 8))
 
 // Map Group 1
 #define MAP_VIRIDIAN_FOREST                      (0 | (1 << 8))
@@ -76,10 +76,10 @@
 #define MAP_SAFARI_ZONE_EAST                     (64 | (1 << 8))
 #define MAP_SAFARI_ZONE_NORTH                    (65 | (1 << 8))
 #define MAP_SAFARI_ZONE_WEST                     (66 | (1 << 8))
-#define MAP_SAFARI_ZONE_BUILDING1                (67 | (1 << 8))
-#define MAP_SAFARI_ZONE_BUILDING2                (68 | (1 << 8))
-#define MAP_SAFARI_ZONE_BUILDING3                (69 | (1 << 8))
-#define MAP_SAFARI_ZONE_BUILDING4                (70 | (1 << 8))
+#define MAP_SAFARI_ZONE_CENTER_REST_HOUSE        (67 | (1 << 8))
+#define MAP_SAFARI_ZONE_EAST_REST_HOUSE          (68 | (1 << 8))
+#define MAP_SAFARI_ZONE_NORTH_REST_HOUSE         (69 | (1 << 8))
+#define MAP_SAFARI_ZONE_WEST_REST_HOUSE          (70 | (1 << 8))
 #define MAP_SAFARI_ZONE_SECRET_HOUSE             (71 | (1 << 8))
 #define MAP_CERULEAN_CAVE_1F                     (72 | (1 << 8))
 #define MAP_CERULEAN_CAVE_2F                     (73 | (1 << 8))
@@ -169,7 +169,7 @@
 #define MAP_SEVEN_ISLAND_TANOBY_RUINS_RIXY_CHAMBER    (32 | (2 << 8))
 #define MAP_SEVEN_ISLAND_TANOBY_RUINS_VIAPOIS_CHAMBER (33 | (2 << 8))
 #define MAP_THREE_ISLAND_DUNSPARCE_TUNNEL             (34 | (2 << 8))
-#define MAP_SEVEN_ISLAND_SEAVAULT_CANYON_TANOBY_KEY   (35 | (2 << 8))
+#define MAP_SEVEN_ISLAND_SEVAULT_CANYON_TANOBY_KEY    (35 | (2 << 8))
 #define MAP_NAVEL_ROCK_1F                             (36 | (2 << 8))
 #define MAP_NAVEL_ROCK_SUMMIT                         (37 | (2 << 8))
 #define MAP_NAVEL_ROCK_BASE                           (38 | (2 << 8))
@@ -342,12 +342,12 @@
 // Map Group 11
 #define MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE (0 | (11 << 8))
 #define MAP_FUCHSIA_CITY_MART                 (1 | (11 << 8))
-#define MAP_FUCHSIA_CITY_ZOO_BUILDING         (2 | (11 << 8))
+#define MAP_FUCHSIA_CITY_SAFARI_ZONE_OFFICE   (2 | (11 << 8))
 #define MAP_FUCHSIA_CITY_GYM                  (3 | (11 << 8))
 #define MAP_FUCHSIA_CITY_HOUSE1               (4 | (11 << 8))
 #define MAP_FUCHSIA_CITY_POKEMON_CENTER_1F    (5 | (11 << 8))
 #define MAP_FUCHSIA_CITY_POKEMON_CENTER_2F    (6 | (11 << 8))
-#define MAP_FUCHSIA_CITY_BUILDING1            (7 | (11 << 8))
+#define MAP_FUCHSIA_CITY_WARDENS_HOUSE        (7 | (11 << 8))
 #define MAP_FUCHSIA_CITY_HOUSE2               (8 | (11 << 8))
 #define MAP_FUCHSIA_CITY_HOUSE3               (9 | (11 << 8))
 

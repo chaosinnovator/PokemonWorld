@@ -75,7 +75,7 @@ void sub_800D30C(void)
     SetBattlePartyIds();
     if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
         for (i = 0; i < gBattlersCount; ++i)
-            sub_8127DA8(i, 0);
+            BufferBattlePartyCurrentOrderBySide(i, 0);
 }
 
 static void InitSinglePlayerBtlControllers(void)
@@ -95,8 +95,8 @@ static void InitSinglePlayerBtlControllers(void)
         {
             if (gBattleTypeFlags & BATTLE_TYPE_SAFARI)
                 gBattlerControllerFuncs[0] = SetControllerToSafari;
-            else if (gBattleTypeFlags & (BATTLE_TYPE_OLDMAN_TUTORIAL | BATTLE_TYPE_FIRST_BATTLE))
-                gBattlerControllerFuncs[0] = SetControllerToOakOrOldman;
+            else if (gBattleTypeFlags & (BATTLE_TYPE_OLD_MAN_TUTORIAL | BATTLE_TYPE_FIRST_BATTLE))
+                gBattlerControllerFuncs[0] = SetControllerToOakOrOldMan;
             else
                 gBattlerControllerFuncs[0] = SetControllerToPlayer;
             gBattlerPositions[0] = B_POSITION_PLAYER_LEFT;
@@ -199,11 +199,11 @@ static void InitLinkBtlControllers(void)
             {
             case 0:
             case 3:
-                sub_8127DA8(gLinkPlayers[i].id, 0);
+                BufferBattlePartyCurrentOrderBySide(gLinkPlayers[i].id, 0);
                 break;
             case 1:
             case 2:
-                sub_8127DA8(gLinkPlayers[i].id, 1);
+                BufferBattlePartyCurrentOrderBySide(gLinkPlayers[i].id, 1);
                 break;
             }
             if (i == multiplayerId)
@@ -774,7 +774,7 @@ void BtlController_EmitPrintSelectionString(u8 bufferId, u16 stringID)
     sBattleBuffersTransferData[1] = CONTROLLER_PRINTSTRINGPLAYERONLY;
     sBattleBuffersTransferData[2] = stringID;
     sBattleBuffersTransferData[3] = (stringID & 0xFF00) >> 8;
-    stringInfo = (struct BattleMsgData*)(&sBattleBuffersTransferData[4]);
+    stringInfo = (struct BattleMsgData *)(&sBattleBuffersTransferData[4]);
     stringInfo->currentMove = gCurrentMove;
     stringInfo->originallyUsedMove = gChosenMove;
     stringInfo->lastItem = gLastUsedItem;

@@ -2,7 +2,7 @@
   "id": "MAP_PALLET_TOWN_PLAYERS_HOUSE_1F",
   "name": "PalletTown_PlayersHouse_1F",
   "layout": "LAYOUT_PALLET_TOWN_PLAYERS_HOUSE_1F",
-  "music": "BGM_FRLG_PALLET_TOWN",
+  "music": "MUS_MASARA",
   "region_map_section": "MAPSEC_PALLET_TOWN",
   "requires_flash": false,
   "weather": "WEATHER_NONE",
@@ -14,11 +14,11 @@
   "connections": null,
   "object_events": [
     {
-      "graphics_id": "88",
+      "graphics_id": "OBJECT_EVENT_GFX_MOM",
       "x": 8,
       "y": 4,
       "elevation": 3,
-      "movement_type": "9",
+      "movement_type": "MOVEMENT_TYPE_FACE_LEFT",
       "movement_range_x": 0,
       "movement_range_y": 0,
       "trainer_type": 0,

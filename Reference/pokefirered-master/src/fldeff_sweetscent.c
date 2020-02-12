@@ -13,6 +13,8 @@
 #include "wild_encounter.h"
 #include "constants/songs.h"
 
+static EWRAM_DATA u8 *gUnknown_203AAB0 = NULL;
+
 static void FieldCallback_SweetScent(void);
 static void StartSweetScentFieldEffect(void);
 static void TrySweetScentEncounter(u8 taskId);
@@ -20,7 +22,7 @@ static void FailSweetScentEncounter(u8 taskId);
 
 static void Unused_StartSweetscentFldeff(void)
 {
-	gUnknown_203B0A0.unk9 = 0;
+	gPartyMenu.slotId = 0;
 	FieldCallback_SweetScent();
 }
 
@@ -51,7 +53,7 @@ static void StartSweetScentFieldEffect(void)
 {
     u8 taskId;
 
-    PlaySE(SE_W260);
+    PlaySE(SE_W230);
     gUnknown_203AAB0 = (u8 *)Alloc(0x400);
     CpuFastSet(gPlttBufferUnfaded, gUnknown_203AAB0, 0x100);
     CpuFastSet(gPlttBufferFaded, gPlttBufferUnfaded, 0x100);

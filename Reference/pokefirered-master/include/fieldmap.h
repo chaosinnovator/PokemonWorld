@@ -11,19 +11,26 @@
 #define NUM_PALS_TOTAL 13
 #define VIRTUAL_MAP_SIZE 0x2800
 
-extern struct BackupMapData VMap;
-extern const struct MapData Route1_Layout;
+extern struct BackupMapLayout VMap;
+extern const struct MapLayout Route1_Layout;
 
 u32 MapGridGetMetatileIdAt(int, int);
 u32 MapGridGetMetatileBehaviorAt(int, int);
+u8 MapGridGetMetatileLayerTypeAt(s16 x, s16 y);
 void MapGridSetMetatileIdAt(int, int, u16);
 void MapGridSetMetatileEntryAt(int, int, u16);
 void GetCameraCoords(u16*, u16*);
 bool8 MapGridIsImpassableAt(s32, s32);
 s32 GetMapBorderIdAt(s32, s32);
 bool32 CanCameraMoveInDirection(s32);
-u32 GetBehaviorByMetatileIdAndMapData(struct MapData *mapData, u16 metatile, u8 attr);
+u32 GetBehaviorByMetatileIdAndMapLayout(struct MapLayout *mapLayout, u16 metatile, u8 attr);
 const struct MapHeader * mapconnection_get_mapheader(struct MapConnection * connection);
 struct MapConnection * GetMapConnectionAtPos(s16 x, s16 y);
+void sub_8059948(u8 a0, u8 a1);
+
+void save_serialize_map(void);
+u32 sub_8058F1C(u32 original, u8 bit);
+u32 sub_8058F48(s16 x, s16 y, u8 z);
+void sub_8059024(s32 x, s32 y, bool32 arg2);
 
 #endif //GUARD_FIELDMAP_H

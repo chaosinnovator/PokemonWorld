@@ -31,11 +31,25 @@ struct send_recv_header
     u16 size;
 };
 
-struct mevent_cmd_ish
+struct mevent_client_cmd
 {
     u32 instr;
     u32 parameter;
 };
+
+// Client commands
+#define CLI_RETURN(x)  {.instr =  1, .parameter = x}
+#define CLI_RECEIVE(x) {.instr =  2, .parameter = x}
+#define CLI_WAITSND    {.instr =  3, .parameter = 0}
+#define CLI_JUMPBUF    {.instr =  4, .parameter = 0}
+#define CLI_SNDHEAD    {.instr =  8, .parameter = 0}
+#define CLI_VLDNEWS    {.instr =  9, .parameter = 0}
+#define CLI_RECVSAV    {.instr = 10, .parameter = 0}
+#define CLI_RECVBUF    {.instr = 12, .parameter = 0}
+#define CLI_REQWORD    {.instr = 13, .parameter = 0}
+#define CLI_SNDWORD    {.instr = 14, .parameter = 0}
+#define CLI_RECVRAM    {.instr = 17, .parameter = 0}
+#define CLI_SENDALL    {.instr = 20, .parameter = 0}
 
 struct mevent_client
 {
@@ -46,17 +60,36 @@ struct mevent_client
     u32 cmdidx;
     void * sendBuffer;
     void * recvBuffer;
-    struct mevent_cmd_ish * cmdBuffer;
+    struct mevent_client_cmd * cmdBuffer;
     void * buffer;
     struct mevent_srv_sub manager;
 };
 
-struct mevent_cmd
+struct mevent_server_cmd
 {
     u32 instr;
     bool32 flag;
     void * parameter;
 };
+
+// Server commands
+#define SRV_RETURN(x)           {.instr =  0, .flag = x}
+#define SRV_WAITSND             {.instr =  1}
+#define SRV_RECV(x)             {.instr =  2, .flag = x}
+#define SRV_BRANCH(y)           {.instr =  3, .parameter = (void *)y}
+#define SRV_BRANCHIF(x, y)      {.instr =  4, .flag = x, .parameter = (void *)y}
+#define SRV_READ_1442CC         {.instr =  5}
+#define SRV_VALID_1442CC        {.instr =  6}
+#define SRV_CHECK_1442CC_14     {.instr =  7}
+#define SRV_READWORD            {.instr =  8}
+#define SRV_SEND_CARD           {.instr = 13}
+#define SRV_SEND_NEWS           {.instr = 14}
+#define SRV_BUFFER_SEND         {.instr = 15}
+#define SRV_SEND(x, y)          {.instr = 18, .flag = x, .parameter = (void *)y}
+#define SRV_SENDSTR(x, y)       {.instr = 20, .flag = x, .parameter = (void *)y}
+#define SRV_BUFFER_CARD         {.instr = 26}
+#define SRV_BUFFER_NEWS         {.instr = 27}
+#define SRV_RAM_SCRIPT_IF_VALID {.instr = 28}
 
 struct mevent_srv_common
 {
@@ -64,11 +97,11 @@ struct mevent_srv_common
     u32 param;
     u32 mainseqno;
     u32 cmdidx;
-    const struct mevent_cmd * cmdBuffer;
+    const struct mevent_server_cmd * cmdBuffer;
     void * recvBuffer;
-    struct MEventBuffer_32E0_Sub * mevent_32e0;
-    struct MEventBuffer_3120_Sub * mevent_3120;
-    struct MEventStruct_Unk1442CC * mevent_unk1442cc;
+    struct MEWonderCardData * card;
+    struct MEWonderNewsData * news;
+    struct MEventClientHeaderStruct * mevent_unk1442cc;
     void * sendBuffer1;
     u32 sendBuffer1Size;
     void * sendBuffer2;

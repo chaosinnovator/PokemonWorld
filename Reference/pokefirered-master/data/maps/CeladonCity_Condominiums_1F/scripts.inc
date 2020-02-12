@@ -4,17 +4,14 @@ CeladonCity_Condominiums_1F_MapScripts:: @ 816C320
 CeladonCity_Condominiums_1F_EventScript_16C321:: @ 816C321
 	lock
 	faceplayer
-	checkflag FLAG_0x2F8
-	goto_if_eq EventScript_16C36A
-	checkflag FLAG_0x82C
-	goto_if_eq EventScript_16C374
-	checkflag FLAG_0x2A6
-	goto_if_eq EventScript_16C36A
+	goto_if_set FLAG_TALKED_TO_TEA_LADY_AFTER_HOF, EventScript_16C36A
+	goto_if_set FLAG_SYS_GAME_CLEAR, EventScript_16C374
+	goto_if_set FLAG_GOT_TEA, EventScript_16C36A
 	msgbox gUnknown_81960C9
-	setflag FLAG_0x2A6
+	setflag FLAG_GOT_TEA
 	giveitem ITEM_TEA
-	compare_var_to_value VAR_RESULT, 0
-	goto_if_eq EventScript_1A6BF9
+	compare VAR_RESULT, FALSE
+	goto_if_eq EventScript_BagIsFull
 	msgbox gUnknown_8196109
 	release
 	end
@@ -25,10 +22,8 @@ EventScript_16C36A:: @ 816C36A
 	end
 
 EventScript_16C374:: @ 816C374
-	setvar VAR_0x8004, 1
-	setvar VAR_0x8005, 4
-	special SetFlavorTextFlagFromSpecialVars
-	setflag FLAG_0x2F8
+	famechecker FAMECHECKER_DAISY, 4
+	setflag FLAG_TALKED_TO_TEA_LADY_AFTER_HOF
 	msgbox gUnknown_8196188
 	release
 	end
@@ -64,5 +59,5 @@ CeladonCity_Condominiums_1F_EventScript_16C3B4:: @ 816C3B4
 	end
 
 CeladonCity_Condominiums_1F_EventScript_16C3C7:: @ 816C3C7
-	msgbox gUnknown_8196287, 3
+	msgbox gUnknown_8196287, MSGBOX_SIGN
 	end

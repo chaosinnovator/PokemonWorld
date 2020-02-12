@@ -83,7 +83,7 @@ u8 GetLRKeysState(void)
     return 0;
 }
 
-u8 sub_80BF66C(void)
+u8 GetLRKeysPressedAndHeld(void)
 {
     if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
     {
@@ -107,7 +107,7 @@ bool8 itemid_link_can_give_berry(u16 itemId)
         return FALSE;
 }
 
-bool8 itemid_80BF6D8_mail_related(u16 itemId)
+bool8 CanWriteMailHere(u16 itemId)
 {
     if (IsUpdateLinkStateCBActive() != TRUE && InUnionRoom() != TRUE)
         return TRUE;
@@ -125,17 +125,17 @@ bool8 MenuHelpers_LinkSomething(void)
         return FALSE;
 }
 
-bool8 sub_80BF72C(void)
+bool32 sub_80BF72C(void)
 {
     if (!MenuHelpers_LinkSomething())
         return FALSE;
     else
-        return sub_8058244();
+        return (u8)sub_8058244();
 }
 
 bool8 sub_80BF748(void)
 {
-    if (sub_80BF72C() == TRUE)
+    if ((u8)sub_80BF72C() == TRUE)
         return TRUE;
     else if (sub_800B270() != TRUE)
         return FALSE;
@@ -149,7 +149,7 @@ void SetVBlankHBlankCallbacksToNull(void)
     SetHBlankCallback(NULL);
 }
 
-void ClearVramOamPltt(void)
+void ResetVramOamAndBgCntRegs(void)
 {
     ResetAllBgsCoordinatesAndBgCntRegs();
     CpuFill16(0, (void*) VRAM, VRAM_SIZE);
@@ -242,7 +242,7 @@ bool8 AdjustQuantityAccordingToDPadInput(s16 *arg0, u16 arg1)
     return FALSE;
 }
 
-u8 sub_80BF8E4(void)
+u8 GetDialogBoxFontId(void)
 {
     if (!ContextNpcGetTextColor())
         return 4;

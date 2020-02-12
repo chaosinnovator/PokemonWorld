@@ -5,10 +5,24 @@
 
 #define CHAR_SPACE          0x00
 #define CHAR_0              0xA1
+#define CHAR_1              0xA2
+#define CHAR_2              0xA3
+#define CHAR_3              0xA4
+#define CHAR_4              0xA5
+#define CHAR_5              0xA6
+#define CHAR_6              0xA7
+#define CHAR_7              0xA8
+#define CHAR_8              0xA9
+#define CHAR_9              0xAA
+#define CHAR_EXCL_MARK      0xAB
 #define CHAR_QUESTION_MARK  0xAC
 #define CHAR_PERIOD         0xAD
 #define CHAR_HYPHEN         0xAE
 #define CHAR_ELLIPSIS       0xB0
+#define CHAR_DBL_QUOT_LEFT  0xB1
+#define CHAR_DBL_QUOT_RIGHT 0xB2
+#define CHAR_SGL_QUOT_LEFT  0xB3
+#define CHAR_SGL_QUOT_RIGHT 0xB4
 #define CHAR_MALE           0xB5
 #define CHAR_FEMALE         0xB6
 #define CHAR_CURRENCY       0xB7
@@ -81,6 +95,34 @@
 #define TEXT_COLOR_TRANSPARENT  0x0
 #define TEXT_COLOR_WHITE        0x1
 #define TEXT_COLOR_DARK_GREY    0x2
+#define TEXT_COLOR_LIGHT_GREY   0x3
+#define TEXT_COLOR_RED          0x4
+#define TEXT_COLOR_LIGHT_RED    0x5
+#define TEXT_COLOR_GREEN        0x6
+#define TEXT_COLOR_LIGHT_GREEN  0x7
+#define TEXT_COLOR_BLUE         0x8
+#define TEXT_COLOR_LIGHT_BLUE   0x9
+#define TEXT_DYNAMIC_COLOR_1    0xA // Usually white
+#define TEXT_DYNAMIC_COLOR_2    0xB // Usually white w/ tinge of green
+#define TEXT_DYNAMIC_COLOR_3    0xC // Usually white
+#define TEXT_DYNAMIC_COLOR_4    0xD // Usually aquamarine
+#define TEXT_DYNAMIC_COLOR_5    0xE // Usually blue-green
+#define TEXT_DYNAMIC_COLOR_6    0xF // Usually cerulean
+
+#define PLACEHOLDER_ID_UNKNOWN       0x0
+#define PLACEHOLDER_ID_PLAYER        0x1
+#define PLACEHOLDER_ID_STRING_VAR_1  0x2
+#define PLACEHOLDER_ID_STRING_VAR_2  0x3
+#define PLACEHOLDER_ID_STRING_VAR_3  0x4
+#define PLACEHOLDER_ID_KUN           0x5
+#define PLACEHOLDER_ID_RIVAL         0x6
+#define PLACEHOLDER_ID_VERSION       0x7
+#define PLACEHOLDER_ID_MAGMA         0x8
+#define PLACEHOLDER_ID_AQUA          0x9
+#define PLACEHOLDER_ID_MAXIE         0xA
+#define PLACEHOLDER_ID_ARCHIE        0xB
+#define PLACEHOLDER_ID_GROUDON       0xC
+#define PLACEHOLDER_ID_KYOGRE        0xD
 
 // battle placeholders are located in battle_message.h
 #define EXT_CTRL_CODE_COLOR     0x1
@@ -237,12 +279,11 @@ u16 RenderText(struct TextPrinter *textPrinter);
 s32 GetStringWidthFixedWidthFont(const u8 *str, u8 fontId, u8 letterSpacing);
 s32 (*GetFontWidthFunc(u8 glyphId))(u16, bool32);
 s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing);
-u8 RenderTextFont9(u8 *pixels, u8 fontId, u8 *str);
+u8 RenderTextFont9(u8 *pixels, u8 fontId, u8 *str, int a3, int a4, int a5, int a6, int a7);
 u8 DrawKeypadIcon(u8 windowId, u8 keypadIconId, u16 x, u16 y);
 u8 GetKeypadIconTileOffset(u8 keypadIconId);
 u8 GetKeypadIconWidth(u8 keypadIconId);
 u8 GetKeypadIconHeight(u8 keypadIconId);
-void SetDefaultFontsPointer(void);
 u8 GetFontAttribute(u8 fontId, u8 attributeId);
 u8 GetMenuCursorDimensionByFont(u8 fontId, u8 whichDimension);
 void DecompressGlyphFont0(u16 glyphId, bool32 isJapanese);

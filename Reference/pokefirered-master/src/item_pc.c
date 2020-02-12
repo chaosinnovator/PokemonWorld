@@ -27,6 +27,7 @@
 #include "task.h"
 #include "text_window.h"
 #include "constants/items.h"
+#include "constants/quest_log.h"
 #include "constants/songs.h"
 
 struct ItemPcResources
@@ -347,7 +348,7 @@ static bool8 ItemPc_DoGfxSetup(void)
         gMain.state++;
         break;
     case 14:
-        sub_80985E4();
+        ItemMenuIcons_CreateInsertIndicatorBarHidden();
         gMain.state++;
         break;
     case 15:
@@ -379,12 +380,12 @@ static bool8 ItemPc_DoGfxSetup(void)
         {
             sub_80A0A48(0, 0, 0);
             ItemPc_SetInitializedFlag(1);
-            PlaySE(SE_PC_LOGON);
+            PlaySE(SE_PC_LOGIN);
         }
         gMain.state++;
         break;
     case 20:
-        if (sub_80BF72C() != TRUE)
+        if ((u8)sub_80BF72C() != TRUE)
             gMain.state++;
         break;
     default:
@@ -709,7 +710,7 @@ static void ItemPc_SetScrollPosition(void)
 
 static void ItemPc_SetMessageWindowPalette(int a0)
 {
-    SetBgRectPal(1, 0, 14, 30, 6, a0 + 1);
+    SetBgTilemapPalette(1, 0, 14, 30, 6, a0 + 1);
     ScheduleBgCopyTilemapToVram(1);
 }
 
@@ -779,8 +780,8 @@ static void ItemPc_MoveItemModeInit(u8 taskId, s16 pos)
     StringExpandPlaceholders(gStringVar4, gOtherText_WhereShouldTheStrVar1BePlaced);
     FillWindowPixelBuffer(1, 0x00);
     ItemPc_AddTextPrinterParameterized(1, 2, gStringVar4, 0, 3, 2, 3, 0, 0);
-    sub_80986A8(-32, ListMenuGetYCoordForPrintingArrowCursor(data[0]));
-    sub_8098660(0);
+    ItemMenuIcons_MoveInsertIndicatorBar(-32, ListMenuGetYCoordForPrintingArrowCursor(data[0]));
+    ItemMenuIcons_ToggleInsertIndicatorBarVisibility(FALSE);
     ItemPc_PrintOrRemoveCursor(data[0], 2);
     gTasks[taskId].func = Task_ItemPcMoveItemModeRun;
 }
@@ -791,7 +792,7 @@ static void Task_ItemPcMoveItemModeRun(u8 taskId)
 
     ListMenu_ProcessInput(data[0]);
     ListMenuGetScrollAndRow(data[0], &sListMenuState.scroll, &sListMenuState.row);
-    sub_80986A8(-32, ListMenuGetYCoordForPrintingArrowCursor(data[0]));
+    ItemMenuIcons_MoveInsertIndicatorBar(-32, ListMenuGetYCoordForPrintingArrowCursor(data[0]));
     if (JOY_NEW(A_BUTTON | SELECT_BUTTON))
     {
         PlaySE(SE_SELECT);
@@ -813,13 +814,13 @@ static void ItemPc_InsertItemIntoNewSlot(u8 taskId, u32 pos)
         ItemPc_MoveItemModeCancel(taskId, pos);
     else
     {
-        ItemMenu_MoveItemSlotToNewPositionInArray(gSaveBlock1Ptr->pcItems, data[1], pos);
+        MoveItemSlotInList(gSaveBlock1Ptr->pcItems, data[1], pos);
         DestroyListMenuTask(data[0], &sListMenuState.scroll, &sListMenuState.row);
         if (data[1] < pos)
             sListMenuState.row--;
         ItemPc_BuildListMenuTemplate();
         data[0] = ListMenuInit(&gMultiuseListMenuTemplate, sListMenuState.scroll, sListMenuState.row);
-        sub_8098660(1);
+        ItemMenuIcons_ToggleInsertIndicatorBarVisibility(TRUE);
         gTasks[taskId].func = Task_ItemPcMain;
     }
 }
@@ -833,7 +834,7 @@ static void ItemPc_MoveItemModeCancel(u8 taskId, u32 pos)
         sListMenuState.row--;
     ItemPc_BuildListMenuTemplate();
     data[0] = ListMenuInit(&gMultiuseListMenuTemplate, sListMenuState.scroll, sListMenuState.row);
-    sub_8098660(1);
+    ItemMenuIcons_ToggleInsertIndicatorBarVisibility(TRUE);
     gTasks[taskId].func = Task_ItemPcMain;
 }
 
@@ -901,7 +902,7 @@ static void ItemPc_DoWithdraw(u8 taskId)
 
     if (AddBagItem(itemId, data[8]) == TRUE)
     {
-        ItemUse_SetQuestLogEvent(29, NULL, itemId, 0xFFFF);
+        ItemUse_SetQuestLogEvent(QL_EVENT_WITHDREW_ITEM_PC, NULL, itemId, 0xFFFF);
         CopyItemName(itemId, gStringVar1);
         ConvertIntToDecimalStringN(gStringVar2, data[8], STR_CONV_MODE_LEFT_ALIGN, 3);
         StringExpandPlaceholders(gStringVar4, gText_WithdrewQuantItem);
@@ -926,7 +927,7 @@ static void Task_ItemPcWaitButtonAndFinishWithdrawMultiple(u8 taskId)
     {
         PlaySE(SE_SELECT);
         itemId = ItemPc_GetItemIdBySlotId(data[1]);
-        RemoveItemFromPC(itemId, data[8]);
+        RemovePCItem(itemId, data[8]);
         ItemPcCompaction();
         Task_ItemPcCleanUpWithdraw(taskId);
     }
@@ -1029,8 +1030,8 @@ static void Task_ItemPcGive(u8 taskId)
 
 static void ItemPc_CB2_SwitchToPartyMenu(void)
 {
-    PartyMenuInit(0, 0, 6, 0, 6, sub_811FB28, ItemPc_CB2_ReturnFromPartyMenu);
-    gUnknown_203B0A0.unkC = ItemPc_GetItemIdBySlotId(ItemPc_GetCursorPosition());
+    InitPartyMenu(0, 0, 6, 0, 6, Task_HandleChooseMonInput, ItemPc_CB2_ReturnFromPartyMenu);
+    gPartyMenu.bagItem = ItemPc_GetItemIdBySlotId(ItemPc_GetCursorPosition());
 }
 
 static void ItemPc_CB2_ReturnFromPartyMenu(void)

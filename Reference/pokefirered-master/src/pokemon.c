@@ -8,12 +8,11 @@
 #include "data.h"
 #include "string_util.h"
 #include "battle.h"
-#include "battle_main.h"
+#include "battle_anim.h"
 #include "item.h"
 #include "event_data.h"
 #include "util.h"
 #include "pokemon_storage_system.h"
-#include "data.h"
 #include "battle_gfx_sfx_util.h"
 #include "battle_controllers.h"
 #include "evolution_scene.h"
@@ -65,9 +64,11 @@ struct OakSpeechNidoranFStruct
     struct SpriteFrameImage *frameImages;
 };
 
-// TODO: move sLearningMoveTableID, gPlayerPartyCount, gEnemyPartyCount, 
-// gEnemyParty, gPlayerParty here after resolving symbol ref in between. 
-extern u8 sLearningMoveTableID;
+static EWRAM_DATA u8 sLearningMoveTableID = 0;
+EWRAM_DATA u8 gPlayerPartyCount = 0;
+EWRAM_DATA u8 gEnemyPartyCount = 0;
+EWRAM_DATA struct Pokemon gEnemyParty[PARTY_SIZE] = {};
+EWRAM_DATA struct Pokemon gPlayerParty[PARTY_SIZE] = {};
 EWRAM_DATA struct SpriteTemplate gMultiuseSpriteTemplate = {0};
 static EWRAM_DATA struct OakSpeechNidoranFStruct *sOakSpeechNidoranResources = NULL;
 
@@ -89,7 +90,20 @@ static u16 CalculateBoxMonChecksum(struct BoxPokemon *boxMon);
 
 #include "data/battle_moves.h"
 
-static const u8 sUnreferencedData[] = { 0x34, 0x00, 0x10, 0x00, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00 };
+// Used in an unreferenced function in RS.
+// Unreferenced here and in Emerald.
+struct CombinedMove
+{
+    u16 move1;
+    u16 move2;
+    u16 newMove;
+};
+
+static const struct CombinedMove sCombinedMoves[2] =
+{
+    {MOVE_EMBER, MOVE_GUST, MOVE_HEAT_WAVE},
+    {0xFFFF, 0xFFFF, 0xFFFF}
+};
 
 static const u16 sSpeciesToHoennPokedexNum[] = // Assigns all species to the Hoenn Dex Index (Summary No. for Hoenn Dex)
 {
@@ -1468,38 +1482,38 @@ const struct SpriteTemplate gUnknown_825DEF0[] =
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
         .images = gUnknown_8234698,
-        .affineAnims = gUnknown_82348C8,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F010,
+        .oam = &gOamData_824F010,
         .anims = NULL, 
         .images = gUnknown_82346B8,
-        .affineAnims = gUnknown_8234944,
-        .callback = oac_poke_opponent,
+        .affineAnims = gSpriteAffineAnimTable_8234944,
+        .callback = SpriteCB_WildMon,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
         .images = gUnknown_82346D8,
-        .affineAnims = gUnknown_82348C8,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F010,
+        .oam = &gOamData_824F010,
         .anims = NULL, 
         .images = gUnknown_82346F8,
-        .affineAnims = gUnknown_8234944,
-        .callback = oac_poke_opponent,
+        .affineAnims = gSpriteAffineAnimTable_8234944,
+        .callback = SpriteCB_WildMon,
     },
 };
 
@@ -1508,55 +1522,55 @@ const struct SpriteTemplate gUnknown_825DF50[] =
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
-        .images = gUnknown_8234718,
-        .affineAnims = gUnknown_82348C8,
+        .images = gTrainerBackPicTable_Red,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
-        .images = gUnknown_8234740,
-        .affineAnims = gUnknown_82348C8,
+        .images = gTrainerBackPicTable_Leaf,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
-        .images = gUnknown_82347A8,
-        .affineAnims = gUnknown_82348C8,
+        .images = gTrainerBackPicTable_RSBrendan,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
-        .images = gUnknown_82347C8,
-        .affineAnims = gUnknown_82348C8,
+        .images = gTrainerBackPicTable_RSMay,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
-        .images = gUnknown_8234768,
-        .affineAnims = gUnknown_82348C8,
+        .images = gTrainerBackPicTable_Pokedude,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
     {
         .tileTag = SPRITE_INVALID_TAG,
         .paletteTag = 0,
-        .oam = &gUnknown_824F018,
+        .oam = &gOamData_824F018,
         .anims = NULL, 
-        .images = gUnknown_8234788,
-        .affineAnims = gUnknown_82348C8,
+        .images = gTrainerBackPicTable_OldMan,
+        .affineAnims = gSpriteAffineAnimTable_82348C8,
         .callback = sub_80120C4,
     },
 };
@@ -1602,6 +1616,7 @@ static const u16 sHMMoves[] =
     MOVE_ROCK_SMASH, MOVE_WATERFALL, MOVE_DIVE, 0xFFFF
 };
 
+#if defined(FIRERED)
 static const u16 sDeoxysBaseStats[] = 
 {
     50, // Hp
@@ -1611,6 +1626,17 @@ static const u16 sDeoxysBaseStats[] =
     180, // Sp.Attack
     20, // Sp.Defense
 };
+#elif defined LEAFGREEN
+static const u16 sDeoxysBaseStats[] =
+{
+    50, // Hp
+    70, // Attack
+    160, // Defense
+    90, // Speed
+    70, // Sp.Attack
+    160, // Sp.Defense
+};
+#endif
 
 const u16 gLinkPlayerFacilityClasses[] = 
 {
@@ -2363,26 +2389,26 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     // In FRLG, the Battle Tower and opponent checks are stubbed here.
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | /*BATTLE_TYPE_BATTLE_TOWER |*/ BATTLE_TYPE_EREADER_TRAINER)))
     {
-        if (FlagGet(FLAG_UNK820)
-            && !GetBattlerSide(battlerIdAtk))
+        if (FlagGet(FLAG_BADGE01_GET)
+            && GetBattlerSide(battlerIdAtk) == B_SIDE_PLAYER)
             attack = (110 * attack) / 100;
     }
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | /*BATTLE_TYPE_BATTLE_TOWER |*/ BATTLE_TYPE_EREADER_TRAINER)))
     {
-        if (FlagGet(FLAG_UNK824)
-            && !GetBattlerSide(battlerIdDef))
+        if (FlagGet(FLAG_BADGE05_GET)
+            && GetBattlerSide(battlerIdDef) == B_SIDE_PLAYER)
             defense = (110 * defense) / 100;
     }
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | /*BATTLE_TYPE_BATTLE_TOWER |*/ BATTLE_TYPE_EREADER_TRAINER)))
     {
-        if (FlagGet(FLAG_UNK826)
-            && !GetBattlerSide(battlerIdAtk))
+        if (FlagGet(FLAG_BADGE07_GET)
+            && GetBattlerSide(battlerIdAtk) == B_SIDE_PLAYER)
             spAttack = (110 * spAttack) / 100;
     }
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | /*BATTLE_TYPE_BATTLE_TOWER |*/ BATTLE_TYPE_EREADER_TRAINER)))
     {
-        if (FlagGet(FLAG_UNK826)
-            && !GetBattlerSide(battlerIdDef))
+        if (FlagGet(FLAG_BADGE07_GET)
+            && GetBattlerSide(battlerIdDef) == B_SIDE_PLAYER)
             spDefense = (110 * spDefense) / 100;
     }
 
@@ -2699,7 +2725,7 @@ void SetMultiuseSpriteTemplateToPokemon(u16 speciesTag, u8 battlerPosition)
         }
     }
     gMultiuseSpriteTemplate.paletteTag = speciesTag;
-    gMultiuseSpriteTemplate.anims = gUnknown_82349BC;
+    gMultiuseSpriteTemplate.anims = gSpriteAnimTable_82349BC;
 }
 
 void SetMultiuseSpriteTemplateToTrainerBack(u16 trainerSpriteId, u8 battlerPosition)
@@ -2898,7 +2924,7 @@ u32 GetBoxMonData(struct BoxPokemon *boxMon, s32 field, u8 *data)
     struct PokemonSubstruct2 *substruct2 = NULL;
     struct PokemonSubstruct3 *substruct3 = NULL;
 
-    if (field > MON_DATA_10)
+    if (field > MON_DATA_ENCRYPT_SEPARATOR)
     {
         substruct0 = &(GetSubstruct(boxMon, boxMon->personality, 0)->type0);
         substruct1 = &(GetSubstruct(boxMon, boxMon->personality, 1)->type1);
@@ -2978,7 +3004,7 @@ u32 GetBoxMonData(struct BoxPokemon *boxMon, s32 field, u8 *data)
     {
         retVal = 0;
 
-        // FRLG changed this to 7 which used to be PLAYER_NAME_LENGTH
+        // FRLG changed this to 7 which used to be PLAYER_NAME_LENGTH + 1
         while (retVal < 7)
         {
             data[retVal] = boxMon->otName[retVal];
@@ -2994,7 +3020,7 @@ u32 GetBoxMonData(struct BoxPokemon *boxMon, s32 field, u8 *data)
     case MON_DATA_CHECKSUM:
         retVal = boxMon->checksum;
         break;
-    case MON_DATA_10:
+    case MON_DATA_ENCRYPT_SEPARATOR:
         retVal = boxMon->unknown;
         break;
     case MON_DATA_SPECIES:
@@ -3235,7 +3261,7 @@ u32 GetBoxMonData(struct BoxPokemon *boxMon, s32 field, u8 *data)
         break;
     }
 
-    if (field > MON_DATA_10)
+    if (field > MON_DATA_ENCRYPT_SEPARATOR)
         EncryptBoxMon(boxMon);
 
     return retVal;
@@ -3322,7 +3348,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
     struct PokemonSubstruct2 *substruct2 = NULL;
     struct PokemonSubstruct3 *substruct3 = NULL;
 
-    if (field > MON_DATA_10)
+    if (field > MON_DATA_ENCRYPT_SEPARATOR)
     {
         substruct0 = &(GetSubstruct(boxMon, boxMon->personality, 0)->type0);
         substruct1 = &(GetSubstruct(boxMon, boxMon->personality, 1)->type1);
@@ -3381,7 +3407,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
     case MON_DATA_CHECKSUM:
         SET16(boxMon->checksum);
         break;
-    case MON_DATA_10:
+    case MON_DATA_ENCRYPT_SEPARATOR:
         SET16(boxMon->unknown);
         break;
     case MON_DATA_SPECIES:
@@ -3581,7 +3607,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     }
 
-    if (field > MON_DATA_10)
+    if (field > MON_DATA_ENCRYPT_SEPARATOR)
     {
         boxMon->checksum = CalculateBoxMonChecksum(boxMon);
         EncryptBoxMon(boxMon);
@@ -3619,7 +3645,7 @@ static u8 SendMonToPC(struct Pokemon* mon)
 {
     s32 boxNo, boxPos;
 
-    set_unknown_box_id(VarGet(VAR_0x4037));
+    SetPCBoxToSendMon(VarGet(VAR_PC_BOX_TO_SEND_MON));
 
     boxNo = StorageGetCurrentBox();
 
@@ -3634,9 +3660,9 @@ static u8 SendMonToPC(struct Pokemon* mon)
                 CopyMon(checkingMon, &mon->box, sizeof(mon->box));
                 gSpecialVar_MonBoxId = boxNo;
                 gSpecialVar_MonBoxPos = boxPos;
-                if (get_unknown_box_id() != boxNo)
-                    FlagClear(FLAG_UNK843);
-                VarSet(VAR_0x4037, boxNo);
+                if (GetPCBoxToSendMon() != boxNo)
+                    FlagClear(FLAG_SYS_CHANGED_BOX_TO_STORE_MON);
+                VarSet(VAR_PC_BOX_TO_SEND_MON, boxNo);
                 return MON_GIVEN_TO_PC;
             }
         }
@@ -3916,7 +3942,7 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
     if (gMain.inBattle)
     {
         gActiveBattler = gBattlerInMenuId;
-        cmdIndex = (GetBattlerSide(gActiveBattler) != 0);
+        cmdIndex = (GetBattlerSide(gActiveBattler) != B_SIDE_PLAYER);
         while (cmdIndex < gBattlersCount)
         {
             if (gBattlerPartyIndexes[cmdIndex] == partyIndex)
@@ -3969,49 +3995,49 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                 retVal = FALSE;
             }
             if ((itemEffect[cmdIndex] & 0xF)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_ATK] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_ATK] < 12)
             {
-                gBattleMons[gActiveBattler].statStages[STAT_STAGE_ATK] += itemEffect[cmdIndex] & 0xF;
-                if (gBattleMons[gActiveBattler].statStages[STAT_STAGE_ATK] > 12)
-                    gBattleMons[gActiveBattler].statStages[STAT_STAGE_ATK] = 12;
+                gBattleMons[gActiveBattler].statStages[STAT_ATK] += itemEffect[cmdIndex] & 0xF;
+                if (gBattleMons[gActiveBattler].statStages[STAT_ATK] > 12)
+                    gBattleMons[gActiveBattler].statStages[STAT_ATK] = 12;
                 retVal = FALSE;
             }
             break;
         // in-battle stat boosting effects?
         case 1:
             if ((itemEffect[cmdIndex] & 0xF0)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_DEF] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_DEF] < 12)
             {
-                gBattleMons[gActiveBattler].statStages[STAT_STAGE_DEF] += (itemEffect[cmdIndex] & 0xF0) >> 4;
-                if (gBattleMons[gActiveBattler].statStages[STAT_STAGE_DEF] > 12)
-                    gBattleMons[gActiveBattler].statStages[STAT_STAGE_DEF] = 12;
+                gBattleMons[gActiveBattler].statStages[STAT_DEF] += (itemEffect[cmdIndex] & 0xF0) >> 4;
+                if (gBattleMons[gActiveBattler].statStages[STAT_DEF] > 12)
+                    gBattleMons[gActiveBattler].statStages[STAT_DEF] = 12;
                 retVal = FALSE;
             }
             if ((itemEffect[cmdIndex] & 0xF)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPEED] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_SPEED] < 12)
             {
-                gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPEED] += itemEffect[cmdIndex] & 0xF;
-                if (gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPEED] > 12)
-                    gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPEED] = 12;
+                gBattleMons[gActiveBattler].statStages[STAT_SPEED] += itemEffect[cmdIndex] & 0xF;
+                if (gBattleMons[gActiveBattler].statStages[STAT_SPEED] > 12)
+                    gBattleMons[gActiveBattler].statStages[STAT_SPEED] = 12;
                 retVal = FALSE;
             }
             break;
         // more stat boosting effects?
         case 2:
             if ((itemEffect[cmdIndex] & 0xF0)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_ACC] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_ACC] < 12)
             {
-                gBattleMons[gActiveBattler].statStages[STAT_STAGE_ACC] += (itemEffect[cmdIndex] & 0xF0) >> 4;
-                if (gBattleMons[gActiveBattler].statStages[STAT_STAGE_ACC] > 12)
-                    gBattleMons[gActiveBattler].statStages[STAT_STAGE_ACC] = 12;
+                gBattleMons[gActiveBattler].statStages[STAT_ACC] += (itemEffect[cmdIndex] & 0xF0) >> 4;
+                if (gBattleMons[gActiveBattler].statStages[STAT_ACC] > 12)
+                    gBattleMons[gActiveBattler].statStages[STAT_ACC] = 12;
                 retVal = FALSE;
             }
             if ((itemEffect[cmdIndex] & 0xF)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPATK] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_SPATK] < 12)
             {
-                gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPATK] += itemEffect[cmdIndex] & 0xF;
-                if (gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPATK] > 12)
-                    gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPATK] = 12;
+                gBattleMons[gActiveBattler].statStages[STAT_SPATK] += itemEffect[cmdIndex] & 0xF;
+                if (gBattleMons[gActiveBattler].statStages[STAT_SPATK] > 12)
+                    gBattleMons[gActiveBattler].statStages[STAT_SPATK] = 12;
                 retVal = FALSE;
             }
             break;
@@ -4116,14 +4142,14 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                                 if (sp34 != 4)
                                 {
                                     gAbsentBattlerFlags &= ~gBitTable[sp34];
-                                    CopyPlayerPartyMonToBattleData(sp34, pokemon_order_func(gBattlerPartyIndexes[sp34]));
-                                    if (GetBattlerSide(gActiveBattler) == 0 && gBattleResults.numRevivesUsed < 255)
+                                    CopyPlayerPartyMonToBattleData(sp34, GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[sp34]));
+                                    if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER && gBattleResults.numRevivesUsed < 255)
                                         gBattleResults.numRevivesUsed++;
                                 }
                                 else
                                 {
                                     gAbsentBattlerFlags &= ~gBitTable[gActiveBattler ^ 2];
-                                    if (GetBattlerSide(gActiveBattler) == 0 && gBattleResults.numRevivesUsed < 255)
+                                    if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER && gBattleResults.numRevivesUsed < 255)
                                         gBattleResults.numRevivesUsed++;
                                 }
                             }
@@ -4162,7 +4188,7 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                                 if (gMain.inBattle && sp34 != 4)
                                 {
                                     gBattleMons[sp34].hp = data;
-                                    if (!(r10 & 0x10) && GetBattlerSide(gActiveBattler) == 0)
+                                    if (!(r10 & 0x10) && GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
                                     {
                                         if (gBattleResults.numHealingItemsUsed < 255)
                                             gBattleResults.numHealingItemsUsed++;
@@ -4404,7 +4430,7 @@ static bool8 HealStatusConditions(struct Pokemon *mon, u32 unused, u32 healMask,
     }
 }
 
-bool8 PokemonUseItemEffects2(struct Pokemon *mon, u16 item, u8 partyIndex, u8 moveIndex)
+bool8 PokemonItemUseNoEffect(struct Pokemon *mon, u16 item, u8 partyIndex, u8 moveIndex)
 {
     u32 data;
     s32 tmp;
@@ -4483,25 +4509,25 @@ bool8 PokemonUseItemEffects2(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mo
              && !(gBattleMons[gActiveBattler].status2 & STATUS2_FOCUS_ENERGY))
                 retVal = FALSE;
             if ((itemEffect[cmdIndex] & 0xF)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_ATK] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_ATK] < 12)
                 retVal = FALSE;
             break;
         // in-battle stat boosting effects?
         case 1:
             if ((itemEffect[cmdIndex] & 0xF0)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_DEF] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_DEF] < 12)
                 retVal = FALSE;
             if ((itemEffect[cmdIndex] & 0xF)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPEED] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_SPEED] < 12)
                 retVal = FALSE;
             break;
         // more stat boosting effects?
         case 2:
             if ((itemEffect[cmdIndex] & 0xF0)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_ACC] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_ACC] < 12)
                 retVal = FALSE;
             if ((itemEffect[cmdIndex] & 0xF)
-             && gBattleMons[gActiveBattler].statStages[STAT_STAGE_SPATK] < 12)
+             && gBattleMons[gActiveBattler].statStages[STAT_SPATK] < 12)
                 retVal = FALSE;
             break;
         case 3:
@@ -4653,8 +4679,7 @@ bool8 PokemonUseItemEffects2(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mo
                             sp18 = itemEffect[r10];
                         r10++;
                         break;
-                    case 7:\
-
+                    case 7:
                         if (GetMonData(mon, MON_DATA_FRIENDSHIP, NULL) >= 200
                          && retVal == FALSE
                          && sp18 == 0)
@@ -4796,9 +4821,9 @@ u8 GetItemEffectParamOffset(u16 itemId, u8 effectByte, u8 effectBit)
 static void sub_8042D50(int stat)
 {
     gBattlerTarget = gBattlerInMenuId;
-    StringCopy(gBattleTextBuff1, gUnknown_83FD5D0[gUnknown_825DFF0[stat]]);
-    StringCopy(gBattleTextBuff2, BattleText_Rose);
-    BattleStringExpandPlaceholdersToDisplayedString(BattleText_UnknownString3);
+    StringCopy(gBattleTextBuff1, gStatNamesTable[gUnknown_825DFF0[stat]]);
+    StringCopy(gBattleTextBuff2, gBattleText_Rose);
+    BattleStringExpandPlaceholdersToDisplayedString(gBattleText_UnknownString3);
 }
 
 const u8 *Battle_PrintStatBoosterEffectMessage(u16 itemId)
@@ -4837,7 +4862,7 @@ const u8 *Battle_PrintStatBoosterEffectMessage(u16 itemId)
             else
             {
                 gBattlerAttacker = gBattlerInMenuId;
-                BattleStringExpandPlaceholdersToDisplayedString(BattleText_GetPumped);
+                BattleStringExpandPlaceholdersToDisplayedString(gBattleText_GetPumped);
             }
         }
     }
@@ -4845,7 +4870,7 @@ const u8 *Battle_PrintStatBoosterEffectMessage(u16 itemId)
     if (itemEffect[3] & 0x80)
     {
         gBattlerAttacker = gBattlerInMenuId;
-        BattleStringExpandPlaceholdersToDisplayedString(BattleText_MistShroud);
+        BattleStringExpandPlaceholdersToDisplayedString(gBattleText_MistShroud);
     }
 
     return gDisplayedStringBattle;
@@ -5179,7 +5204,7 @@ void EvolutionRenameMon(struct Pokemon *mon, u16 oldSpecies, u16 newSpecies)
         SetMonData(mon, MON_DATA_NICKNAME, gSpeciesNames[newSpecies]);
 }
 
-bool8 sub_80435E0(void)
+bool8 GetPlayerFlankId(void)
 {
     bool8 retVal = FALSE;
     switch (gLinkPlayers[GetMultiplayerId()].id)
@@ -5407,7 +5432,7 @@ u16 GetMonEVCount(struct Pokemon *mon)
     return count;
 }
 
-void sub_8043A68(void)
+void RandomlyGivePartyPokerus(struct Pokemon *party)
 {
     u8 foo[4]; // huh?
 }
@@ -5473,7 +5498,7 @@ static void sub_8043B38(void)
     u8 foo[4]; // huh?
 }
 
-void sub_8043B40(void)
+void PartySpreadPokerus(struct Pokemon *party)
 {
     u8 foo[4]; // huh?
 }
@@ -5624,8 +5649,7 @@ u8 GetNumberOfRelearnableMoves(struct Pokemon *mon)
     return numMoves;
 }
 
-// SpeciesToPokedexNum?
-u16 sub_8043F90(u16 species)
+u16 SpeciesToPokedexNum(u16 species)
 {
     species = SpeciesToNationalPokedexNum(species);
 
@@ -5758,7 +5782,7 @@ s8 GetFlavorRelationByPersonality(u32 personality, u8 flavor)
 
 bool8 IsTradedMon(struct Pokemon *mon)
 {
-    u8 otName[7 + 1]; // change PLAYER_NAME_LENGTH to 7
+    u8 otName[PLAYER_NAME_LENGTH];
     u32 otId;
     GetMonData(mon, MON_DATA_OT_NAME, otName);
     otId = GetMonData(mon, MON_DATA_OT_ID, 0);
@@ -5814,11 +5838,11 @@ void SetMonPreventsSwitchingString(void)
     gBattleTextBuff1[4] = B_BUFF_EOS;
 
     if (GetBattlerSide(gBattleStruct->battlerPreventingSwitchout) == B_SIDE_PLAYER)
-        gBattleTextBuff1[3] = pokemon_order_func(gBattlerPartyIndexes[gBattleStruct->battlerPreventingSwitchout]);
+        gBattleTextBuff1[3] = GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[gBattleStruct->battlerPreventingSwitchout]);
     else
         gBattleTextBuff1[3] = gBattlerPartyIndexes[gBattleStruct->battlerPreventingSwitchout];
 
-    PREPARE_MON_NICK_WITH_PREFIX_BUFFER(gBattleTextBuff2, gBattlerInMenuId, pokemon_order_func(gBattlerPartyIndexes[gBattlerInMenuId]))
+    PREPARE_MON_NICK_WITH_PREFIX_BUFFER(gBattleTextBuff2, gBattlerInMenuId, GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[gBattlerInMenuId]))
 
     BattleStringExpandPlaceholders(gText_PkmnsXPreventsSwitching, gStringVar4);
 }
@@ -6040,15 +6064,15 @@ void HandleSetPokedexFlag(u16 nationalNum, u8 caseId, u32 personality)
     }
 }
 
-bool8 CheckBattleTypeGhost(struct Pokemon *mon, u8 bank)
+bool8 CheckBattleTypeGhost(struct Pokemon *mon, u8 battlerId)
 {
     u8 buffer[12];
 
-    if (gBattleTypeFlags & BATTLE_TYPE_GHOST && GetBattlerSide(bank))
+    if (gBattleTypeFlags & BATTLE_TYPE_GHOST && GetBattlerSide(battlerId) != B_SIDE_PLAYER)
     {
         GetMonData(mon, MON_DATA_NICKNAME, buffer);
         StringGetEnd10(buffer);
-        if (!StringCompare(buffer, gUnknown_841D148))
+        if (!StringCompare(buffer, gText_Ghost))
             return TRUE;
     }
     return FALSE;
@@ -6090,12 +6114,11 @@ static void OakSpeechNidoranFSetupTemplateDummy(struct OakSpeechNidoranFStruct *
         for (j = 0; j < structPtr->frameCount; ++j)
             structPtr->frameImages[i * structPtr->spriteCount + j].data = &structPtr->bufferPtrs[i][j * 0x800];
         structPtr->templates[i].images = &structPtr->frameImages[i * structPtr->spriteCount]; // should be frameCount logically
-        structPtr->templates[i].anims = gUnknown_82349BC;
+        structPtr->templates[i].anims = gSpriteAnimTable_82349BC;
         structPtr->templates[i].paletteTag = i;
     }
 }
 
-#ifdef NONMATCHING
 struct OakSpeechNidoranFStruct *OakSpeechNidoranFSetup(u8 battlePosition, bool8 enable)
 {
     s32 size;
@@ -6135,8 +6158,7 @@ struct OakSpeechNidoranFStruct *OakSpeechNidoranFSetup(u8 battlePosition, bool8 
             battlePosition = 1;
         if (battlePosition > 8)
             battlePosition = 8;
-        // The following two statements refused to cooperate. 
-        sOakSpeechNidoranResources->spriteCount = battlePosition;
+        sOakSpeechNidoranResources->spriteCount = (battlePosition << 16) >> 16;
         sOakSpeechNidoranResources->battlePosition = battlePosition;
         sOakSpeechNidoranResources->frameCount = 4;
         sOakSpeechNidoranResources->enable2 = FALSE;
@@ -6152,8 +6174,11 @@ struct OakSpeechNidoranFStruct *OakSpeechNidoranFSetup(u8 battlePosition, bool8 
     }
     else
     {
-        for (i = 0; i < (s8)sOakSpeechNidoranResources->spriteCount; ++i)
-            sOakSpeechNidoranResources->bufferPtrs[i] = &sOakSpeechNidoranResources->dataBuffer[sOakSpeechNidoranResources->sizePerSprite * i];
+        do
+        {
+            for (i = 0; i < (s8)sOakSpeechNidoranResources->spriteCount; ++i)
+                sOakSpeechNidoranResources->bufferPtrs[i] = &sOakSpeechNidoranResources->dataBuffer[sOakSpeechNidoranResources->sizePerSprite * i];
+        } while (0);
     }
     sOakSpeechNidoranResources->templates = AllocZeroed(sizeof(struct SpriteTemplate) * sOakSpeechNidoranResources->spriteCount);
     sOakSpeechNidoranResources->frameImages = AllocZeroed(sOakSpeechNidoranResources->spriteCount * sizeof(struct SpriteFrameImage) * sOakSpeechNidoranResources->frameCount);
@@ -6201,351 +6226,6 @@ struct OakSpeechNidoranFStruct *OakSpeechNidoranFSetup(u8 battlePosition, bool8 
     }
     return sOakSpeechNidoranResources;
 }
-#else
-NAKED
-struct OakSpeechNidoranFStruct *OakSpeechNidoranFSetup(u8 battlePosition, bool8 enable)
-{
-    asm_unified("\n\
-        push {r4-r7,lr}\n\
-        mov r7, r8\n\
-        push {r7}\n\
-        lsls r0, 24\n\
-        lsrs r6, r0, 24\n\
-        lsls r1, 24\n\
-        lsrs r5, r1, 24\n\
-        movs r0, 0\n\
-        mov r8, r0\n\
-        ldr r4, _08044B34 @ =sOakSpeechNidoranResources\n\
-        ldr r1, [r4]\n\
-        cmp r1, 0\n\
-        beq _08044B1E\n\
-        ldrb r0, [r1, 0x2]\n\
-        cmp r0, 0xA3\n\
-        beq _08044B2E\n\
-        adds r0, r1, 0\n\
-        movs r1, 0\n\
-        movs r2, 0x18\n\
-        bl memset\n\
-        mov r1, r8\n\
-        str r1, [r4]\n\
-    _08044B1E:\n\
-        ldr r4, _08044B34 @ =sOakSpeechNidoranResources\n\
-        movs r0, 0x18\n\
-        bl AllocZeroed\n\
-        adds r2, r0, 0\n\
-        str r2, [r4]\n\
-        cmp r2, 0\n\
-        bne _08044B38\n\
-    _08044B2E:\n\
-        movs r0, 0\n\
-        b _08044D70\n\
-        .align 2, 0\n\
-    _08044B34: .4byte sOakSpeechNidoranResources\n\
-    _08044B38:\n\
-        cmp r5, 0\n\
-        beq _08044B94\n\
-        cmp r5, 0x1\n\
-        bne _08044B94\n\
-        cmp r6, 0x4\n\
-        bne _08044B5E\n\
-        ldrb r1, [r2]\n\
-        movs r0, 0x10\n\
-        negs r0, r0\n\
-        ands r0, r1\n\
-        movs r1, 0x4\n\
-        orrs r0, r1\n\
-        strb r0, [r2]\n\
-        ldr r2, [r4]\n\
-        ldrb r1, [r2]\n\
-        movs r0, 0xF\n\
-        ands r0, r1\n\
-        movs r1, 0x40\n\
-        b _08044B7C\n\
-    _08044B5E:\n\
-        cmp r6, 0x4\n\
-        bls _08044B64\n\
-        movs r6, 0\n\
-    _08044B64:\n\
-        ldrb r1, [r2]\n\
-        movs r0, 0x10\n\
-        negs r0, r0\n\
-        ands r0, r1\n\
-        movs r1, 0x1\n\
-        orrs r0, r1\n\
-        strb r0, [r2]\n\
-        ldr r2, [r4]\n\
-        ldrb r1, [r2]\n\
-        movs r0, 0xF\n\
-        ands r0, r1\n\
-        movs r1, 0x10\n\
-    _08044B7C:\n\
-        orrs r0, r1\n\
-        strb r0, [r2]\n\
-        ldr r2, _08044B90 @ =sOakSpeechNidoranResources\n\
-        ldr r1, [r2]\n\
-        movs r0, 0x4\n\
-        strb r0, [r1, 0x1]\n\
-        ldr r1, [r2]\n\
-        movs r0, 0x1\n\
-        strb r0, [r1, 0x3]\n\
-        b _08044BD0\n\
-        .align 2, 0\n\
-    _08044B90: .4byte sOakSpeechNidoranResources\n\
-    _08044B94:\n\
-        cmp r6, 0\n\
-        bne _08044B9A\n\
-        movs r6, 0x1\n\
-    _08044B9A:\n\
-        cmp r6, 0x8\n\
-        bls _08044BA0\n\
-        movs r6, 0x8\n\
-    _08044BA0:\n\
-        ldr r4, _08044C10 @ =sOakSpeechNidoranResources\n\
-        ldr r3, [r4]\n\
-        movs r0, 0xF\n\
-        adds r1, r6, 0\n\
-        ands r1, r0\n\
-        ldrb r2, [r3]\n\
-        movs r0, 0x10\n\
-        negs r0, r0\n\
-        ands r0, r2\n\
-        orrs r0, r1\n\
-        strb r0, [r3]\n\
-        ldr r2, [r4]\n\
-        lsls r3, r6, 4\n\
-        ldrb r1, [r2]\n\
-        movs r0, 0xF\n\
-        ands r0, r1\n\
-        orrs r0, r3\n\
-        strb r0, [r2]\n\
-        ldr r1, [r4]\n\
-        movs r2, 0\n\
-        movs r0, 0x4\n\
-        strb r0, [r1, 0x1]\n\
-        ldr r0, [r4]\n\
-        strb r2, [r0, 0x3]\n\
-    _08044BD0:\n\
-        ldr r5, _08044C10 @ =sOakSpeechNidoranResources\n\
-        ldr r0, [r5]\n\
-        ldrb r1, [r0, 0x1]\n\
-        lsls r1, 11\n\
-        str r1, [r0, 0x4]\n\
-        ldrb r0, [r0]\n\
-        lsls r0, 28\n\
-        lsrs r0, 28\n\
-        muls r0, r1\n\
-        bl AllocZeroed\n\
-        ldr r1, [r5]\n\
-        str r0, [r1, 0x8]\n\
-        ldrb r0, [r1]\n\
-        lsls r0, 28\n\
-        lsrs r0, 23\n\
-        bl AllocZeroed\n\
-        adds r2, r0, 0\n\
-        ldr r1, [r5]\n\
-        str r2, [r1, 0xC]\n\
-        ldr r0, [r1, 0x8]\n\
-        cmp r0, 0\n\
-        beq _08044C04\n\
-        cmp r2, 0\n\
-        bne _08044C14\n\
-    _08044C04:\n\
-        movs r0, 0x1\n\
-        mov r1, r8\n\
-        orrs r1, r0\n\
-        mov r8, r1\n\
-        b _08044C44\n\
-        .align 2, 0\n\
-    _08044C10: .4byte sOakSpeechNidoranResources\n\
-    _08044C14:\n\
-        ldrb r0, [r1]\n\
-        lsls r0, 28\n\
-        movs r4, 0\n\
-        adds r3, r5, 0\n\
-        cmp r0, 0\n\
-        beq _08044C44\n\
-    _08044C20:\n\
-        ldr r3, [r5]\n\
-        ldr r0, [r3, 0xC]\n\
-        lsls r1, r4, 2\n\
-        adds r1, r0\n\
-        ldr r0, [r3, 0x4]\n\
-        adds r2, r0, 0\n\
-        muls r2, r4\n\
-        ldr r0, [r3, 0x8]\n\
-        adds r0, r2\n\
-        str r0, [r1]\n\
-        adds r0, r4, 0x1\n\
-        lsls r0, 24\n\
-        lsrs r4, r0, 24\n\
-        ldrb r0, [r3]\n\
-        lsls r0, 28\n\
-        lsrs r0, 28\n\
-        cmp r4, r0\n\
-        blt _08044C20\n\
-    _08044C44:\n\
-        ldr r5, _08044C8C @ =sOakSpeechNidoranResources\n\
-        ldr r0, [r5]\n\
-        ldrb r1, [r0]\n\
-        lsls r1, 28\n\
-        lsrs r1, 28\n\
-        lsls r0, r1, 1\n\
-        adds r0, r1\n\
-        lsls r0, 3\n\
-        bl AllocZeroed\n\
-        ldr r2, [r5]\n\
-        str r0, [r2, 0x10]\n\
-        ldrb r1, [r2]\n\
-        lsls r1, 28\n\
-        lsrs r1, 28\n\
-        ldrb r0, [r2, 0x1]\n\
-        lsls r0, 3\n\
-        muls r0, r1\n\
-        bl AllocZeroed\n\
-        adds r2, r0, 0\n\
-        ldr r1, [r5]\n\
-        str r2, [r1, 0x14]\n\
-        ldr r0, [r1, 0x10]\n\
-        cmp r0, 0\n\
-        beq _08044C7C\n\
-        cmp r2, 0\n\
-        bne _08044C90\n\
-    _08044C7C:\n\
-        movs r0, 0x2\n\
-        mov r1, r8\n\
-        orrs r1, r0\n\
-        lsls r0, r1, 24\n\
-        lsrs r0, 24\n\
-        mov r8, r0\n\
-        b _08044CE2\n\
-        .align 2, 0\n\
-    _08044C8C: .4byte sOakSpeechNidoranResources\n\
-    _08044C90:\n\
-        movs r4, 0\n\
-        ldrb r0, [r1, 0x1]\n\
-        ldrb r1, [r1]\n\
-        lsls r1, 28\n\
-        lsrs r1, 28\n\
-        muls r0, r1\n\
-        adds r3, r5, 0\n\
-        cmp r4, r0\n\
-        bge _08044CC6\n\
-        adds r7, r3, 0\n\
-        movs r5, 0x80\n\
-        lsls r5, 4\n\
-    _08044CA8:\n\
-        ldr r2, [r7]\n\
-        ldr r1, [r2, 0x14]\n\
-        lsls r0, r4, 3\n\
-        adds r0, r1\n\
-        strh r5, [r0, 0x4]\n\
-        adds r0, r4, 0x1\n\
-        lsls r0, 24\n\
-        lsrs r4, r0, 24\n\
-        ldrb r1, [r2, 0x1]\n\
-        ldrb r0, [r2]\n\
-        lsls r0, 28\n\
-        lsrs r0, 28\n\
-        muls r0, r1\n\
-        cmp r4, r0\n\
-        blt _08044CA8\n\
-    _08044CC6:\n\
-        ldr r0, [r3]\n\
-        ldrb r4, [r0, 0x3]\n\
-        cmp r4, 0\n\
-        beq _08044CDA\n\
-        cmp r4, 0x1\n\
-        bne _08044CDA\n\
-        adds r1, r6, 0\n\
-        bl OakSpeechNidoranFSetupTemplate\n\
-        b _08044CE2\n\
-    _08044CDA:\n\
-        ldr r0, _08044D60 @ =sOakSpeechNidoranResources\n\
-        ldr r0, [r0]\n\
-        bl OakSpeechNidoranFSetupTemplateDummy\n\
-    _08044CE2:\n\
-        movs r0, 0x2\n\
-        mov r1, r8\n\
-        ands r0, r1\n\
-        cmp r0, 0\n\
-        beq _08044D12\n\
-        ldr r4, _08044D60 @ =sOakSpeechNidoranResources\n\
-        ldr r0, [r4]\n\
-        ldr r0, [r0, 0x14]\n\
-        cmp r0, 0\n\
-        beq _08044D00\n\
-        bl Free\n\
-        ldr r1, [r4]\n\
-        movs r0, 0\n\
-        str r0, [r1, 0x14]\n\
-    _08044D00:\n\
-        ldr r0, [r4]\n\
-        ldr r0, [r0, 0x10]\n\
-        cmp r0, 0\n\
-        beq _08044D12\n\
-        bl Free\n\
-        ldr r1, [r4]\n\
-        movs r0, 0\n\
-        str r0, [r1, 0x10]\n\
-    _08044D12:\n\
-        movs r0, 0x1\n\
-        mov r1, r8\n\
-        ands r0, r1\n\
-        cmp r0, 0\n\
-        beq _08044D42\n\
-        ldr r4, _08044D60 @ =sOakSpeechNidoranResources\n\
-        ldr r0, [r4]\n\
-        ldr r0, [r0, 0xC]\n\
-        cmp r0, 0\n\
-        beq _08044D30\n\
-        bl Free\n\
-        ldr r1, [r4]\n\
-        movs r0, 0\n\
-        str r0, [r1, 0xC]\n\
-    _08044D30:\n\
-        ldr r0, [r4]\n\
-        ldr r0, [r0, 0x8]\n\
-        cmp r0, 0\n\
-        beq _08044D42\n\
-        bl Free\n\
-        ldr r1, [r4]\n\
-        movs r0, 0\n\
-        str r0, [r1, 0x8]\n\
-    _08044D42:\n\
-        mov r0, r8\n\
-        cmp r0, 0\n\
-        beq _08044D64\n\
-        ldr r4, _08044D60 @ =sOakSpeechNidoranResources\n\
-        ldr r0, [r4]\n\
-        movs r1, 0\n\
-        movs r2, 0x18\n\
-        bl memset\n\
-        ldr r0, [r4]\n\
-        bl Free\n\
-        movs r0, 0\n\
-        str r0, [r4]\n\
-        b _08044D6C\n\
-        .align 2, 0\n\
-    _08044D60: .4byte sOakSpeechNidoranResources\n\
-    _08044D64:\n\
-        ldr r0, _08044D7C @ =sOakSpeechNidoranResources\n\
-        ldr r1, [r0]\n\
-        movs r0, 0xA3\n\
-        strb r0, [r1, 0x2]\n\
-    _08044D6C:\n\
-        ldr r0, _08044D7C @ =sOakSpeechNidoranResources\n\
-        ldr r0, [r0]\n\
-    _08044D70:\n\
-        pop {r3}\n\
-        mov r8, r3\n\
-        pop {r4-r7}\n\
-        pop {r1}\n\
-        bx r1\n\
-        .align 2, 0\n\
-    _08044D7C: .4byte sOakSpeechNidoranResources\n\
-        ");
-}
-#endif
 
 void OakSpeechNidoranFFreeResources(void)
 {

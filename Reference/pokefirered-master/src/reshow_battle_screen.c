@@ -202,7 +202,7 @@ static bool8 LoadBattlerSpriteGfx(u8 battler)
     {
         if (GetBattlerSide(battler) != B_SIDE_PLAYER)
         {
-            if ((gBattleTypeFlags & (BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_GHOST)) == BATTLE_TYPE_GHOST)
+            if (IS_BATTLE_TYPE_GHOST_WITHOUT_SCOPE(gBattleTypeFlags))
                 DecompressGhostFrontPic(&gEnemyParty[gBattlerPartyIndexes[battler]], battler);
             else if (!gBattleSpritesDataPtr->battlerData[battler].behindSubstitute)
                 BattleLoadOpponentMonSpriteGfx(&gEnemyParty[gBattlerPartyIndexes[battler]], battler);
@@ -211,7 +211,7 @@ static bool8 LoadBattlerSpriteGfx(u8 battler)
         }
         else if (gBattleTypeFlags & BATTLE_TYPE_SAFARI && battler == B_POSITION_PLAYER_LEFT) // Should be checking position, not battler.
             DecompressTrainerBackPalette(gSaveBlock2Ptr->playerGender, battler);
-        else if (gBattleTypeFlags & BATTLE_TYPE_OLDMAN_TUTORIAL && battler == B_POSITION_PLAYER_LEFT) // Should be checking position, not battler.
+        else if (gBattleTypeFlags & BATTLE_TYPE_OLD_MAN_TUTORIAL && battler == B_POSITION_PLAYER_LEFT) // Should be checking position, not battler.
             DecompressTrainerBackPalette(5, battler);
         else if (!gBattleSpritesDataPtr->battlerData[battler].behindSubstitute)
             BattleLoadPlayerMonSpriteGfx(&gPlayerParty[gBattlerPartyIndexes[battler]], battler);
@@ -228,7 +228,7 @@ static void CreateBattlerSprite(u8 battler)
     {
         u8 posY;
 
-        if ((gBattleTypeFlags & (BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_GHOST)) == BATTLE_TYPE_GHOST)
+        if (IS_BATTLE_TYPE_GHOST_WITHOUT_SCOPE(gBattleTypeFlags))
             posY = GetGhostSpriteDefault_Y(battler);
         else if (gBattleSpritesDataPtr->battlerData[battler].behindSubstitute)
             posY = GetSubstituteSpriteDefault_Y(battler);
@@ -256,7 +256,7 @@ static void CreateBattlerSprite(u8 battler)
             gSprites[gBattlerSpriteIds[battler]].callback = SpriteCallbackDummy;
             gSprites[gBattlerSpriteIds[battler]].data[0] = battler;
         }
-        else if (gBattleTypeFlags & BATTLE_TYPE_OLDMAN_TUTORIAL && battler == B_POSITION_PLAYER_LEFT)
+        else if (gBattleTypeFlags & BATTLE_TYPE_OLD_MAN_TUTORIAL && battler == B_POSITION_PLAYER_LEFT)
         {
             SetMultiuseSpriteTemplateToTrainerBack(5, GetBattlerPosition(0));
             gBattlerSpriteIds[battler] = CreateSprite(&gMultiuseSpriteTemplate, 0x50,
@@ -292,7 +292,7 @@ static void CreateHealthboxSprite(u8 battler)
 
         if (gBattleTypeFlags & BATTLE_TYPE_SAFARI && battler == B_POSITION_PLAYER_LEFT)
             healthboxSpriteId = CreateSafariPlayerHealthboxSprites();
-        else if (gBattleTypeFlags & BATTLE_TYPE_OLDMAN_TUTORIAL && battler == B_POSITION_PLAYER_LEFT)
+        else if (gBattleTypeFlags & BATTLE_TYPE_OLD_MAN_TUTORIAL && battler == B_POSITION_PLAYER_LEFT)
             return;
         else
             healthboxSpriteId = CreateBattlerHealthboxSprites(battler);

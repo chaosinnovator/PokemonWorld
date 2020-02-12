@@ -375,8 +375,9 @@ extern const u8 SecretBase_RedCave1_Text_2751E1[];
 extern const u8 SecretBase_RedCave1_Text_2754F6[];
 extern const u8 SecretBase_RedCave1_Text_2758CC[];
 
-extern const u8 gUnknown_84178D0[];
-extern const u8 gUnknown_84178DA[];
+extern const u8 gText_LtSurge[];
+extern const u8 gText_Koga[];
+extern const u8 gText_PokemonCenter[];
 // vs_seeker
 extern const u8 gUnknown_81C137C[];
 extern const u8 gUnknown_81C13D6[];
@@ -708,9 +709,8 @@ extern const u8 gFameCheckerFlavorTextOriginObjectName_Giovanni5[];
 extern const u8 gOtherText_NewName[];
 extern const u8 gNameChoice_Green[];
 extern const u8 gNameChoice_Red[];
-extern const u8 gNameChoice_Red[];
 extern const u8 gNameChoice_Fire[];
-extern const u8 gNameChoice_Fire[];
+extern const u8 gNameChoice_Leaf[];
 extern const u8 gNameChoice_Gary[];
 extern const u8 gNameChoice_Kaz[];
 extern const u8 gNameChoice_Toru[];
@@ -1148,14 +1148,57 @@ extern const u8 EventScript_FldEffStrength[];
 extern const u8 EventScript_FailSweetScent[];
 extern const u8 EventScript_FldEffRockSmash[];
 
-extern const u8 EventScript_SafariTimesUp[];
-extern const u8 EventScript_SafariRetire[];
-extern const u8 EventScript_SafariWarpOut[];
-extern const u8 EventScript_SafariOutOfBalls[];
+extern const u8 SafariZone_EventScript_TimesUp[];
+extern const u8 SafariZone_EventScript_RetirePrompt[];
+extern const u8 SafariZone_EventScript_OutOfBallsMidBattle[];
+extern const u8 SafariZone_EventScript_OutOfBalls[];
 
 extern const u8 EventScript_ItemfinderDigUpUnderfootItem[];
 
+// battle_setup
+extern const u8 EventScript_DoTrainerBattle[];
+extern const u8 EventScript_TryDoDoubleTrainerBattle[];
+extern const u8 EventScript_TryDoNormalTrainerBattle[];
+extern const u8 EventScript_TryDoDoubleRematchBattle[];
+extern const u8 EventScript_TryDoRematchBattle[];
+extern const u8 gUnknown_81A4EB4[];
+extern const u8 Test_EventScript_Sign[];
+
 // new_game
 extern const u8 EventScript_ResetAllMapFlags[];
+
+// player_pc
+extern const u8 EventScript_PalletTown_PlayersHouse_2F_ShutDownPC[];
+
+// field_screen_effect
+extern const u8 EventScript_MomHeal[];
+extern const u8 EventScript_AfterWhiteOutHeal[];
+
+// start_menu
+extern const u8 gText_WouldYouLikeToSaveTheGame[];
+extern const u8 gText_AlreadySaveFile_WouldLikeToOverwrite[];
+extern const u8 gText_SavingDontTurnOffThePower[];
+extern const u8 gText_PlayerSavedTheGame[];
+extern const u8 gText_DifferentGameFile[];
+
+// script_menu
+extern const u8 EventScript_ReleaseEnd[];
+extern const u8 CableClub_Text_TradeMonsUsingLinkCable[];
+extern const u8 CableClub_Text_BattleUsingLinkCable[];
+extern const u8 CableClub_Text_CancelSelectedItem[];
+extern const u8 CableClub_Text_YouMayTradeHere[];
+extern const u8 CableClub_Text_YouMayBattleHere[];
+extern const u8 CableClub_Text_CanMakeBerryPowder[];
+extern const u8 EventScript_PC[];
+
+extern const u8 EventScript_RepelWoreOff[];
+
+// battle_message
+extern const u8 Text_MonSentToBoxInSomeonesPC[];
+extern const u8 Text_MonSentToBoxInBillsPC[];
+extern const u8 Text_MonSentToBoxSomeonesBoxFull[];
+extern const u8 Text_MonSentToBoxBillsBoxFull[];
+
+extern const u8 EventScript_BagItemCanBeRegistered[];
 
 #endif //GUARD_EVENT_SCRIPTS_H

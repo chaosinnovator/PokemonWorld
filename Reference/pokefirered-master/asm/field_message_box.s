@@ -53,7 +53,7 @@ _08069398:
 	beq _080693EA
 	b _08069402
 _0806939E:
-	ldr r0, _080693BC @ =gUnknown_203ADFA
+	ldr r0, _080693BC @ =gQuestLogState
 	ldrb r0, [r0]
 	cmp r0, 0x2
 	bne _080693C4
@@ -68,14 +68,14 @@ _0806939E:
 	bl TextWindow_LoadTilesStdFrame1
 	b _080693E2
 	.align 2, 0
-_080693BC: .4byte gUnknown_203ADFA
+_080693BC: .4byte gQuestLogState
 _080693C0: .4byte gTextFlags
 _080693C4:
 	bl IsMsgSignPost
 	lsls r0, 24
 	cmp r0, 0
 	bne _080693D4
-	bl sub_80F6E9C
+	bl LoadStdWindowFrameGfx
 	b _080693E2
 _080693D4:
 	bl sub_80F79A4

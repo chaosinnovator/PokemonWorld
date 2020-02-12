@@ -24,6 +24,7 @@
 #include "math_util.h"
 #include "overworld.h"
 #include "random.h"
+#include "data.h"
 #include "oak_speech.h"
 #include "constants/species.h"
 #include "constants/songs.h"
@@ -109,9 +110,6 @@ extern const u8 gText_ABUTTONNext[];
 extern const u8 gText_ABUTTONNext_BBUTTONBack[];
 extern const u8 gText_Boy[];
 extern const u8 gText_Girl[];
-
-extern const struct CompressedSpriteSheet gUnknown_8235194[];
-extern const struct CompressedSpritePalette gUnknown_82373F4;
 
 ALIGNED(4) static const u16 sHelpDocsPalette[] = INCBIN_U16("data/oak_speech/help_docs_palette.gbapal");
 static const u32 sOakSpeechGfx_GameStartHelpUI[] = INCBIN_U32("data/oak_speech/oak_speech_gfx_game_start_help_u_i.4bpp.lz");
@@ -273,11 +271,11 @@ static const struct WindowTemplate sNewGameAdventureIntroWindowTemplates[] = {
     }, DUMMY_WIN_TEMPLATE
 };
 
-const u8 sTextColor_HelpSystem[4] = {
+static const u8 sTextColor_HelpSystem[4] = {
     0x00, 0x01, 0x02
 };
 
-const u8 sTextColor_OakSpeech[4] = {
+static const u8 sTextColor_OakSpeech[4] = {
     0x00, 0x02, 0x03
 };
 
@@ -330,12 +328,12 @@ static const union AnimCmd *const sGrassPlatformAnims3[] = {
     sGrassPlatformAnim3
 };
 
-extern const struct OamData gOamData_83ACAF8;
+extern const struct OamData gOamData_AffineOff_ObjBlend_32x32;
 
 static const struct SpriteTemplate sOakSpeech_GrassPlatformSpriteTemplates[3] = {
-    { 0x1000, 0x1000, &gOamData_83ACAF8, sGrassPlatformAnims1, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
-    { 0x1000, 0x1000, &gOamData_83ACAF8, sGrassPlatformAnims2, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
-    { 0x1000, 0x1000, &gOamData_83ACAF8, sGrassPlatformAnims3, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
+    { 0x1000, 0x1000, &gOamData_AffineOff_ObjBlend_32x32, sGrassPlatformAnims1, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
+    { 0x1000, 0x1000, &gOamData_AffineOff_ObjBlend_32x32, sGrassPlatformAnims2, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
+    { 0x1000, 0x1000, &gOamData_AffineOff_ObjBlend_32x32, sGrassPlatformAnims3, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
 };
 
 static const union AnimCmd sPikaAnim1[] = {
@@ -391,14 +389,14 @@ static const union AnimCmd *const sPikaAnims3[] = {
     sPikaAnim3
 };
 
-extern const struct OamData gOamData_83AC9D8;
-extern const struct OamData gOamData_83AC9F8;
-extern const struct OamData gOamData_83AC9E8;
+extern const struct OamData gOamData_AffineOff_ObjNormal_32x32;
+extern const struct OamData gOamData_AffineOff_ObjNormal_32x16;
+extern const struct OamData gOamData_AffineOff_ObjNormal_16x8;
 
 static const struct SpriteTemplate sOakSpeech_PikaSpriteTemplates[3] = {
-    { 0x1001, 0x1001, &gOamData_83AC9D8, sPikaAnims1, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
-    { 0x1002, 0x1001, &gOamData_83AC9F8, sPikaAnims2, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
-    { 0x1003, 0x1001, &gOamData_83AC9E8, sPikaAnims3, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy }
+    { 0x1001, 0x1001, &gOamData_AffineOff_ObjNormal_32x32, sPikaAnims1, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
+    { 0x1002, 0x1001, &gOamData_AffineOff_ObjNormal_32x16, sPikaAnims2, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy },
+    { 0x1003, 0x1001, &gOamData_AffineOff_ObjNormal_16x8, sPikaAnims3, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy }
 };
 
 static const u8 *const sHelpDocsPtrs[] = {
@@ -407,11 +405,19 @@ static const u8 *const sHelpDocsPtrs[] = {
 };
 
 static const u8 *const sMaleNameChoices[] = {
+#if defined(FIRERED)
     gNameChoice_Red,
     gNameChoice_Fire,
     gNameChoice_Ash,
     gNameChoice_Kene,
     gNameChoice_Geki,
+#elif defined(LEAFGREEN)
+    gNameChoice_Green,
+    gNameChoice_Leaf,
+    gNameChoice_Gary,
+    gNameChoice_Kaz,
+    gNameChoice_Toru,
+#endif
     gNameChoice_Jak,
     gNameChoice_Janne,
     gNameChoice_Jonn,
@@ -429,8 +435,13 @@ static const u8 *const sMaleNameChoices[] = {
 };
 
 static const u8 *const sFemaleNameChoices[] = {
+#if defined(FIRERED)
     gNameChoice_Red,
     gNameChoice_Fire,
+#elif defined(LEAFGREEN)
+    gNameChoice_Green,
+    gNameChoice_Leaf,
+#endif
     gNameChoice_Omi,
     gNameChoice_Jodi,
     gNameChoice_Amanda,
@@ -451,10 +462,17 @@ static const u8 *const sFemaleNameChoices[] = {
 };
 
 static const u8 *const sRivalNameChoices[] = {
+#if defined(FIRERED)
     gNameChoice_Green,
     gNameChoice_Gary,
     gNameChoice_Kaz,
     gNameChoice_Toru
+#elif defined(LEAFGREEN)
+    gNameChoice_Red,
+    gNameChoice_Ash,
+    gNameChoice_Kene,
+    gNameChoice_Geki
+#endif
 };
 
 static void VBlankCB_NewGameOaksSpeech(void)
@@ -561,7 +579,7 @@ static void Task_OaksSpeech1(u8 taskId)
         ShowBg(0);
         ShowBg(1);
         SetVBlankCallback(VBlankCB_NewGameOaksSpeech);
-        PlayBGM(BGM_FRLG_GAME_EXPLANATION_START);
+        PlayBGM(MUS_SOUSA);
         gTasks[taskId].func = Task_OaksSpeech2;
         gMain.state = 0;
         return;
@@ -715,7 +733,7 @@ static void Task_OakSpeech6(u8 taskId)
         data[3]--;
     else
     {
-        PlayBGM(BGM_FRLG_GAME_EXPLANATION_MIDDLE);
+        PlayBGM(MUS_SEKAIKAN);
         ClearTopBarWindow();
         TopBarWindowPrintString(gText_ABUTTONNext, 0, 1);
         sOakSpeechResources->unk_0008 = MallocAndDecompress(sNewGameAdventureIntroTilemap, &sp14);
@@ -817,7 +835,7 @@ static void Task_OakSpeech7(u8 taskId)
         break;
     case 4:
         sub_8006398(gTasks[taskId].data[5]);
-        PlayBGM(BGM_FRLG_GAME_EXPLANATION_END);
+        PlayBGM(MUS_SEIBETU);
         data[15] = 24;
         gMain.state++;
         break;
@@ -876,7 +894,7 @@ static void Task_OakSpeech9(u8 taskId)
         CreateNidoranFSprite(taskId);
         LoadOaksSpeechTrainerPic(3, 0);
         CreatePikaOrGrassPlatformSpriteAndLinkToCurrentTask(taskId, 1);
-        PlayBGM(BGM_FRLG_ROUTE_24);
+        PlayBGM(MUS_OPENING);
         BeginNormalPaletteFade(0xFFFFFFFF, 5, 16, 0, RGB_BLACK);
         data[3] = 80;
         ShowBg(2);
@@ -979,7 +997,7 @@ static void Task_OakSpeech15(u8 taskId)
     {
         ClearDialogWindowAndFrame(0, 1);
         spriteId = gTasks[taskId].data[4];
-        gTasks[taskId].data[6] = sub_804BB98(spriteId, gSprites[spriteId].oam.paletteNum, 0x64, 0x42, 0, 0, 32, 0xFFFF1F3F);
+        gTasks[taskId].data[6] = CreateTradePokeballSprite(spriteId, gSprites[spriteId].oam.paletteNum, 0x64, 0x42, 0, 0, 32, 0xFFFF1F3F);
         gTasks[taskId].data[3] = 48;
         gTasks[taskId].data[0] = 64;
         gTasks[taskId].func = Task_OakSpeech16;
@@ -1409,7 +1427,7 @@ static void Task_OakSpeech39(u8 taskId)
     if (sOakSpeechResources->unk_0012 % 20 == 0)
     {
         if (sOakSpeechResources->unk_0012 == 40)
-            PlaySE(SE_FU_ZUZUZU);
+            PlaySE(SE_TK_WARPIN);
         r0 = data[2];
         data[2] -= 32;
         x = sub_80D8B90(r0 - 8);
@@ -1612,8 +1630,8 @@ static void CreateNidoranFSprite(u8 taskId)
 {
     u8 spriteId;
 
-    DecompressPicFromTable(gUnknown_8235194, OakSpeechNidoranFGetBuffer(0), SPECIES_NIDORAN_F);
-    LoadCompressedSpritePaletteUsingHeap(&gUnknown_82373F4);
+    DecompressPicFromTable(&gMonFrontPicTable[SPECIES_NIDORAN_F], OakSpeechNidoranFGetBuffer(0), SPECIES_NIDORAN_F);
+    LoadCompressedSpritePaletteUsingHeap(&gMonPaletteTable[SPECIES_NIDORAN_F]);
     SetMultiuseSpriteTemplateToPokemon(SPECIES_NIDORAN_F, 0);
     spriteId = CreateSprite(&gMultiuseSpriteTemplate, 0x60, 0x60, 1);
     gSprites[spriteId].callback = SpriteCallbackDummy;
@@ -1884,8 +1902,8 @@ static void GetDefaultName(u8 arg0, u8 namePick)
         src = sRivalNameChoices[namePick];
         dest = gSaveBlock1Ptr->rivalName;
     }
-    for (i = 0; i < PLAYER_NAME_LENGTH - 1 && src[i] != EOS; i++)
+    for (i = 0; i < PLAYER_NAME_LENGTH && src[i] != EOS; i++)
         dest[i] = src[i];
-    for (; i < PLAYER_NAME_LENGTH; i++)
+    for (; i < PLAYER_NAME_LENGTH + 1; i++)
         dest[i] = EOS;
 }

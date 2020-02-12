@@ -7,13 +7,10 @@
 #include "malloc.h"
 #include "item.h"
 #include "save_location.h"
-
-extern void SetBagPocketsPointers(void);
-extern void sub_8110840(void *oldSave);
-extern void sub_8055778(int);
-extern void sub_8054F38(u32 newKey);
-extern void ApplyNewEncryptionKeyToBagItems_(u32 newKey);
-extern void sub_815EE6C(u32 newKey);
+#include "berry_powder.h"
+#include "item.h"
+#include "overworld.h"
+#include "quest_log.h"
 
 #define SAVEBLOCK_MOVE_RANGE    128
 
@@ -146,13 +143,13 @@ void sub_804C1AC(void)
     gSaveBlock2Ptr->specialSaveWarpFlags |= CONTINUE_GAME_WARP;
 }
 
-void sub_804C1C0(void)
+void SetContinueGameWarpStatusToDynamicWarp(void)
 {
     sub_8055778(0);
     gSaveBlock2Ptr->specialSaveWarpFlags |= CONTINUE_GAME_WARP;
 }
 
-void sav2_gender2_inplace_and_xFE(void)
+void ClearContinueGameWarpStatus2(void)
 {
     gSaveBlock2Ptr->specialSaveWarpFlags &= ~CONTINUE_GAME_WARP;
 }
@@ -177,32 +174,32 @@ void LoadPlayerParty(void)
         gPlayerParty[i] = gSaveBlock1Ptr->playerParty[i];
 }
 
-void SaveMapObjects(void)
+void SaveObjectEvents(void)
 {
     int i;
 
-    for (i = 0; i < NUM_FIELD_OBJECTS; i++)
-        gSaveBlock1Ptr->mapObjects[i] = gMapObjects[i];
+    for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
+        gSaveBlock1Ptr->objectEvents[i] = gObjectEvents[i];
 }
 
-void LoadMapObjects(void)
+void LoadObjectEvents(void)
 {
     int i;
 
-    for (i = 0; i < NUM_FIELD_OBJECTS; i++)
-        gMapObjects[i] = gSaveBlock1Ptr->mapObjects[i];
+    for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
+        gObjectEvents[i] = gSaveBlock1Ptr->objectEvents[i];
 }
 
 void SaveSerializedGame(void)
 {
     SavePlayerParty();
-    SaveMapObjects();
+    SaveObjectEvents();
 }
 
 void LoadSerializedGame(void)
 {
     LoadPlayerParty();
-    LoadMapObjects();
+    LoadObjectEvents();
 }
 
 void LoadPlayerBag(void)
@@ -292,7 +289,7 @@ void ApplyNewEncryptionKeyToAllEncryptedData(u32 encryptionKey)
 
     sub_8054F38(encryptionKey);
     ApplyNewEncryptionKeyToBagItems_(encryptionKey);
-    sub_815EE6C(encryptionKey);
+    ApplyNewEncryptionKeyToBerryPowder(encryptionKey);
     ApplyNewEncryptionKeyToWord(&gSaveBlock1Ptr->money, encryptionKey);
     ApplyNewEncryptionKeyToHword(&gSaveBlock1Ptr->coins, encryptionKey);
 }

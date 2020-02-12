@@ -18,6 +18,10 @@ while (my $line = <$file>)
         my $section = $1;
         my $size = hex($2);
         my $dir = $3;
+        if ($size & 3)
+        {
+            $size += 4 - ($size % 3);
+        }
 
         if ($section =~ /text/)
         {
@@ -62,7 +66,7 @@ my $undoc_cmd = "grep '[Uu]nknown_[0-9a-fA-F]*\\|sub_[0-9a-fA-F]*'";
 # This looks for every symbol with an address at the end of it. Some things are
 # given a name based on their type / location, but still have an unknown purpose.
 # For example, FooMap_EventScript_FFFFFFF.
-my $partial_doc_cmd = "grep '[0-9a-fA-F]\\{6,7\\}'";
+my $partial_doc_cmd = "grep '_[0-38][0-9a-fA-F]\\{5,6\\}'";
 
 my $count_cmd = "wc -l";
 
@@ -132,25 +136,10 @@ print "$documented symbols documented ($docPct%)\n";
 print "$partial_documented symbols partially documented ($partialPct%)\n";
 print "$undocumented symbols undocumented ($undocPct%)\n";
 
-my $foundLines = `git grep '\.incbin "baserom\.gba"' data/`;
-my @allLines = split('\n', $foundLines);
-my $incbinTotal = 0;
-my $incbinNum = 0;
-foreach my $line (@allLines)
-{
-    if ($line =~ /\.incbin\s+"baserom\.gba",\s*0x\w+,\s*(.+?)\s*(\@.*)?$/)
-    {
-        my $size = hex($1);
-        $incbinTotal += $size;
-        $incbinNum++;
-    }
-}
 print "\n";
 my $dataTotal = $srcdata + $data;
 my $srcDataPct = sprintf("%.4f", 100 * $srcdata / $dataTotal);
 my $dataPct = sprintf("%.4f", 100 * $data / $dataTotal);
-my $incbinTotalPct = sprintf("%.4f", 100 * $incbinTotal / $dataTotal);
 print "$dataTotal total bytes of data\n";
 print "$srcdata bytes of data in src ($srcDataPct%)\n";
 print "$data bytes of data in data ($dataPct%)\n";
-print "$incbinNum baserom incbins with a combined $incbinTotal bytes ($incbinTotalPct%)\n";

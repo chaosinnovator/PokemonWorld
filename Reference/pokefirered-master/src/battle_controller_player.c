@@ -807,7 +807,7 @@ static void sub_802F610(void)
     {
         if (gReceivedRemoteLinkPlayers == 0)
         {
-            m4aSongNumStop(SE_T_OOAME);
+            m4aSongNumStop(SE_HINSI);
             gMain.inBattle = 0;
             gMain.callback1 = gPreBattleCallback1;
             SetMainCallback2(sub_8011A1C);
@@ -816,7 +816,7 @@ static void sub_802F610(void)
     }
     else if (IsLinkTaskFinished())
     {
-        m4aSongNumStop(SE_T_OOAME);
+        m4aSongNumStop(SE_HINSI);
         gMain.inBattle = 0;
         gMain.callback1 = gPreBattleCallback1;
         SetMainCallback2(sub_8011A1C);
@@ -838,8 +838,8 @@ void sub_802F6A8(void)
         }
         else
         {
-            m4aSongNumStop(SE_T_OOAME);
-            gMain.inBattle = 0;
+            m4aSongNumStop(SE_HINSI);
+            gMain.inBattle = FALSE;
             gMain.callback1 = gPreBattleCallback1;
             SetMainCallback2(gMain.savedCallback);
         }
@@ -1003,7 +1003,6 @@ static void CompleteOnHealthbarDone(void)
     s16 hpValue = MoveBattleBar(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], HEALTH_BAR, 0);
 
     SetHealthboxSpriteVisible(gHealthboxSpriteIds[gActiveBattler]);
-
     if (hpValue != -1)
     {
         UpdateHpTextInHealthbox(gHealthboxSpriteIds[gActiveBattler], hpValue, HP_CURRENT);
@@ -1087,7 +1086,7 @@ static void Task_PrepareToGiveExpWithExpBar(u8 taskId)
     exp -= currLvlExp;
     expToNextLvl = gExperienceTables[gBaseStats[species].growthRate][level + 1] - currLvlExp;
     SetBattleBarStruct(battlerId, gHealthboxSpriteIds[battlerId], expToNextLvl, exp, -gainedExp);
-    PlaySE(SE_U);
+    PlaySE(SE_EXP);
     gTasks[taskId].func = sub_80300F4;
 }
 
@@ -1113,7 +1112,7 @@ static void sub_80300F4(u8 taskId)
             u16 species;
             s32 expOnNextLvl;
 
-            m4aSongNumStop(SE_U);
+            m4aSongNumStop(SE_EXP);
             level = GetMonData(&gPlayerParty[monId], MON_DATA_LEVEL);
             currExp = GetMonData(&gPlayerParty[monId], MON_DATA_EXP);
             species = GetMonData(&gPlayerParty[monId], MON_DATA_SPECIES);
@@ -1191,7 +1190,7 @@ static void sub_80303A8(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
     u8 battlerId = tExpTask_battler;
-    u16 v5 = sub_80768B0(battlerId);
+    u16 v5 = GetBattlerSpriteBGPriorityRank(battlerId);
     bool32 v6 = ((v5 ^ BIT_SIDE)) != B_SIDE_PLAYER;
     struct Sprite *sprite = &gSprites[gBattlerSpriteIds[battlerId]];
 
@@ -1222,12 +1221,12 @@ static void sub_80303A8(u8 taskId)
             u32 battlerIdAlt = battlerId;
             bool32 v6Alt = v6;
 
-            sub_8072E48(battlerIdAlt, v6Alt);
+            MoveBattlerSpriteToBG(battlerIdAlt, v6Alt);
         }
         ++data[15];
         break;
     case 2:
-        PlaySE(SE_T_KAMI2);
+        PlaySE(SE_REGI);
         if (IsMonGettingExpSentOut())
             sub_811E5B8(sprite->pos1.x + sprite->pos2.x,
                         sprite->pos1.y + sprite->pos2.y,
@@ -1306,7 +1305,7 @@ static void OpenPartyMenuToChooseMon(void)
         caseId = gTasks[gUnknown_3004FFC[gActiveBattler]].data[0];
         DestroyTask(gUnknown_3004FFC[gActiveBattler]);
         FreeAllWindowBuffers();
-        OpenPartyMenuInBattle(caseId);
+        OpenPartyMenuInTutorialBattle(caseId);
     }
 }
 
@@ -1314,11 +1313,10 @@ static void WaitForMonSelection(void)
 {
     if (gMain.callback2 == BattleMainCB2 && !gPaletteFade.active)
     {
-        if (gUnknown_203B0C0 == 1)
-            BtlController_EmitChosenMonReturnValue(1, gUnknown_203B0C1, gUnknown_203B0DC);
+        if (gPartyMenuUseExitCallback == TRUE)
+            BtlController_EmitChosenMonReturnValue(1, gSelectedMonPartyId, gBattlePartyCurrentOrder);
         else
             BtlController_EmitChosenMonReturnValue(1, 6, NULL);
-
         if ((gBattleBufferA[gActiveBattler][1] & 0xF) == 1)
             PrintLinkStandbyMsg();
         PlayerBufferExecCompleted();
@@ -1332,7 +1330,7 @@ static void OpenBagAndChooseItem(void)
         gBattlerControllerFuncs[gActiveBattler] = CompleteWhenChoseItem;
         nullsub_44();
         FreeAllWindowBuffers();
-        sub_8107ECC();
+        CB2_BagMenuFromBattle();
     }
 }
 
@@ -2464,7 +2462,7 @@ static void PlayerHandleChooseItem(void)
     gBattlerControllerFuncs[gActiveBattler] = OpenBagAndChooseItem;
     gBattlerInMenuId = gActiveBattler;
     for (i = 0; i < 3; ++i)
-        gUnknown_203B0DC[i] = gBattleBufferA[gActiveBattler][1 + i];
+        gBattlePartyCurrentOrder[i] = gBattleBufferA[gActiveBattler][1 + i];
 }
 
 static void PlayerHandleChoosePokemon(void)
@@ -2477,7 +2475,7 @@ static void PlayerHandleChoosePokemon(void)
     *(&gBattleStruct->field_8B) = gBattleBufferA[gActiveBattler][2];
     *(&gBattleStruct->abilityPreventingSwitchout) = gBattleBufferA[gActiveBattler][3];
     for (i = 0; i < 3; ++i)
-        gUnknown_203B0DC[i] = gBattleBufferA[gActiveBattler][4 + i];
+        gBattlePartyCurrentOrder[i] = gBattleBufferA[gActiveBattler][4 + i];
     BeginNormalPaletteFade(0xFFFFFFFF, 0, 0, 0x10, RGB_BLACK);
     gBattlerControllerFuncs[gActiveBattler] = OpenPartyMenuToChooseMon;
     gBattlerInMenuId = gActiveBattler;
@@ -2545,7 +2543,7 @@ static void PlayerHandleStatusIconUpdate(void)
 
         UpdateHealthboxAttribute(gHealthboxSpriteIds[gActiveBattler], &gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], HEALTHBOX_STATUS_ICON);
         battlerId = gActiveBattler;
-        gBattleSpritesDataPtr->healthBoxesData[battlerId].statusAnimActive = 0;
+        gBattleSpritesDataPtr->healthBoxesData[battlerId].statusAnimActive = FALSE;
         gBattlerControllerFuncs[gActiveBattler] = CompleteOnFinishedStatusAnimation;
     }
 }

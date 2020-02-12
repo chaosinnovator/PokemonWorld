@@ -51,13 +51,9 @@
 #define B_TXT_DEF_PREFIX2 0x2B
 #define B_TXT_ATK_PREFIX3 0x2C
 #define B_TXT_DEF_PREFIX3 0x2D
-#define B_TXT_TRAINER2_CLASS 0x2E
-#define B_TXT_TRAINER2_NAME 0x2F
-#define B_TXT_TRAINER2_LOSE_TEXT 0x30
-#define B_TXT_TRAINER2_WIN_TEXT 0x31
-#define B_TXT_PARTNER_CLASS 0x32
-#define B_TXT_PARTNER_NAME 0x33
-#define B_TXT_BUFF3 0x34
+#define B_TXT_TRAINER2_LOSE_TEXT 0x2E
+#define B_TXT_TRAINER2_WIN_TEXT 0x2F
+#define B_TXT_BUFF3 0x30
 
 // for B_TXT_BUFF1, B_TXT_BUFF2 and B_TXT_BUFF3
 
@@ -237,5 +233,22 @@ extern const u8* const gStatNamesTable2[];
 
 extern const u16 gMissStringIds[];
 extern const u16 gTrappingMoves[];
+
+extern const u8 gText_Sleep[];
+extern const u8 gText_Poison[];
+extern const u8 gText_Burn[];
+extern const u8 gText_Paralysis[];
+extern const u8 gText_Ice[];
+extern const u8 gText_Confusion[];
+extern const u8 gText_Love[];
+
+extern const u8 gUnknown_83FE859[];
+extern const u8 gUnknown_83FE85E[];
+extern const u8 gUnknown_83FE85C[];
+extern const u8 gUnknown_83FE860[];
+extern const u8 gUnknown_83FE864[];
+
+extern const u8 gText_SafariBalls[];
+extern const u8 gText_HighlightRed_Left[];
 
 #endif // GUARD_BATTLE_MESSAGE_H

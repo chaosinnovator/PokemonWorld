@@ -25,6 +25,7 @@ SSANNEGFXDIR := graphics/ss_anne
 ITEMPCGFXDIR := graphics/item_pc
 TITLESCREENGFXDIR := graphics/title_screen
 CREDITSGFXDIR := graphics/credits
+ITEMMENUGFXDIR := graphics/item_menu
 
 types := normal fight flying poison ground rock bug ghost steel mystery fire water grass electric psychic ice dragon dark
 contest_types := cool beauty cute smart tough
@@ -102,6 +103,9 @@ graphics/pokenav/region_map.8bpp: %.8bpp: %.png
 $(MISCGFXDIR)/japanese_hof.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -num_tiles 29
 
+$(MISCGFXDIR)/markings2.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -num_tiles 25
+
 $(INTERFACEGFXDIR)/menu.gbapal: $(INTERFACEGFXDIR)/menu_0.gbapal \
 						$(INTERFACEGFXDIR)/menu_1.gbapal
 	@cat $^ >$@
@@ -132,7 +136,7 @@ $(UNUSEDGFXDIR)/obi2.4bpp: $(UNUSEDGFXDIR)/old_bulbasaur2.4bpp \
 						   $(UNUSEDGFXDIR)/old_battle_interface_3.4bpp
 	@cat $^ >$@
 
-$(INTERFACEGFXDIR)/hp_numbers.4bpp: $(INTERFACEGFXDIR)/hpbar_anim.4bpp \
+$(INTERFACEGFXDIR)/hp_numbers.4bpp: $(INTERFACEGFXDIR)/hp_bar_anim.4bpp \
 							$(INTERFACEGFXDIR)/numbers1.4bpp \
 							$(INTERFACEGFXDIR)/numbers2.4bpp
 	@cat $^ >$@
@@ -148,6 +152,9 @@ $(UNUSEDGFXDIR)/color_frames.4bpp: %.4bpp: %.png
 
 $(BATINTGFXDIR)/unused_window2bar.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -num_tiles 5
+    
+$(BATINTGFXDIR)/window.gbapal: $(BATINTGFXDIR)/window1.gbapal $(BATINTGFXDIR)/window2.gbapal
+	cat $^ > $@
 
 $(UNUSEDGFXDIR)/old_contest.4bpp: $(UNUSEDGFXDIR)/old_contest_frame_1.4bpp \
 								  $(UNUSEDGFXDIR)/old_contest_floor.4bpp \
@@ -499,6 +506,9 @@ $(ITEMPCGFXDIR)/unk_8E85090.4bpp: %.4bpp: %.png
 $(TITLESCREENGFXDIR)/unk_8ead608.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -num_tiles 135
 
+$(TITLESCREENGFXDIR)/unk_lg_8ead788.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -num_tiles 123
+
 $(CREDITSGFXDIR)/unk_8EAE548.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -num_tiles 77
 
@@ -515,3 +525,15 @@ POKEDEXAREAMARKERFILES := \
 
 $(POKEDEXAREAMARKERSDATADIR)/marker.4bpp: $(POKEDEXAREAMARKERFILES)
 	cat $^ > $@
+
+graphics/pokemon/heracross/unk_icon.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -mwidth 4 -mheight 4
+
+graphics/object_events/151.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -mwidth 8 -mheight 4
+
+graphics/object_events/emoticons.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -mwidth 2 -mheight 2
+
+$(ITEMMENUGFXDIR)/bag_tiles.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -num_tiles 55

@@ -13,15 +13,14 @@
 #include "metatile_behavior.h"
 #include "quest_log.h"
 #include "link.h"
-#include "map_obj_80688E4.h"
+#include "event_object_80688E4.h"
 #include "sound.h"
 #include "field_door.h"
 #include "field_effect.h"
 #include "field_screen_effect.h"
-#include "field_map_obj.h"
-#include "field_map_obj_helpers.h"
+#include "event_object_movement.h"
 #include "field_specials.h"
-#include "map_obj_lock.h"
+#include "event_object_lock.h"
 #include "start_menu.h"
 #include "constants/songs.h"
 
@@ -57,12 +56,12 @@ void pal_fill_for_maplights(void)
     {
     case 0:
         palette_bg_faded_fill_black();
-        fade_screen(0, 0);
+        FadeScreen(0, 0);
         palette_bg_faded_fill_black();
         break;
     case 1:
         palette_bg_faded_fill_white();
-        fade_screen(2, 0);
+        FadeScreen(2, 0);
         palette_bg_faded_fill_white();
         break;
     }
@@ -74,12 +73,12 @@ static void sub_807DBAC(void)
     {
     case 0:
         palette_bg_faded_fill_black();
-        fade_screen(0, 3);
+        FadeScreen(0, 3);
         palette_bg_faded_fill_black();
         break;
     case 1:
         palette_bg_faded_fill_white();
-        fade_screen(2, 3);
+        FadeScreen(2, 3);
         palette_bg_faded_fill_white();
         break;
     }
@@ -88,7 +87,7 @@ static void sub_807DBAC(void)
 void sub_807DC00(void)
 {
     palette_bg_faded_fill_black();
-    fade_screen(0, 0);
+    FadeScreen(0, 0);
     palette_bg_faded_fill_black();
 }
 
@@ -96,16 +95,16 @@ void sub_807DC18(void)
 {
     const struct MapHeader *header = warp1_get_mapheader();
     if (header->regionMapSectionId != gMapHeader.regionMapSectionId && sub_80F8110(header->regionMapSectionId, FALSE))
-        fade_screen(1, 0);
+        FadeScreen(1, 0);
     else
     {
         switch (sub_80C9D7C(GetCurrentMapType(), header->mapType))
         {
         case 0:
-            fade_screen(1, 0);
+            FadeScreen(1, 0);
             break;
         case 1:
-            fade_screen(3, 0);
+            FadeScreen(3, 0);
             break;
         }
     }
@@ -116,10 +115,10 @@ static void sub_807DC70(void)
     switch (sub_80C9D7C(GetCurrentMapType(), warp1_get_mapheader()->mapType))
     {
     case 0:
-        fade_screen(1, 3);
+        FadeScreen(1, 3);
         break;
     case 1:
-        fade_screen(3, 3);
+        FadeScreen(3, 3);
         break;
     }
 }
@@ -305,7 +304,7 @@ static void sub_807DF94(void)
     Overworld_PlaySpecialMapMusic();
     pal_fill_for_maplights();
     sub_8111CF0();
-    PlaySE(SE_RU_GASHIN);
+    PlaySE(SE_TK_WARPOUT);
     CreateTask(sub_807E31C, 10);
     ScriptContext2_Enable();
 }
@@ -323,15 +322,15 @@ static void sub_807DFBC(u8 taskId)
     {
     case 0: // Never reached
         sub_807DCB0(0);
-        player_bitmagic();
+        FreezeObjectEvents();
         PlayerGetDestCoords(x, y);
         FieldSetDoorOpened(*x, *y);
         task->data[0] = 1;
         break;
     case 5:
         sub_807DCB0(0);
-        player_bitmagic();
-        sub_807F114();
+        FreezeObjectEvents();
+        DoOutwardBarnDoorWipe();
         sub_807DBAC();
         task->data[0] = 6;
         break;
@@ -350,7 +349,7 @@ static void sub_807DFBC(u8 taskId)
         {
             PlayerGetDestCoords(&task->data[12], &task->data[13]);
             sub_807DCB0(TRUE);
-            FieldObjectSetHeldMovement(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)], 16);
+            ObjectEventSetHeldMovement(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)], 16);
             task->data[0] = 8;
         }
         break;
@@ -363,9 +362,9 @@ static void sub_807DFBC(u8 taskId)
         }
         break;
     case 9:
-        if (sub_807E418() && walkrun_is_standing_still() && !FieldIsDoorAnimationRunning() && !FuncIsActiveTask(sub_807F204))
+        if (sub_807E418() && walkrun_is_standing_still() && !FieldIsDoorAnimationRunning() && !FuncIsActiveTask(Task_BarnDoorWipe))
         {
-            FieldObjectClearHeldMovementIfFinished(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)]);
+            ObjectEventClearHeldMovementIfFinished(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)]);
             task->data[0] = 4;
         }
         break;
@@ -374,7 +373,7 @@ static void sub_807DFBC(u8 taskId)
         if (sub_807E418())
         {
             sub_807DCB0(TRUE);
-            FieldObjectSetHeldMovement(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)], 16);
+            ObjectEventSetHeldMovement(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)], 16);
             task->data[0] = 2;
         }
         break;
@@ -382,7 +381,7 @@ static void sub_807DFBC(u8 taskId)
         if (walkrun_is_standing_still())
         {
             task->data[1] = FieldAnimateDoorClose(*x, *y);
-            FieldObjectClearHeldMovementIfFinished(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)]);
+            ObjectEventClearHeldMovementIfFinished(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)]);
             task->data[0] = 3;
         }
         break;
@@ -391,7 +390,7 @@ static void sub_807DFBC(u8 taskId)
             task->data[0] = 4;
         break;
     case 4:
-        UnfreezeMapObjects();
+        UnfreezeObjectEvents();
         ScriptContext2_Disable();
         DestroyTask(taskId);
         break;
@@ -408,7 +407,7 @@ static void task_map_chg_seq_0807E20C(u8 taskId)
     {
     case 0:
         sub_807DCB0(0);
-        player_bitmagic();
+        FreezeObjectEvents();
         PlayerGetDestCoords(x, y);
         task->data[0] = 1;
         break;
@@ -416,7 +415,7 @@ static void task_map_chg_seq_0807E20C(u8 taskId)
         if (sub_807E418())
         {
             sub_807DCB0(TRUE);
-            FieldObjectSetHeldMovement(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)], sub_8063F84(GetPlayerFacingDirection()));
+            ObjectEventSetHeldMovement(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)], sub_8063F84(GetPlayerFacingDirection()));
             task->data[0] = 2;
         }
         break;
@@ -427,7 +426,7 @@ static void task_map_chg_seq_0807E20C(u8 taskId)
         }
         break;
     case 3:
-        UnfreezeMapObjects();
+        UnfreezeObjectEvents();
         ScriptContext2_Disable();
         DestroyTask(taskId);
         break;
@@ -439,14 +438,14 @@ static void task_map_chg_seq_0807E2CC(u8 taskId)
     switch (gTasks[taskId].data[0])
     {
     case 0:
-        player_bitmagic();
+        FreezeObjectEvents();
         ScriptContext2_Enable();
         gTasks[taskId].data[0]++;
         break;
     case 1:
         if (sub_807E418())
         {
-            UnfreezeMapObjects();
+            UnfreezeObjectEvents();
             ScriptContext2_Disable();
             DestroyTask(taskId);
         }
@@ -459,7 +458,7 @@ static void sub_807E31C(u8 taskId)
     switch (gTasks[taskId].data[0])
     {
     case 0:
-        player_bitmagic();
+        FreezeObjectEvents();
         ScriptContext2_Enable();
         sub_805DC04();
         gTasks[taskId].data[0]++;
@@ -467,7 +466,7 @@ static void sub_807E31C(u8 taskId)
     case 1:
         if (sub_807E418() && sub_805DC24() != TRUE)
         {
-            UnfreezeMapObjects();
+            UnfreezeObjectEvents();
             ScriptContext2_Disable();
             DestroyTask(taskId);
         }
@@ -475,25 +474,25 @@ static void sub_807E31C(u8 taskId)
     }
 }
 
-static void sub_807E378(u8 taskId)
+static void Task_WaitFadeAndCreateStartMenuTask(u8 taskId)
 {
     if (sub_807E418() == TRUE)
     {
         DestroyTask(taskId);
-        CreateTask(sub_806F1F0, 80);
+        CreateTask(Task_StartMenuHandleInput, 80);
     }
 }
 
-void sub_807E3A0(void)
+void FadeTransition_FadeInOnReturnToStartMenu(void)
 {
     sub_807DC00();
-    CreateTask(sub_807E378, 80);
+    CreateTask(Task_WaitFadeAndCreateStartMenuTask, 80);
     ScriptContext2_Enable();
 }
 
-bool32 sub_807E3BC(void)
+bool8 FieldCB2_ReturnToStartMenuInit(void)
 {
-    sub_806F1D4();
+    SetUpReturnToStartMenu();
     return FALSE;
 }
 
@@ -522,7 +521,7 @@ static bool32 sub_807E40C(void)
 
 bool32 sub_807E418(void)
 {
-    if (sub_807AA70() == TRUE && sub_80F83B0())
+    if (IsWeatherNotFadingIn() == TRUE && sub_80F83B0())
         return TRUE;
     else
         return FALSE;
@@ -628,7 +627,7 @@ static void sub_807E5EC(u8 taskId)
         task->data[0]++;
         break;
     case 1:
-        if (!sub_807E40C() && sub_8055FC4())
+        if (!sub_807E40C() && BGMusicStopped())
             task->data[0]++;
         break;
     case 2:
@@ -639,7 +638,7 @@ static void sub_807E5EC(u8 taskId)
     }
 }
 
-void sub_807E654(void)
+void DoCableClubWarp(void)
 {
     ScriptContext2_Enable();
     sub_8055F88();
@@ -655,13 +654,13 @@ static void sub_807E678(u8 taskId)
     {
     case 0:
         ClearLinkCallback_2();
-        fade_screen(1, 0);
+        FadeScreen(1, 0);
         sub_8055F88();
         PlaySE(SE_KAIDAN);
         data[0]++;
         break;
     case 1:
-        if (!sub_807E40C() && sub_8055FC4())
+        if (!sub_807E40C() && BGMusicStopped())
         {
             sub_800AAC0();
             data[0]++;
@@ -678,7 +677,7 @@ static void sub_807E678(u8 taskId)
     }
 }
 
-void sub_807E704(void)
+void ReturnFromLinkRoom(void)
 {
     CreateTask(sub_807E678, 10);
 }
@@ -689,12 +688,12 @@ static void sub_807E718(u8 taskId)
     switch (task->data[0])
     {
     case 0:
-        player_bitmagic();
+        FreezeObjectEvents();
         ScriptContext2_Enable();
         task->data[0]++;
         break;
     case 1:
-        if (!sub_807E40C() && sub_8055FC4())
+        if (!sub_807E40C() && BGMusicStopped())
             task->data[0]++;
         break;
     case 2:
@@ -711,9 +710,9 @@ static void sub_807E784(u8 taskId)
     switch (task->data[0])
     {
     case 0:
-        player_bitmagic();
+        FreezeObjectEvents();
         ScriptContext2_Enable();
-        PlaySE(SE_FU_ZUZUZU);
+        PlaySE(SE_TK_WARPIN);
         sub_805DAB0();
         task->data[0]++;
         break;
@@ -725,7 +724,7 @@ static void sub_807E784(u8 taskId)
         }
         break;
     case 2:
-        if (!sub_807E40C() && sub_8055FC4())
+        if (!sub_807E40C() && BGMusicStopped())
             task->data[0]++;
         break;
     case 3:
@@ -744,7 +743,7 @@ static void sub_807E80C(u8 taskId)
     switch (task->data[0])
     {
     case 0:
-        player_bitmagic();
+        FreezeObjectEvents();
         PlayerGetDestCoords(xp, yp);
         PlaySE(GetDoorSoundEffect(*xp, *yp - 1));
         task->data[1] = FieldAnimateDoorOpen(*xp, *yp - 1);
@@ -753,8 +752,8 @@ static void sub_807E80C(u8 taskId)
     case 1:
         if (task->data[1] < 0 || gTasks[task->data[1]].isActive != TRUE)
         {
-            FieldObjectClearAnimIfSpecialAnimActive(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)]);
-            FieldObjectSetHeldMovement(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)], 17);
+            ObjectEventClearAnimIfSpecialAnimActive(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)]);
+            ObjectEventSetHeldMovement(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)], 17);
             task->data[0] = 2;
         }
         break;
@@ -762,7 +761,7 @@ static void sub_807E80C(u8 taskId)
         if (walkrun_is_standing_still())
         {
             task->data[1] = FieldAnimateDoorClose(*xp, *yp - 1);
-            FieldObjectClearHeldMovementIfFinished(&gMapObjects[GetFieldObjectIdByLocalIdAndMap(0xFF, 0, 0)]);
+            ObjectEventClearHeldMovementIfFinished(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(0xFF, 0, 0)]);
             sub_807DCB0(FALSE);
             task->data[0] = 3;
         }
@@ -792,18 +791,18 @@ static void sub_807E80C(u8 taskId)
 static void sub_807E980(u8 taskId)
 {
     s16 * data = gTasks[taskId].data;
-    struct MapObject *playerObj = &gMapObjects[gPlayerAvatar.mapObjectId];
+    struct ObjectEvent *playerObj = &gObjectEvents[gPlayerAvatar.objectEventId];
     struct Sprite *playerSpr = &gSprites[gPlayerAvatar.spriteId];
     switch (data[0])
     {
     case 0:
         ScriptContext2_Enable();
-        player_bitmagic();
+        FreezeObjectEvents();
         CameraObjectReset2();
         data[0]++;
         break;
     case 1:
-        if (!FieldObjectIsMovementOverridden(playerObj) || FieldObjectClearHeldMovementIfFinished(playerObj))
+        if (!ObjectEventIsMovementOverridden(playerObj) || ObjectEventClearHeldMovementIfFinished(playerObj))
         {
             if (data[15] != 0)
                 data[15]--;
@@ -829,7 +828,7 @@ static void sub_807E980(u8 taskId)
         break;
     case 3:
         sub_807EAC4(data[2], data[3], &data[4], &data[5], &data[6]);
-        if (!sub_807E40C() && sub_8055FC4())
+        if (!sub_807E40C() && BGMusicStopped())
             data[0]++;
         break;
     default:
@@ -844,22 +843,22 @@ static void sub_807E980(u8 taskId)
 static void sub_807EAC4(s16 a0, s16 a1, s16 *a2, s16 *a3, s16 *a4)
 {
     struct Sprite *playerSpr = &gSprites[gPlayerAvatar.spriteId];
-    struct MapObject *playerObj = &gMapObjects[gPlayerAvatar.mapObjectId];
+    struct ObjectEvent *playerObj = &gObjectEvents[gPlayerAvatar.objectEventId];
     if (a1 > 0 || *a4 > 6)
         *a3 += a1;
     *a2 += a0;
     (*a4)++;
     playerSpr->pos2.x = *a2 >> 5;
     playerSpr->pos2.y = *a3 >> 5;
-    if (playerObj->mapobj_bit_7)
+    if (playerObj->heldMovementFinished)
     {
-        FieldObjectForceSetSpecialAnim(playerObj, GetStepInPlaceDelay16AnimId(GetPlayerFacingDirection()));
+        ObjectEventForceSetSpecialAnim(playerObj, GetStepInPlaceDelay16AnimId(GetPlayerFacingDirection()));
     }
 }
 
 static void sub_807EB64(u16 a0, s16 *a1, s16 *a2)
 {
-    FieldObjectForceSetSpecialAnim(&gMapObjects[gPlayerAvatar.mapObjectId], GetStepInPlaceDelay16AnimId(GetPlayerFacingDirection()));
+    ObjectEventForceSetSpecialAnim(&gObjectEvents[gPlayerAvatar.objectEventId], GetStepInPlaceDelay16AnimId(GetPlayerFacingDirection()));
     sub_807EBBC(a0, a1, a2);
 }
 
@@ -931,7 +930,7 @@ static void sub_807ECBC(s16 *a0, s16 *a1, s16 *a2, s16 *a3, s16 *a4)
         r1 = 3;
     else
         r1 = 4;
-    FieldObjectForceSetSpecialAnim(&gMapObjects[gPlayerAvatar.mapObjectId], sub_8064270(r1));
+    ObjectEventForceSetSpecialAnim(&gObjectEvents[gPlayerAvatar.objectEventId], sub_8064270(r1));
     sub_807EBBC(behavior, a0, a1);
     *a2 = *a0 * 16;
     *a3 = *a1 * 16;

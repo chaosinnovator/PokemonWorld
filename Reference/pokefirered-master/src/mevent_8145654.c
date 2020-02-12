@@ -13,6 +13,7 @@
 #include "string_util.h"
 #include "link_rfu.h"
 #include "mevent.h"
+#include "battle_anim.h"
 
 struct UnkStruct_8467FB8
 {
@@ -34,7 +35,7 @@ struct UnkStruct_203F3C8_02DC
 
 struct UnkStruct_203F3C8
 {
-    /*0000*/ struct MEventBuffer_32E0_Sub unk_0000;
+    /*0000*/ struct MEWonderCardData unk_0000;
     /*014c*/ struct MEventBuffer_3430_Sub unk_014C;
     /*0170*/ const struct UnkStruct_8467FB8 * unk_0170;
     /*0174*/ u8 unk_0174;
@@ -58,8 +59,6 @@ void sub_8145A98(void);
 void sub_8145D18(u8 whichWindow);
 void sub_8146060(void);
 void sub_81461D8(void);
-
-extern const struct OamData gOamData_83AC9F8;
 
 const u8 gUnknown_8467068[][3] = {
     {0, 2, 3},
@@ -114,7 +113,7 @@ const struct SpritePalette gUnknown_8467F60[] = {
     {gUnknown_8467ED4, 0x8000}
 };
 const struct SpriteTemplate gUnknown_8467FA0 = {
-    0x8000, 0x8000, &gOamData_83AC9F8, gDummySpriteAnimTable, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy
+    0x8000, 0x8000, &gOamData_AffineOff_ObjNormal_32x16, gDummySpriteAnimTable, NULL, gDummySpriteAffineAnimTable, SpriteCallbackDummy
 };
 const struct UnkStruct_8467FB8 gUnknown_8467FB8[8] = {
     {1, 0, 0, 0, gUnknown_846718C, gUnknown_8467288, gUnknown_846708C},
@@ -127,7 +126,7 @@ const struct UnkStruct_8467FB8 gUnknown_8467FB8[8] = {
     {1, 0, 0, 7, gUnknown_8467A7C, gUnknown_8467CAC, gUnknown_846716C}
 };
 
-bool32 InitWonderCardResources(struct MEventBuffer_32E0_Sub * r5, struct MEventBuffer_3430_Sub * r6)
+bool32 InitWonderCardResources(struct MEWonderCardData * r5, struct MEventBuffer_3430_Sub * r6)
 {
     if (r5 == NULL || r6 == NULL)
         return FALSE;
@@ -200,7 +199,7 @@ s32 FadeToWonderCardMenu(void)
             CopyBgTilemapBufferToVram(1);
             break;
         case 6:
-            sub_809707C();
+            LoadMonIconPalettes();
             break;
         case 7:
             ShowBg(1);
@@ -398,7 +397,7 @@ void sub_8146060(void)
     gUnknown_203F3C8->unk_017C = 0xFF;
     if (gUnknown_203F3C8->unk_014C.unk_06 != SPECIES_NONE)
     {
-        gUnknown_203F3C8->unk_017C = sub_8096ECC(sub_8096FD4(gUnknown_203F3C8->unk_014C.unk_06), SpriteCallbackDummy, 0xDC, 0x14, 0, FALSE);
+        gUnknown_203F3C8->unk_017C = CreateMonIcon_HandleDeoxys(MailSpeciesToIconSpecies(gUnknown_203F3C8->unk_014C.unk_06), SpriteCallbackDummy, 0xDC, 0x14, 0, FALSE);
         gSprites[gUnknown_203F3C8->unk_017C].oam.priority = 2;
     }
     if (gUnknown_203F3C8->unk_0000.unk_09 != 0 && gUnknown_203F3C8->unk_0000.unk_08_0 == 1)
@@ -412,7 +411,7 @@ void sub_8146060(void)
             gUnknown_203F3C8->unk_017D[r7][0] = CreateSprite(&gUnknown_8467FA0, 0xd8 - 32 * r7, 0x90, 8);
             if (gUnknown_203F3C8->unk_014C.unk_08[0][r7] != 0)
             {
-                gUnknown_203F3C8->unk_017D[r7][1] = sub_8096ECC(sub_8096FD4(gUnknown_203F3C8->unk_014C.unk_08[0][r7]), SpriteCallbackDummy, 0xd8 - 32 * r7, 0x88, 0, 0);
+                gUnknown_203F3C8->unk_017D[r7][1] = CreateMonIcon_HandleDeoxys(MailSpeciesToIconSpecies(gUnknown_203F3C8->unk_014C.unk_08[0][r7]), SpriteCallbackDummy, 0xd8 - 32 * r7, 0x88, 0, 0);
                 gSprites[gUnknown_203F3C8->unk_017D[r7][1]].oam.priority = 2;
             }
         }
@@ -423,7 +422,7 @@ void sub_81461D8(void)
 {
     u8 r6 = 0;
     if (gUnknown_203F3C8->unk_017C != 0xFF)
-        sub_8097070(&gSprites[gUnknown_203F3C8->unk_017C]);
+        DestroyMonIcon(&gSprites[gUnknown_203F3C8->unk_017C]);
     if (gUnknown_203F3C8->unk_0000.unk_09 != 0 && gUnknown_203F3C8->unk_0000.unk_08_0 == 1)
     {
         for (; r6 < gUnknown_203F3C8->unk_0000.unk_09; r6++)
@@ -435,7 +434,7 @@ void sub_81461D8(void)
                 // if (gUnknown_203F3C8->unk_017D[r6][1] != 0xFF)
                 if (gUnknown_203F3C8->unk_017D[r6][0] != 0xFF)
                 {
-                    sub_8097070(&gSprites[gUnknown_203F3C8->unk_017D[r6][1]]);
+                    DestroyMonIcon(&gSprites[gUnknown_203F3C8->unk_017D[r6][1]]);
                 }
             }
         }
@@ -446,7 +445,7 @@ void sub_81461D8(void)
 
 struct UnkStruct_203F3CC
 {
-    /*0000*/ struct MEventBuffer_3120_Sub unk_0000;
+    /*0000*/ struct MEWonderNewsData unk_0000;
     /*01bc*/ const struct UnkStruct_8467FB8 * unk_01BC;
     /*01c0*/ u8 unk_01C0_0:1;
              u8 unk_01C0_1:7;
@@ -509,7 +508,7 @@ const struct UnkStruct_8467FB8 gUnknown_8468720[] = {
     {1, 0, 0, 0, gUnknown_84685B4, gUnknown_8468644, gUnknown_84680A0}
 };
 
-bool32 InitWonderNewsResources(const struct MEventBuffer_3120_Sub * a0)
+bool32 InitWonderNewsResources(const struct MEWonderNewsData * a0)
 {
     if (a0 == NULL)
         return FALSE;

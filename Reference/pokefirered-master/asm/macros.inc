@@ -119,6 +119,12 @@
 	.fill 4 @ padding
 	.endm
 
+	.macro overworld_frame ptr:req, width:req, height:req, frame:req
+	.4byte (\ptr + (\width * \height * \frame * 64) / 2)
+	.2byte (\width * \height * 64) / 2
+	.2byte 0 @ padding
+	.endm
+
 	.macro credits_entry number, text
 	.4byte \number
 	.4byte \text
@@ -151,4 +157,13 @@
 	.macro window_template bg, top, left, height, width, palno, baseBlock
 	.byte \bg, \top, \left, \height, \width, \palno
 	.2byte \baseBlock
+	.endm
+
+	.macro abspath relative
+	.if REVISION == 0
+	.ascii "C:/WORK/POKeFRLG/src/pm_lgfr_ose/source/"
+	.else
+	.ascii "C:/WORK/POKeFRLG/Src/pm_lgfr_ose/source/"
+	.endif
+	.asciz "\relative"
 	.endm

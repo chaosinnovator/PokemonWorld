@@ -21,10 +21,15 @@
 #define STD_WINDOW_PALETTE_NUM 14
 #define STD_WINDOW_BASE_TILE_NUM 0x214
 
-static EWRAM_DATA bool8 gUnknown_203AB58[4] = {FALSE}; // knizz: bgmaps_that_need_syncing
-static EWRAM_DATA u16 gUnknown_203AB5C = {0};
-static EWRAM_DATA void *gUnknown_203AB60[0x20] = {NULL};
+static EWRAM_DATA bool8 sScheduledBgCopiesToVram[4] = {FALSE};
+static EWRAM_DATA u16 sTempTileDataBufferCursor = {0};
+static EWRAM_DATA void *sTempTileDataBuffers[0x20] = {NULL};
 static EWRAM_DATA u8 sStartMenuWindowId = {0};
+
+static const u16 gUnknown_841EF48[] = INCBIN_U16("graphics/unknown/unk_841EF48.4bpp");
+
+const u16 gUnknown_841F1C8[] = INCBIN_U16("graphics/text_window/unk_841F1C8.4bpp");
+const u16 gTMCaseMainWindowPalette[] = INCBIN_U16("graphics/tm_case/unk_841F408.gbapal");
 
 static const u8 gUnknown_841F428[] = { 8, 4, 1 };
 
@@ -166,35 +171,35 @@ static void TaskFreeBufAfterCopyingTileDataToVram(u8 taskId);
 
 void ClearScheduledBgCopiesToVram(void)
 {
-    memset(gUnknown_203AB58, 0, sizeof(gUnknown_203AB58));
+    memset(sScheduledBgCopiesToVram, 0, sizeof(sScheduledBgCopiesToVram));
 }
 
 void ScheduleBgCopyTilemapToVram(u8 bgId)
 {
-    gUnknown_203AB58[bgId] = TRUE;
+    sScheduledBgCopiesToVram[bgId] = TRUE;
 }
 
 void DoScheduledBgTilemapCopiesToVram(void)
 {
-    if (gUnknown_203AB58[0] == TRUE)
+    if (sScheduledBgCopiesToVram[0] == TRUE)
     {
         CopyBgTilemapBufferToVram(0);
-        gUnknown_203AB58[0] = FALSE;
+        sScheduledBgCopiesToVram[0] = FALSE;
     }
-    if (gUnknown_203AB58[1] == TRUE)
+    if (sScheduledBgCopiesToVram[1] == TRUE)
     {
         CopyBgTilemapBufferToVram(1);
-        gUnknown_203AB58[1] = FALSE;
+        sScheduledBgCopiesToVram[1] = FALSE;
     }
-    if (gUnknown_203AB58[2] == TRUE)
+    if (sScheduledBgCopiesToVram[2] == TRUE)
     {
         CopyBgTilemapBufferToVram(2);
-        gUnknown_203AB58[2] = FALSE;
+        sScheduledBgCopiesToVram[2] = FALSE;
     }
-    if (gUnknown_203AB58[3] == TRUE)
+    if (sScheduledBgCopiesToVram[3] == TRUE)
     {
         CopyBgTilemapBufferToVram(3);
-        gUnknown_203AB58[3] = FALSE;
+        sScheduledBgCopiesToVram[3] = FALSE;
     }
 }
 
@@ -202,11 +207,11 @@ void ResetTempTileDataBuffers(void)
 {
     int i;
 
-    for (i = 0; i < (s32)NELEMS(gUnknown_203AB60); i++)
+    for (i = 0; i < (s32)NELEMS(sTempTileDataBuffers); i++)
     {
-        gUnknown_203AB60[i] = NULL;
+        sTempTileDataBuffers[i] = NULL;
     }
-    gUnknown_203AB5C = 0;
+    sTempTileDataBufferCursor = 0;
 }
 
 bool8 FreeTempTileDataBuffersIfPossible(void)
@@ -215,13 +220,13 @@ bool8 FreeTempTileDataBuffersIfPossible(void)
 
     if (!IsDma3ManagerBusyWithBgCopy())
     {
-        if (gUnknown_203AB5C)
+        if (sTempTileDataBufferCursor)
         {
-            for (i = 0; i < gUnknown_203AB5C; i++)
+            for (i = 0; i < sTempTileDataBufferCursor; i++)
             {
-                FREE_AND_SET_NULL(gUnknown_203AB60[i]);
+                FREE_AND_SET_NULL(sTempTileDataBuffers[i]);
             }
-            gUnknown_203AB5C = 0;
+            sTempTileDataBufferCursor = 0;
         }
         return FALSE;
     }
@@ -235,7 +240,7 @@ void *DecompressAndCopyTileDataToVram(u8 bgId, const void *src, u32 size, u16 of
 {
     u32 sizeOut;
 
-    if (gUnknown_203AB5C < NELEMS(gUnknown_203AB60))
+    if (sTempTileDataBufferCursor < NELEMS(sTempTileDataBuffers))
     {
         void *ptr = MallocAndDecompress(src, &sizeOut);
         if (!size)
@@ -243,7 +248,7 @@ void *DecompressAndCopyTileDataToVram(u8 bgId, const void *src, u32 size, u16 of
         if (ptr)
         {
             CopyDecompressedTileDataToVram(bgId, ptr, size, offset, mode);
-            gUnknown_203AB60[gUnknown_203AB5C++] = ptr;
+            sTempTileDataBuffers[sTempTileDataBufferCursor++] = ptr;
         }
         return ptr;
     }
@@ -254,7 +259,7 @@ void *DecompressAndCopyTileDataToVram2(u8 bgId, const void *src, u32 size, u16 o
 {
     u32 sizeOut;
 
-    if (gUnknown_203AB5C < NELEMS(gUnknown_203AB60))
+    if (sTempTileDataBufferCursor < NELEMS(sTempTileDataBuffers))
     {
         void *ptr = MallocAndDecompress(src, &sizeOut);
         if (sizeOut > size)
@@ -262,7 +267,7 @@ void *DecompressAndCopyTileDataToVram2(u8 bgId, const void *src, u32 size, u16 o
         if (ptr)
         {
             CopyDecompressedTileDataToVram(bgId, ptr, sizeOut, offset, mode);
-            gUnknown_203AB60[gUnknown_203AB5C++] = ptr;
+            sTempTileDataBuffers[sTempTileDataBufferCursor++] = ptr;
         }
         return ptr;
     }
@@ -338,7 +343,7 @@ static u16 CopyDecompressedTileDataToVram(u8 bgId, const void *src, u16 size, u1
     return LoadBgTilemap(bgId, src, size, offset);
 }
 
-void SetBgRectPal(u8 bgId, u8 left, u8 top, u8 width, u8 height, u8 palette)
+void SetBgTilemapPalette(u8 bgId, u8 left, u8 top, u8 width, u8 height, u8 palette)
 {
     u8 i, j;
     u16 *ptr = GetBgTilemapBuffer(bgId);
@@ -352,7 +357,7 @@ void SetBgRectPal(u8 bgId, u8 left, u8 top, u8 width, u8 height, u8 palette)
     }
 }
 
-void CopyRectIntoAltRect(u8 bgId, u16 *dest, u8 left, u8 top, u8 width, u8 height)
+void CopyToBufferFromBgTilemap(u8 bgId, u16 *dest, u8 left, u8 top, u8 width, u8 height)
 {
     u8 i,j;
     const u16 *src = GetBgTilemapBuffer(bgId);
@@ -395,7 +400,7 @@ void ResetBg0(void)
     ChangeBgX(0, 0, 0);
     ChangeBgY(0, 0, 0);
     DeactivateAllTextPrinters();
-    sub_80F6E9C();
+    LoadStdWindowFrameGfx();
 }
 
 u16 RunTextPrinters_CheckPrinter0Active(void)
@@ -452,9 +457,9 @@ void AddTextPrinterWithCustomSpeedForMessage(bool8 allowSkippingDelayWithButtonP
     AddTextPrinterParameterized2(0, 2, gStringVar4, speed, NULL, 2, 1, 3);
 }
 
-void sub_80F6E9C(void)
+void LoadStdWindowFrameGfx(void)
 {
-    if (gUnknown_203ADFA == 2)
+    if (gQuestLogState == 2)
     {
         gTextFlags.autoScroll = 1;
         TextWindow_LoadTilesStdFrame1(0, DLG_WINDOW_BASE_TILE_NUM);
@@ -492,7 +497,7 @@ void ClearDialogWindowAndFrame(u8 windowId, bool8 copyToVram)
     ClearWindowTilemap(windowId);
     if (copyToVram == TRUE)
         CopyWindowToVram(windowId, 3);
-    if (gUnknown_203ADFA == 2)
+    if (gQuestLogState == 2)
         sub_8111134();
 }
 
@@ -524,7 +529,7 @@ static void WindowFunc_DrawStandardFrame(u8 bg, u8 tilemapLeft, u8 tilemapTop, u
 
 static void WindowFunc_DrawDialogueFrame(u8 bg, u8 tilemapLeft, u8 tilemapTop, u8 width, u8 height, u8 paletteNum)
 {
-    if (!IsMsgSignPost() || gUnknown_203ADFA == 2)
+    if (!IsMsgSignPost() || gQuestLogState == 2)
     {
         FillBgTilemapBufferRect(bg, DLG_WINDOW_BASE_TILE_NUM + 0, tilemapLeft - 2, tilemapTop - 1, 1, 1, DLG_WINDOW_PALETTE_NUM);
         FillBgTilemapBufferRect(bg, DLG_WINDOW_BASE_TILE_NUM + 1, tilemapLeft - 1, tilemapTop - 1, 1, 1, DLG_WINDOW_PALETTE_NUM);
@@ -608,7 +613,7 @@ void SetStdWindowBorderStyle(u8 windowId, bool8 copyToVram)
 
 void sub_80F7768(u8 windowId, bool8 copyToVram)
 {
-    if (gUnknown_203ADFA == 2)
+    if (gQuestLogState == 2)
     {
         gTextFlags.autoScroll = 1;
         TextWindow_LoadTilesStdFrame1(0, DLG_WINDOW_BASE_TILE_NUM);
@@ -644,7 +649,7 @@ static u16 GetStdPalColor(u8 colorNum)
 
 void DisplayItemMessageOnField(u8 taskId, u8 bgId, const u8 *string, TaskFunc callback)
 {
-    sub_80F6E9C();
+    LoadStdWindowFrameGfx();
     DisplayMessageAndContinueTask(taskId, 0, DLG_WINDOW_BASE_TILE_NUM, DLG_WINDOW_PALETTE_NUM, bgId, GetTextSpeedSetting(), string, callback);
     CopyWindowToVram(0, 3);
 }
@@ -667,7 +672,7 @@ u8 GetTextSpeedSetting(void)
     return gUnknown_841F428[gSaveBlock2Ptr->optionsTextSpeed];
 }
 
-u8 sub_80F78E0(u8 height)
+u8 CreateStartMenuWindow(u8 height)
 {
     if (sStartMenuWindowId == 0xFF)
     {
@@ -702,15 +707,15 @@ u16 GetStdWindowBaseTileNum(void)
     return STD_WINDOW_BASE_TILE_NUM;
 }
 
-void sub_80F7974(const u8 * text)
+void DrawHelpMessageWindowWithText(const u8 * text)
 {
-    sub_814FE6C(sub_8112EB4(), DLG_WINDOW_BASE_TILE_NUM, 0x10 * DLG_WINDOW_PALETTE_NUM);
-    sub_8113018(text, 2);
+    sub_814FE6C(CreateHelpMessageWindow(), DLG_WINDOW_BASE_TILE_NUM, 0x10 * DLG_WINDOW_PALETTE_NUM);
+    PrintTextOnHelpMessageWindow(text, 2);
 }
 
-void sub_80F7998(void)
+void DestroyHelpMessageWindow_(void)
 {
-    sub_8112EDC(2);
+    DestroyHelpMessageWindow(2);
 }
 
 void sub_80F79A4(void)

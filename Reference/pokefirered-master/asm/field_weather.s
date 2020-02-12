@@ -1584,8 +1584,8 @@ _0807A810: .4byte 0x000006c6
 _0807A814: .4byte 0x000006c2
 	thumb_func_end sub_807A7C4
 
-	thumb_func_start fade_screen
-fade_screen: @ 807A818
+	thumb_func_start FadeScreen
+FadeScreen: @ 807A818
 	push {r4,r5,lr}
 	sub sp, 0x4
 	lsls r0, 24
@@ -1735,7 +1735,7 @@ _0807A934: .4byte gUnknown_2037F34
 _0807A938: .4byte 0x000006c6
 _0807A93C: .4byte 0x000006ca
 _0807A940: .4byte 0x000006cb
-	thumb_func_end fade_screen
+	thumb_func_end FadeScreen
 
 	thumb_func_start FieldWeather_StartFadingOutCreditsMap
 FieldWeather_StartFadingOutCreditsMap: @ 807A944
@@ -1889,8 +1889,8 @@ _0807AA68: .4byte 0x000006ca
 _0807AA6C: .4byte 0x000006cb
 	thumb_func_end FieldWeather_StartFadingOutCreditsMap
 
-	thumb_func_start sub_807AA70
-sub_807AA70: @ 807AA70
+	thumb_func_start IsWeatherNotFadingIn
+IsWeatherNotFadingIn: @ 807AA70
 	ldr r0, _0807AA84 @ =gUnknown_2037F34
 	ldr r1, _0807AA88 @ =0x000006c6
 	adds r0, r1
@@ -1904,7 +1904,7 @@ sub_807AA70: @ 807AA70
 	.align 2, 0
 _0807AA84: .4byte gUnknown_2037F34
 _0807AA88: .4byte 0x000006c6
-	thumb_func_end sub_807AA70
+	thumb_func_end IsWeatherNotFadingIn
 
 	thumb_func_start sub_807AA8C
 sub_807AA8C: @ 807AA8C

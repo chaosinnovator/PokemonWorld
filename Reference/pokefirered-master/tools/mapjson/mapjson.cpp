@@ -160,7 +160,7 @@ string generate_map_events_text(Json map_data) {
     string objects_label, warps_label, coords_label, bgs_label;
 
     if (map_data["object_events"].array_items().size() > 0) {
-        objects_label = map_data["name"].string_value() + "_EventObjects";
+        objects_label = map_data["name"].string_value() + "_ObjectEvents";
         text << objects_label << ":\n";
         for (unsigned int i = 0; i < map_data["object_events"].array_items().size(); i++) {
             auto obj_event = map_data["object_events"].array_items()[i];
@@ -270,7 +270,7 @@ string generate_firered_map_events_text(Json map_data) {
     string objects_label, warps_label, coords_label, bgs_label;
 
     if (map_data["object_events"].array_items().size() > 0) {
-        objects_label = map_data["name"].string_value() + "_EventObjects";
+        objects_label = map_data["name"].string_value() + "_ObjectEvents";
         text << objects_label << "::\n";
         for (unsigned int i = 0; i < map_data["object_events"].array_items().size(); i++) {
             auto obj_event = map_data["object_events"].array_items()[i];
@@ -345,7 +345,8 @@ string generate_firered_map_events_text(Json map_data) {
                      << bg_event["elevation"].int_value() << ", "
                      << bg_event["item"].string_value() << ", "
                      << bg_event["flag"].string_value() << ", "
-                     << bg_event["unknown"].int_value() << "\n";
+                     << bg_event["quantity"].int_value() << ", "
+                     << bg_event["underfoot"].bool_value() << "\n";
             }
             else {
                 string type_string = bg_event["type"].string_value();

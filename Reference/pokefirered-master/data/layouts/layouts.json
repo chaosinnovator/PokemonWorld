@@ -433,52 +433,52 @@
       "blockdata_filepath": "data/layouts/UnusedLayout_82D88C8/map.bin"
     },
     {
-      "id": "LAYOUT_UNKNOWN_MAP_00_00",
-      "name": "UnknownMap_00_00_Layout",
+      "id": "LAYOUT_BATTLE_COLOSSEUM_2P",
+      "name": "BattleColosseum_2P_Layout",
       "width": 14,
       "height": 9,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D4C44",
-      "border_filepath": "data/layouts/UnknownMap_00_00/border.bin",
-      "blockdata_filepath": "data/layouts/UnknownMap_00_00/map.bin"
+      "border_filepath": "data/layouts/BattleColosseum_2P/border.bin",
+      "blockdata_filepath": "data/layouts/BattleColosseum_2P/map.bin"
     },
     {
-      "id": "LAYOUT_UNKNOWN_MAP_00_01",
-      "name": "UnknownMap_00_01_Layout",
+      "id": "LAYOUT_TRADE_CENTER",
+      "name": "TradeCenter_Layout",
       "width": 12,
       "height": 9,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D4C44",
-      "border_filepath": "data/layouts/UnknownMap_00_01/border.bin",
-      "blockdata_filepath": "data/layouts/UnknownMap_00_01/map.bin"
+      "border_filepath": "data/layouts/TradeCenter/border.bin",
+      "blockdata_filepath": "data/layouts/TradeCenter/map.bin"
     },
     {
-      "id": "LAYOUT_UNKNOWN_MAP_00_02",
-      "name": "UnknownMap_00_02_Layout",
+      "id": "LAYOUT_RECORD_CENTER",
+      "name": "RecordCenter_Layout",
       "width": 20,
       "height": 10,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D4C44",
-      "border_filepath": "data/layouts/UnknownMap_00_02/border.bin",
-      "blockdata_filepath": "data/layouts/UnknownMap_00_02/map.bin"
+      "border_filepath": "data/layouts/RecordCenter/border.bin",
+      "blockdata_filepath": "data/layouts/RecordCenter/map.bin"
     },
     {
-      "id": "LAYOUT_UNKNOWN_MAP_00_03",
-      "name": "UnknownMap_00_03_Layout",
+      "id": "LAYOUT_BATTLE_COLOSSEUM_4P",
+      "name": "BattleColosseum_4P_Layout",
       "width": 14,
       "height": 9,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D4C44",
-      "border_filepath": "data/layouts/UnknownMap_00_03/border.bin",
-      "blockdata_filepath": "data/layouts/UnknownMap_00_03/map.bin"
+      "border_filepath": "data/layouts/BattleColosseum_4P/border.bin",
+      "blockdata_filepath": "data/layouts/BattleColosseum_4P/map.bin"
     },
     {
       "id": "LAYOUT_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE",
@@ -2168,16 +2168,16 @@
       "blockdata_filepath": "data/layouts/CeladonCity_DepartmentStore_Roof/map.bin"
     },
     {
-      "id": "LAYOUT_SAFARI_ZONE_BUILDING",
-      "name": "SafariZone_Building_Layout",
+      "id": "LAYOUT_SAFARI_ZONE_REST_HOUSE",
+      "name": "SafariZone_RestHouse_Layout",
       "width": 13,
       "height": 11,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D4F14",
-      "border_filepath": "data/layouts/SafariZone_Building/border.bin",
-      "blockdata_filepath": "data/layouts/SafariZone_Building/map.bin"
+      "border_filepath": "data/layouts/SafariZone_RestHouse/border.bin",
+      "blockdata_filepath": "data/layouts/SafariZone_RestHouse/map.bin"
     },
     {
       "id": "LAYOUT_SAFARI_ZONE_SECRET_HOUSE",
@@ -2192,28 +2192,28 @@
       "blockdata_filepath": "data/layouts/SafariZone_SecretHouse/map.bin"
     },
     {
-      "id": "LAYOUT_FUCHSIA_CITY_ZOO_BUILDING",
-      "name": "FuchsiaCity_ZooBuilding_Layout",
+      "id": "LAYOUT_FUCHSIA_CITY_SAFARI_ZONE_OFFICE",
+      "name": "FuchsiaCity_SafariZone_Office_Layout",
       "width": 20,
       "height": 11,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D4F14",
-      "border_filepath": "data/layouts/FuchsiaCity_ZooBuilding/border.bin",
-      "blockdata_filepath": "data/layouts/FuchsiaCity_ZooBuilding/map.bin"
+      "border_filepath": "data/layouts/FuchsiaCity_SafariZone_Office/border.bin",
+      "blockdata_filepath": "data/layouts/FuchsiaCity_SafariZone_Office/map.bin"
     },
     {
-      "id": "LAYOUT_FUCHSIA_CITY_BUILDING1",
-      "name": "FuchsiaCity_Building1_Layout",
+      "id": "LAYOUT_FUCHSIA_CITY_WARDENS_HOUSE",
+      "name": "FuchsiaCity_WardensHouse_Layout",
       "width": 13,
       "height": 11,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D4C2C",
-      "border_filepath": "data/layouts/FuchsiaCity_Building1/border.bin",
-      "blockdata_filepath": "data/layouts/FuchsiaCity_Building1/map.bin"
+      "border_filepath": "data/layouts/FuchsiaCity_WardensHouse/border.bin",
+      "blockdata_filepath": "data/layouts/FuchsiaCity_WardensHouse/map.bin"
     },
     {
       "id": "LAYOUT_FUCHSIA_CITY_HOUSE2",
@@ -2936,16 +2936,16 @@
       "blockdata_filepath": "data/layouts/UnusedLayout_8338738/map.bin"
     },
     {
-      "id": "LAYOUT_UNKNOWN_MAP_00_04",
-      "name": "UnknownMap_00_04_Layout",
+      "id": "LAYOUT_UNION_ROOM",
+      "name": "UnionRoom_Layout",
       "width": 15,
       "height": 12,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4BB4",
       "secondary_tileset": "gTileset_82D50DC",
-      "border_filepath": "data/layouts/UnknownMap_00_04/border.bin",
-      "blockdata_filepath": "data/layouts/UnknownMap_00_04/map.bin"
+      "border_filepath": "data/layouts/UnionRoom/border.bin",
+      "blockdata_filepath": "data/layouts/UnionRoom/map.bin"
     },
     {
       "id": "LAYOUT_SAFFRON_CITY_POKEMON_TRAINER_FAN_CLUB",
@@ -3128,28 +3128,28 @@
       "blockdata_filepath": "data/layouts/FourIsland_PokemonDayCare/map.bin"
     },
     {
-      "id": "LAYOUT_UNUSED_LAYOUT_833B6EC",
-      "name": "UnusedLayout_833B6EC_Layout",
+      "id": "LAYOUT_SEAFOAM_ISLANDS_B3F_CURRENT_STOPPED",
+      "name": "SeafoamIslands_B3F_CurrentStopped_Layout",
       "width": 38,
       "height": 24,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4A94",
       "secondary_tileset": "gTileset_82D4E24",
-      "border_filepath": "data/layouts/UnusedLayout_833B6EC/border.bin",
-      "blockdata_filepath": "data/layouts/UnusedLayout_833B6EC/map.bin"
+      "border_filepath": "data/layouts/SeafoamIslands_B3F_CurrentStopped/border.bin",
+      "blockdata_filepath": "data/layouts/SeafoamIslands_B3F_CurrentStopped/map.bin"
     },
     {
-      "id": "LAYOUT_UNUSED_LAYOUT_833BE30",
-      "name": "UnusedLayout_833BE30_Layout",
+      "id": "LAYOUT_SEAFOAM_ISLANDS_B4F_CURRENT_STOPPED",
+      "name": "SeafoamIslands_B4F_CurrentStopped_Layout",
       "width": 38,
       "height": 24,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4A94",
       "secondary_tileset": "gTileset_82D4E24",
-      "border_filepath": "data/layouts/UnusedLayout_833BE30/border.bin",
-      "blockdata_filepath": "data/layouts/UnusedLayout_833BE30/map.bin"
+      "border_filepath": "data/layouts/SeafoamIslands_B4F_CurrentStopped/border.bin",
+      "blockdata_filepath": "data/layouts/SeafoamIslands_B4F_CurrentStopped/map.bin"
     },
     {
       "id": "LAYOUT_MT_EMBER_EXTERIOR",
@@ -3620,7 +3620,7 @@
       "blockdata_filepath": "data/layouts/ThreeIsland_DunsparceTunnel/map.bin"
     },
     {
-      "id": "LAYOUT_UNUSED_LAYOUT_83453C0",
+      "id": "LAYOUT_THREE_ISLAND_DUNSPARCE_TUNNEL_2",
       "name": "UnusedLayout_83453C0_Layout",
       "width": 30,
       "height": 7,
@@ -3884,16 +3884,16 @@
       "blockdata_filepath": "data/layouts/SixIsland_AlteringCave/map.bin"
     },
     {
-      "id": "LAYOUT_SEVEN_ISLAND_SEAVAULT_CANYON_TANOBY_KEY",
-      "name": "SevenIsland_SeavaultCanyon_TanobyKey_Layout",
+      "id": "LAYOUT_SEVEN_ISLAND_SEVAULT_CANYON_TANOBY_KEY",
+      "name": "SevenIsland_SevaultCanyon_TanobyKey_Layout",
       "width": 15,
       "height": 16,
       "border_width": 2,
       "border_height": 2,
       "primary_tileset": "gTileset_82D4A94",
       "secondary_tileset": "gTileset_82D4E0C",
-      "border_filepath": "data/layouts/SevenIsland_SeavaultCanyon_TanobyKey/border.bin",
-      "blockdata_filepath": "data/layouts/SevenIsland_SeavaultCanyon_TanobyKey/map.bin"
+      "border_filepath": "data/layouts/SevenIsland_SevaultCanyon_TanobyKey/border.bin",
+      "blockdata_filepath": "data/layouts/SevenIsland_SevaultCanyon_TanobyKey/map.bin"
     },
     {
       "id": "LAYOUT_BIRTH_ISLAND_EXTERIOR",

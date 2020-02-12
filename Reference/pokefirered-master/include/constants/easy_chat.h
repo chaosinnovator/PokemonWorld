@@ -1,7 +1,29 @@
 #ifndef GUARD_CONSTANTS_EASY_CHAT_H
 #define GUARD_CONSTANTS_EASY_CHAT_H
 
-#define EC_GROUP_POKEMON        0x0
+#define EASY_CHAT_TYPE_PROFILE                 0
+#define EASY_CHAT_TYPE_BATTLE_START            1
+#define EASY_CHAT_TYPE_BATTLE_WON              2
+#define EASY_CHAT_TYPE_BATTLE_LOST             3
+#define EASY_CHAT_TYPE_MAIL                    4
+#define EASY_CHAT_TYPE_INTERVIEW               5
+#define EASY_CHAT_TYPE_BARD_SONG               6
+#define EASY_CHAT_TYPE_FAN_CLUB                7
+#define EASY_CHAT_TYPE_UNK_8                   8
+#define EASY_CHAT_TYPE_TRENDY_PHRASE           9
+#define EASY_CHAT_TYPE_GABBY_AND_TY            10
+#define EASY_CHAT_TYPE_CONTEST_INTERVIEW       11
+#define EASY_CHAT_TYPE_BATTLE_TOWER_INTERVIEW  12
+#define EASY_CHAT_TYPE_GOOD_SAYING             13
+#define EASY_CHAT_TYPE_FAN_QUESTION            14
+#define EASY_CHAT_TYPE_QUIZ_ANSWER             15
+#define EASY_CHAT_TYPE_QUIZ_QUESTION           16
+#define EASY_CHAT_TYPE_QUIZ_SET_QUESTION       17
+#define EASY_CHAT_TYPE_QUIZ_SET_ANSWER         18
+#define EASY_CHAT_TYPE_APPRENTICE              19
+#define EASY_CHAT_TYPE_QUESTIONNAIRE           20
+
+#define EC_GROUP_POKEMON_2      0x0
 #define EC_GROUP_TRAINER        0x1
 #define EC_GROUP_STATUS         0x2
 #define EC_GROUP_BATTLE         0x3
@@ -22,7 +44,8 @@
 #define EC_GROUP_MOVE_1         0x12
 #define EC_GROUP_MOVE_2         0x13
 #define EC_GROUP_TRENDY_SAYING  0x14
-#define EC_GROUP_POKEMON_2      0x15
+#define EC_GROUP_POKEMON        0x15
+#define EC_NUM_GROUPS           0x16
 
 // TRAINER
 #define EC_WORD_I_CHOOSE_YOU  (EC_GROUP_TRAINER << 9) | 0x0
@@ -51,7 +74,6 @@
 #define EC_WORD_GOLD          (EC_GROUP_TRAINER << 9) | 0x17
 #define EC_WORD_LEAF          (EC_GROUP_TRAINER << 9) | 0x18
 #define EC_WORD_SILVER        (EC_GROUP_TRAINER << 9) | 0x19
-#define EC_WORD_EMERALD       (EC_GROUP_TRAINER << 9) | 0x1a
 
 // STATUS
 #define EC_WORD_DARK          (EC_GROUP_STATUS << 9) | 0x0
@@ -1031,7 +1053,6 @@
 #define EC_WORD_UNION         (EC_GROUP_EVENTS << 9) | 0x19
 #define EC_WORD_ROOM          (EC_GROUP_EVENTS << 9) | 0x1a
 #define EC_WORD_WIRELESS      (EC_GROUP_EVENTS << 9) | 0x1b
-#define EC_WORD_FRONTIER      (EC_GROUP_EVENTS << 9) | 0x1c
 
 // TRENDY_SAYING
 #define EC_WORD_KTHX_BYE       (EC_GROUP_TRENDY_SAYING << 9) | 0x0
@@ -1075,5 +1096,8 @@
 
 #define EC_GROUP(word) ((word) >> 9)
 #define EC_INDEX(word) ((word) & 0x1FF)
+#define EC_WORD(groupId, index) ((((groupId) & 0x7F) << 9) | ((index) & 0x1FF))
+
+#define EC_WORD_UNDEFINED (0xFFFF)
 
 #endif  // GUARD_CONSTANTS_EASY_CHAT_H

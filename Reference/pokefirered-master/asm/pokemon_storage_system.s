@@ -719,8 +719,8 @@ _0808BEA8:
 	bx r1
 	thumb_func_end sub_808BDE8
 
-	thumb_func_start sub_808BEB4
-sub_808BEB4: @ 808BEB4
+	thumb_func_start PSS_RenderTextToVramViaBuffer
+PSS_RenderTextToVramViaBuffer: @ 808BEB4
 	push {r4-r7,lr}
 	mov r7, r10
 	mov r6, r9
@@ -868,7 +868,7 @@ _0808BFC4:
 	bx r0
 	.align 2, 0
 _0808BFDC: .4byte 0x001fffff
-	thumb_func_end sub_808BEB4
+	thumb_func_end PSS_RenderTextToVramViaBuffer
 
 	thumb_func_start sub_808BFE0
 sub_808BFE0: @ 808BFE0
@@ -1417,7 +1417,7 @@ _0808C3E0:
 	adds r1, r5, 0
 	adds r1, 0x26
 	bl sub_808C72C
-	bl sub_80F6E9C
+	bl LoadStdWindowFrameGfx
 	movs r0, 0
 	movs r1, 0
 	bl DrawDialogueFrame
@@ -1455,7 +1455,7 @@ _0808C3E0:
 	.align 2, 0
 _0808C444: .4byte gUnknown_83CDA20
 _0808C448:
-	bl sub_807AA70
+	bl IsWeatherNotFadingIn
 	lsls r0, 24
 	cmp r0, 0
 	bne _0808C454
@@ -1619,7 +1619,7 @@ _0808C594: .4byte gUnknown_8418690
 _0808C598:
 	movs r0, 0x1
 	movs r1, 0
-	bl fade_screen
+	bl FadeScreen
 	movs r0, 0x4
 	strh r0, [r5, 0x8]
 	b _0808C69C
@@ -1751,8 +1751,8 @@ _0808C69C:
 _0808C6A4: .4byte gPaletteFade
 	thumb_func_end c3_0808C39C
 
-	thumb_func_start sub_808C6A8
-sub_808C6A8: @ 808C6A8
+	thumb_func_start ShowPokemonStorageSystem
+ShowPokemonStorageSystem: @ 808C6A8
 	push {lr}
 	ldr r0, _0808C6D0 @ =c3_0808C39C
 	movs r1, 0x50
@@ -1773,7 +1773,7 @@ sub_808C6A8: @ 808C6A8
 	.align 2, 0
 _0808C6D0: .4byte c3_0808C39C
 _0808C6D4: .4byte gTasks
-	thumb_func_end sub_808C6A8
+	thumb_func_end ShowPokemonStorageSystem
 
 	thumb_func_start mapldr_0808C6D8
 mapldr_0808C6D8: @ 808C6D8
@@ -3112,8 +3112,8 @@ _0808D178:
 	adds r2, r1
 	ldr r1, _0808D1B0 @ =0x0000dace
 	strh r1, [r2]
-	bl sub_80BE46C
-	bl sub_80BE5F0
+	bl SetMonMarkingsMenuPointer
+	bl LoadMonMarkingsFrameGfx
 	b _0808D20C
 	.align 2, 0
 _0808D1A8: .4byte gUnknown_20397B0
@@ -4913,7 +4913,7 @@ _0808E0D4:
 	ldrb r0, [r0]
 	movs r1, 0xB0
 	movs r2, 0x10
-	bl sub_80BE604
+	bl DrawMonMarkingsMenu
 	ldr r1, [r4]
 	ldrb r0, [r1]
 	adds r0, 0x1
@@ -4923,11 +4923,11 @@ _0808E0D4:
 _0808E100: .4byte 0x00000ce7
 _0808E104: .4byte 0x00000da4
 _0808E108:
-	bl sub_80BE6F0
+	bl MonMarkingsHandleInput
 	lsls r0, 24
 	cmp r0, 0
 	bne _0808E130
-	bl sub_80BE658
+	bl TeardownMonMarkingsMenu
 	bl sub_808FD20
 	ldr r0, [r4]
 	ldr r1, _0808E138 @ =0x00000da4
@@ -6561,7 +6561,7 @@ _0808EE78:
 	mov r0, r8
 	adds r1, r6, 0
 	adds r2, r5, 0
-	bl sub_81344F8
+	bl ShowPokemonSummaryScreen
 	b _0808EEF6
 	.align 2, 0
 _0808EEAC: .4byte gUnknown_20397B0
@@ -6591,7 +6591,7 @@ _0808EEE8:
 	ldr r2, _0808EF08 @ =sub_808CE60
 	movs r0, 0x4
 	movs r1, 0
-	bl sub_8107DB4
+	bl GoToBagMenu
 _0808EEF6:
 	adds r0, r7, 0
 	bl DestroyTask
@@ -6839,7 +6839,7 @@ sub_808F0F4: @ 808F0F4
 	ldr r1, _0808F154 @ =0x0000dac8
 	movs r0, 0x10
 	movs r2, 0
-	bl sub_80BEB00
+	bl CreateMonMarkingSprite_AllOff
 	ldr r4, _0808F158 @ =gUnknown_20397B0
 	ldr r1, [r4]
 	movs r3, 0xD9
@@ -8649,7 +8649,7 @@ _0808FF62:
 	strb r6, [r1, 0x5]
 _0808FF64:
 	adds r0, r2, 0
-	bl sub_8113550
+	bl SetQuestLogEvent
 _0808FF6A:
 	pop {r4-r7}
 	pop {r0}
@@ -8688,7 +8688,7 @@ _0808FFA8: .4byte 0x00004037
 	thumb_func_start sub_808FFAC
 sub_808FFAC: @ 808FFAC
 	push {r4-r6,lr}
-	bl sub_809707C
+	bl LoadMonIconPalettes
 	movs r2, 0
 	ldr r3, _0809003C @ =gUnknown_20397B0
 	ldr r5, _08090040 @ =0x00000b04
@@ -11179,7 +11179,7 @@ _08091248:
 	lsrs r4, 16
 	adds r0, r3, 0
 	movs r1, 0x1
-	bl sub_8097028
+	bl GetMonIconTiles
 	lsls r1, r4, 5
 	ldr r2, _08091288 @ =0x06010000
 	adds r1, r2
@@ -11271,11 +11271,11 @@ sub_80912E0: @ 80912E0
 	ldm r0!, {r3,r5,r7}
 	stm r2!, {r3,r5,r7}
 	adds r0, r6, 0
-	bl mon_icon_convert_unown_species_id
+	bl GetIconSpecies
 	mov r10, r0
 	mov r6, r10
 	mov r2, sp
-	ldr r1, _08091394 @ =gUnknown_83D3E80
+	ldr r1, _08091394 @ =gMonIconPaletteIndices
 	adds r1, r6, r1
 	ldr r3, _08091398 @ =0x0000dac0
 	adds r0, r3, 0
@@ -11329,7 +11329,7 @@ sub_80912E0: @ 80912E0
 	b _080913B4
 	.align 2, 0
 _08091390: .4byte gUnknown_83CEBF0
-_08091394: .4byte gUnknown_83D3E80
+_08091394: .4byte gMonIconPaletteIndices
 _08091398: .4byte 0x0000dac0
 _0809139C: .4byte 0x0000ffff
 _080913A0: .4byte gSprites
@@ -12353,7 +12353,7 @@ sub_8091A94: @ 8091A94
 	adds r0, r5, 0
 	movs r2, 0
 	movs r3, 0
-	bl sub_808BEB4
+	bl PSS_RenderTextToVramViaBuffer
 	ldr r0, [sp, 0x30]
 	bl LoadSpriteSheet
 	mov r0, r8
@@ -12539,7 +12539,7 @@ _08091CFC:
 	adds r0, r5, 0
 	movs r2, 0
 	movs r3, 0
-	bl sub_808BEB4
+	bl PSS_RenderTextToVramViaBuffer
 	adds r0, r6, 0
 	bl LoadSpriteSheet
 	ldr r0, [sp, 0x2C]
@@ -15947,7 +15947,7 @@ sub_80937B4: @ 80937B4
 _080937C4: .4byte gUnknown_2039822
 _080937C8:
 	ldr r4, _080937D8 @ =gUnknown_2039821
-	bl sub_8138B20
+	bl GetLastViewedMonIndex
 	strb r0, [r4]
 _080937D0:
 	pop {r4}
@@ -19235,7 +19235,7 @@ _0809515A:
 	movs r0, 0
 	bl HideBg
 	movs r0, 0x80
-	bl sub_8097198
+	bl LoadMonIconPalettesAt
 	b _080951F8
 _08095168:
 	adds r0, r1, 0x2
@@ -19954,7 +19954,7 @@ sub_80956A4: @ 80956A4
 	bl GetMonIconPtr
 	adds r4, r0, 0
 	adds r0, r5, 0
-	bl sub_80971F8
+	bl GetValidMonIconPalIndex
 	adds r0, 0x8
 	lsls r0, 24
 	lsrs r0, 24
@@ -22001,7 +22001,7 @@ GetItemIconPic: @ 8096674
 	lsls r0, 16
 	lsrs r0, 16
 	movs r1, 0
-	bl sub_8098974
+	bl GetItemIconGfxPtr
 	pop {r1}
 	bx r1
 	thumb_func_end GetItemIconPic
@@ -22012,7 +22012,7 @@ GetItemIconPalette: @ 8096684
 	lsls r0, 16
 	lsrs r0, 16
 	movs r1, 0x1
-	bl sub_8098974
+	bl GetItemIconGfxPtr
 	pop {r1}
 	bx r1
 	thumb_func_end GetItemIconPalette

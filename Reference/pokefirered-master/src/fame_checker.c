@@ -22,16 +22,18 @@
 #include "text.h"
 #include "window.h"
 #include "string_util.h"
-#include "field_map_obj.h"
+#include "event_object_movement.h"
 #include "menu_indicators.h"
 #include "text_window.h"
 #include "fame_checker.h"
+#include "strings.h"
+#include "constants/trainers.h"
 
 #define SPRITETAG_SELECTOR_CURSOR 1000
 #define SPRITETAG_QUESTION_MARK 1001
 #define SPRITETAG_SPINNING_POKEBALL 1002
 #define SPRITETAG_SCROLL_INDICATORS 1004
-#define SPRITETAG_DAISY 1006
+#define SPRITETAG_DAISY 1006 // TODO: Investigate, seems to be used for other NPCs (e.g. Fan Club Chairman)
 #define SPRITETAG_FUJI 1007
 #define SPRITETAG_OAK 1008
 #define SPRITETAG_BILL 1009
@@ -122,18 +124,6 @@ static void HandleFlavorTextModeSwitch(bool8 state);
 static void Task_FCOpenOrCloseInfoBox(u8 taskId);
 static void UpdateInfoBoxTilemap(u8 bg, s16 state);
 static void PlaceListMenuCursor(bool8 isActive);
-
-extern const u8 gFameCheckerText_Cancel[];
-extern const u8 gFameCheckerText_ListMenuCursor[];
-extern const u8 gFameCheckerText_FameCheckerWillBeClosed[];
-extern const u8 gFameCheckerText_ClearTextbox[];
-extern const u8 gFameCheckerText_MainScreenUI[]; // "{KEYGFX_DPAD_ANY}PICK {KEYGFX_DPAD_UP_DOWN}SELECT {KEYGFX_A_BUTTON}OK$"
-extern const u8 gFameCheckerText_PickScreenUI[]; // "{KEYGFX_DPAD_ANY}PICK {KEYGFX_DPAD_UP_DOWN}SELECT {KEYGFX_B_BUTTON}CANCEL$"
-extern const u8 gFameCheckerText_FlavorTextUI[]; // "{KEYGFX_START_BUTTON}PICK {KEYGFX_A_BUTTON}READ {KEYGFX_B_BUTTON}CANCEL$"
-extern const u8 gFameCheckerOakName[]; // "OAK$"
-extern const u8 gFameCheckerDaisyName[]; // "DAISY$"
-extern const u8 gFameCheckerBillName[]; // "BILL$"
-extern const u8 gFameCheckerMrFujiName[]; // "FUJI$"
 
 static const u16 sFameCheckerTilemap[] = INCBIN_U16("data/fame_checker/tilemap_845c600.bin");
 static const u8 sQuestionMarkSpriteGfx[] = INCBIN_U8("data/fame_checker/img_845ce00.4bpp");
@@ -448,7 +438,7 @@ void UseFameChecker(MainCallback savedCallback)
     sFameCheckerData->listMenuTopIdx2 = 0;
     sFameCheckerData->listMenuDrawnSelIdx = 0;
     sFameCheckerData->viewingFlavorText = FALSE;
-    PlaySE(SE_W202);
+    PlaySE(SE_W129);
     SetMainCallback2(MainCB2_LoadFameChecker);
 }
 
@@ -552,18 +542,18 @@ static void Task_TopMenuHandleInput(u8 taskId)
     if (FindTaskIdByFunc(Task_FCOpenOrCloseInfoBox) == 0xFF)
     {
         RunTextPrinters();
-        if ((JOY_NEW(SELECT_BUTTON)) && !sFameCheckerData->inPickMode && sFameCheckerData->savedCallback != ReturnToBagFromKeyItem)
+        if ((JOY_NEW(SELECT_BUTTON)) && !sFameCheckerData->inPickMode && sFameCheckerData->savedCallback != CB2_BagMenuFromStartMenu)
             task->func = Task_StartToCloseFameChecker;
         else if (JOY_NEW(START_BUTTON))
         {
             cursorPos = FameCheckerGetCursorY();
             if (TryExitPickMode(taskId) == TRUE)
             {
-                PlaySE(SE_W100);
+                PlaySE(SE_W199);
             }
             else if (cursorPos != sFameCheckerData->numUnlockedPersons - 1) // anything but CANCEL
             {
-                PlaySE(SE_W100);
+                PlaySE(SE_W199);
                 FillWindowPixelRect(FCWINDOWID_ICONDESC, 0x00, 0, 0, 88, 32);
                 FC_PutWindowTilemapAndCopyWindowToVramMode3(FCWINDOWID_ICONDESC);
                 UpdateInfoBoxTilemap(2, 4);
@@ -748,7 +738,7 @@ static void FC_MoveSelectorCursor(u8 taskId, s8 dx, s8 dy)
 {
     u8 i;
     s16 *data = gTasks[taskId].data;
-    PlaySE(SE_W155);
+    PlaySE(SE_W207B);
     gSprites[data[0]].pos1.x += dx;
     gSprites[data[0]].pos1.y += dy;
     for (i = 0; i < 6; i++)
@@ -802,7 +792,7 @@ static void WipeMsgBoxAndTransfer(void)
 
 static void Setup_DrawMsgAndListBoxes(void)
 {
-    sub_80F6E9C();
+    LoadStdWindowFrameGfx();
     DrawDialogueFrame(FCWINDOWID_MSGBOX, TRUE);
     FC_PutWindowTilemapAndCopyWindowToVramMode3(FCWINDOWID_MSGBOX);
     FC_PutWindowTilemapAndCopyWindowToVramMode3(FCWINDOWID_LIST);
@@ -826,7 +816,7 @@ static bool8 SetMessageSelectorIconObjMode(u8 spriteId, u8 objMode)
 
 static void Task_StartToCloseFameChecker(u8 taskId)
 {
-    PlaySE(SE_W202);
+    PlaySE(SE_W129);
     BeginNormalPaletteFade(0xFFFFFFFF, 0, 0, 16, 0);
     gTasks[taskId].func = Task_DestroyAssetsAndCloseFameChecker;
 }
@@ -878,7 +868,7 @@ static void FC_DestroyWindow(u8 windowId)
 
 static u8 AdjustGiovanniIndexIfBeatenInGym(u8 a0)
 {
-    if (HasTrainerAlreadyBeenFought(0x15e) == TRUE)
+    if (HasTrainerBeenFought(TRAINER_LEADER_GIOVANNI) == TRUE)
     {
         if (a0 == 9)
             return FAMECHECKER_GIOVANNI;

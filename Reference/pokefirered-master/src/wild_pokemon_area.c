@@ -180,7 +180,7 @@ s32 BuildPokedexAreaSubspriteBuffer(u16 species, struct Subsprite * subsprites)
 
     seviiAreas = GetUnlockedSeviiAreas();
     alteringCaveCount = 0;
-    alteringCaveNum = VarGet(VAR_0x4024);
+    alteringCaveNum = VarGet(VAR_ALTERING_CAVE_WILD_SET);
     if (alteringCaveNum > 8)
         alteringCaveNum = 0;
     for (i = 0, areaCount = 0; gWildMonHeaders[i].mapGroup != 0xFF; i++)
@@ -265,7 +265,7 @@ static bool32 PokemonInAnyEncounterTableInMap(const struct WildPokemonHeader * d
         return TRUE;
     if (PokemonInEncounterTable(data->waterMonsInfo, species, 5))
         return TRUE;
-    if (PokemonInEncounterTable(data->fishingMonsInfo, species, 12))
+    if (PokemonInEncounterTable(data->fishingMonsInfo, species, 12)) // 10
         return TRUE;
     if (PokemonInEncounterTable(data->rockSmashMonsInfo, species, 5))
         return TRUE;
@@ -289,7 +289,7 @@ static bool32 PokemonInEncounterTable(const struct WildPokemonInfo * info, s32 s
 
 static u16 GetMapSecIdFromWildMonHeader(const struct WildPokemonHeader * header)
 {
-    return get_mapheader_by_bank_and_number(header->mapGroup, header->mapNum)->regionMapSectionId;
+    return Overworld_GetMapHeaderByGroupAndId(header->mapGroup, header->mapNum)->regionMapSectionId;
 }
 
 static bool32 TryGetMapSecPokedexAreaEntry(u16 mapSecId, const u16 (*lut)[2], s32 count, s32 * lutIdx_p, u16 * tableIdx_p)

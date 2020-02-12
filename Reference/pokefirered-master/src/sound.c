@@ -2,6 +2,7 @@
 #include "gba/m4a_internal.h"
 #include "sound.h"
 #include "battle.h"
+#include "quest_log.h"
 #include "m4a.h"
 #include "main.h"
 #include "pokemon.h"
@@ -16,7 +17,6 @@ struct Fanfare
 
 // TODO: what are these
 extern u8 gDisableMapMusicChangeOnMapLoad;
-extern u8 gUnknown_203ADFA;
 extern u8 gUnknown_203F174;
 
 // ewram
@@ -42,20 +42,20 @@ extern struct ToneData gCryTable[];
 extern struct ToneData gCryTable2[];
 
 static const struct Fanfare sFanfares[] = {
-    { MUS_FANFA1,                80 },
-    { MUS_FANFA4,               160 },
-    { MUS_FANFA5,               220 },
-    { MUS_ME_WAZA,              220 },
-    { MUS_ME_ASA,               160 },
-    { MUS_ME_BACHI,             340 },
-    { MUS_ME_WASURE,            180 },
-    { MUS_ME_KINOMI,            120 },
-    { MUS_ME_B_BIG,             250 },
-    { MUS_ME_B_SMALL,           150 },
-    { MUS_ME_ZANNEN,            160 },
-    { BGM_FRLG_FLUTE,           450 },
-    { BGM_FRLG_ME_KEYITEM,      170 },
-    { BGM_FRLG_ME_POKEDEX_EVAL, 196 }
+    { MUS_FANFA1,      80 },
+    { MUS_FANFA4,     160 },
+    { MUS_FANFA5,     220 },
+    { MUS_ME_WAZA,    220 },
+    { MUS_ME_ASA,     160 },
+    { MUS_ME_BACHI,   340 },
+    { MUS_ME_WASURE,  180 },
+    { MUS_ME_KINOMI,  120 },
+    { MUS_ME_B_BIG,   250 },
+    { MUS_ME_B_SMALL, 150 },
+    { MUS_ME_ZANNEN,  160 },
+    { MUS_POKEFUE,    450 },
+    { MUS_FAN5,       170 },
+    { MUS_FAN2,       196 }
 };
 
 extern u16 SpeciesToCryId(u16);
@@ -193,7 +193,7 @@ void PlayFanfareByFanfareNum(u8 fanfareNum)
 {
     u16 songNum;
 
-    if(gUnknown_203ADFA == 2)
+    if(gQuestLogState == 2)
     {
         sFanfareCounter = 0xFF;
     }
@@ -362,7 +362,7 @@ void PlayCry4(u16 species, s8 pan, u8 mode)
 
 void PlayCry7(u16 species, u8 mode) // exclusive to FR/LG
 {
-    if((u8)(gUnknown_203ADFA - 2) >= 2)
+    if (gQuestLogState != 2 && gQuestLogState != 3)
     {
         m4aMPlayVolumeControl(&gMPlayInfo_BGM, 0xFFFF, 85);
         PlayCryInternal(species, 0, CRY_VOLUME, 10, mode);
@@ -571,7 +571,7 @@ void PlayBGM(u16 songNum)
 
 void PlaySE(u16 songNum)
 {
-    if(gDisableMapMusicChangeOnMapLoad == 0 && gUnknown_203ADFA != 2)
+    if(gDisableMapMusicChangeOnMapLoad == 0 && gQuestLogState != 2)
         m4aSongNumStart(songNum);
 }
 

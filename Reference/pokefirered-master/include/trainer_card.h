@@ -29,15 +29,21 @@ struct TrainerCard
     /*0x3A*/ u16 var_3A;
     /*0x3C*/ u32 berryCrushPoints;
     /*0x40*/ u32 unionRoomNum;
-    /*0x44*/ u8 filler44[0x8];
-    /*0x4C*/ u8 var_4C;
-    /*0x4D*/ u8 var_4D;
+    /*0x44*/ u32 berriesPicked;
+	/*0x48*/ u32 jumpsInRow;
+    /*0x4C*/ bool8 var_4C;
+    /*0x4D*/ bool8 hasAllMons;
     /*0x4E*/ u8 var_4E;
     /*0x4F*/ u8 var_4F;
-    /*0x50*/ u8 var_50[0x4];
+    /*0x50*/ u8 var_50[4];
     /*0x54*/ u16 monSpecies[PARTY_SIZE];
 };
 
 extern struct TrainerCard gTrainerCards[4];
+
+void ShowPlayerTrainerCard(void (*callback)(void));
+void ShowTrainerCardInLink(u8 whoseCard, MainCallback callback);
+u8 GetTrainerCardStars(u8 cardId);
+void TrainerCard_GenerateCardForLinkPlayer(struct TrainerCard *trainerCard);
 
 #endif //GUARD_TRAINER_CARD_H

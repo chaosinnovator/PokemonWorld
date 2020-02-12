@@ -16,13 +16,13 @@
 #include "constants/maps.h"
 #include "constants/songs.h"
 
-static EWRAM_DATA u16 gUnknown_203B0EC = 0;
+static EWRAM_DATA u16 sSomeVariable = 0;
 static EWRAM_DATA u8 gUnknown_203B0EE = 0;
 
 u8 gUnknown_3005E9C[4];
-u16 gUnknown_3005EA0;
+u16 gSomeVariableBackup;
 
-static bool32 sub_812B27C(const u16 * mapIdxs);
+static bool32 IsCurrentMapInArray(const u16 * mapIdxs);
 static void sub_812B520(struct HelpSystemListMenu * a0, struct ListMenuItem * a1);
 static void sub_812B614(struct HelpSystemListMenu * a0, struct ListMenuItem * a1);
 static bool8 sub_812B754(void);
@@ -824,7 +824,7 @@ static const u8 gUnknown_845C4B6[][6] = {
     {0, 0, 0, 0, 0, 0}
 };
 
-static const u16 gUnknown_845C594[] = {
+static const u16 sMartMaps[] = {
     MAP_VIRIDIAN_CITY_MART,
     MAP_PEWTER_CITY_MART,
     MAP_CERULEAN_CITY_MART,
@@ -847,7 +847,7 @@ static const u16 gUnknown_845C594[] = {
     MAP_UNDEFINED
 };
 
-static const u16 gUnknown_845C5BC[] = {
+static const u16 sGymMaps[] = {
     MAP_PEWTER_CITY_GYM,
     MAP_CERULEAN_CITY_GYM,
     MAP_VERMILION_CITY_GYM,
@@ -859,7 +859,7 @@ static const u16 gUnknown_845C5BC[] = {
     MAP_UNDEFINED
 };
 
-static const u8 gUnknown_845C5CE[][3] = {
+static const u8 sDungeonMaps[][3] = {
     { MAP_GROUP(VIRIDIAN_FOREST), MAP_NUM(VIRIDIAN_FOREST), 1 },
     { MAP_GROUP(MT_MOON_1F), MAP_NUM(MT_MOON_1F), 3 },
     { MAP_GROUP(ROCK_TUNNEL_1F), MAP_NUM(ROCK_TUNNEL_1F), 2 },
@@ -878,14 +878,14 @@ static const u8 gUnknown_845C5CE[][3] = {
     { MAP_GROUP(SEVEN_ISLAND_TANOBY_RUINS_MONEAN_CHAMBER), MAP_NUM(SEVEN_ISLAND_TANOBY_RUINS_MONEAN_CHAMBER), 7 }
 };
 
-void sub_812B1E0(u8 a0)
+void HelpSystem_SetSomeVariable(u8 a0)
 {
-    gUnknown_203B0EC = a0;
+    sSomeVariable = a0;
 }
 
 void HelpSystem_SetSomeVariable2(u8 a0)
 {
-    switch (gUnknown_203B0EC)
+    switch (sSomeVariable)
     {
     case 23:
     case 24:
@@ -895,37 +895,37 @@ void HelpSystem_SetSomeVariable2(u8 a0)
             break;
         // fallthrough
     default:
-        gUnknown_203B0EC = a0;
+        sSomeVariable = a0;
         break;
     }
 }
 
-void sub_812B220(void)
+void Special_SetSomeVariable(void)
 {
-    gUnknown_203B0EC = gSpecialVar_0x8004;
+    sSomeVariable = gSpecialVar_0x8004;
 }
 
-void sub_812B234(void)
+void HelpSystem_BackupSomeVariable(void)
 {
-    gUnknown_3005EA0 = gUnknown_203B0EC;
+    gSomeVariableBackup = sSomeVariable;
 }
 
-void sub_812B248(void)
+void HelpSystem_RestoreSomeVariable(void)
 {
-    gUnknown_203B0EC = gUnknown_3005EA0;
+    sSomeVariable = gSomeVariableBackup;
 }
 
-static bool32 sub_812B25C(void)
+static bool32 IsInMartMap(void)
 {
-    return sub_812B27C(gUnknown_845C594);
+    return IsCurrentMapInArray(sMartMaps);
 }
 
-static bool32 sub_812B26C(void)
+static bool32 IsInGymMap(void)
 {
-    return sub_812B27C(gUnknown_845C5BC);
+    return IsCurrentMapInArray(sGymMaps);
 }
 
-static bool32 sub_812B27C(const u16 * mapIdxs)
+static bool32 IsCurrentMapInArray(const u16 * mapIdxs)
 {
     u16 mapIdx = (gSaveBlock1Ptr->location.mapGroup << 8) + gSaveBlock1Ptr->location.mapNum;
     s32 i;
@@ -939,18 +939,18 @@ static bool32 sub_812B27C(const u16 * mapIdxs)
     return FALSE;
 }
 
-static bool8 sub_812B2C4(void)
+static bool8 IsInDungeonMap(void)
 {
     u8 i, j;
 
     for (i = 0; i < 16; i++)
     {
-        for (j = 0; j < gUnknown_845C5CE[i][2]; j++)
+        for (j = 0; j < sDungeonMaps[i][2]; j++)
         {
             if (
-                   gUnknown_845C5CE[i][0] == gSaveBlock1Ptr->location.mapGroup
-                && gUnknown_845C5CE[i][1] + j == gSaveBlock1Ptr->location.mapNum
-                && (i != 15 || FlagGet(FLAG_0x849) == TRUE)
+                   sDungeonMaps[i][0] == gSaveBlock1Ptr->location.mapGroup
+                && sDungeonMaps[i][1] + j == gSaveBlock1Ptr->location.mapNum
+                && (i != 15 /* TANOBY */ || FlagGet(FLAG_SYS_UNLOCKED_TANOBY_RUINS) == TRUE)
             )
                 return TRUE;
         }
@@ -964,7 +964,7 @@ void sub_812B35C(void)
     sub_812B4B8();
     if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_SURFING))
         HelpSystem_SetSomeVariable2(0x16);
-    else if (sub_812B2C4())
+    else if (IsInDungeonMap())
         HelpSystem_SetSomeVariable2(0x15);
     else if (is_light_level_8_or_9(gMapHeader.mapType))
     {
@@ -974,9 +974,9 @@ void sub_812B35C(void)
             HelpSystem_SetSomeVariable2(0x0F);
         else if (IsCurMapPokeCenter() == TRUE)
             HelpSystem_SetSomeVariable2(0x10);
-        else if (sub_812B25C() == TRUE)
+        else if (IsInMartMap() == TRUE)
             HelpSystem_SetSomeVariable2(0x11);
-        else if (sub_812B26C() == TRUE)
+        else if (IsInGymMap() == TRUE)
             HelpSystem_SetSomeVariable2(0x12);
         else
             HelpSystem_SetSomeVariable2(0x13);
@@ -990,10 +990,10 @@ bool8 sub_812B40C(void)
     if (gUnknown_203B0EE == 1)
         return FALSE;
 
-    if (gSaveFileStatus != SAVE_STATUS_EMPTY && gSaveFileStatus != SAVE_STATUS_INVALID && FlagGet(FLAG_0x83C))
+    if (gSaveFileStatus != SAVE_STATUS_EMPTY && gSaveFileStatus != SAVE_STATUS_INVALID && FlagGet(FLAG_SYS_SAW_HELP_SYSTEM_INTRO))
         return FALSE;
 
-    FlagSet(FLAG_0x83C);
+    FlagSet(FLAG_SYS_SAW_HELP_SYSTEM_INTRO);
     gUnknown_203B0EE = 1;
     return TRUE;
 }
@@ -1005,16 +1005,16 @@ bool8 sub_812B45C(void)
     return TRUE;
 }
 
-void sub_812B478(void)
+void HelpSystem_Disable(void)
 {
-    gUnknown_3005ECC = 0;
+    gHelpSystemEnabled = FALSE;
 }
 
-void sub_812B484(void)
+void HelpSystem_Enable(void)
 {
-    if (gUnknown_203ADFA != 2 && gUnknown_203ADFA != 3)
+    if (gQuestLogState != 2 && gQuestLogState != 3)
     {
-        gUnknown_3005ECC = 1;
+        gHelpSystemEnabled = TRUE;
         sub_812B4B8();
     }
 }
@@ -1055,7 +1055,7 @@ static void sub_812B520(struct HelpSystemListMenu * a0, struct ListMenuItem * a1
     u8 r4 = 0;
     for (i = 0; i < 6; i++)
     {
-        if (gUnknown_845C4B6[gUnknown_203B0EC][gUnknown_845C4B0[i]] == 1)
+        if (gUnknown_845C4B6[sSomeVariable][gUnknown_845C4B0[i]] == 1)
         {
             a1[r4].label = gUnknown_845B080[gUnknown_845C4B0[i]];
             a1[r4].index = gUnknown_845C4B0[i];
@@ -1085,7 +1085,7 @@ static void sub_812B5A8(struct HelpSystemListMenu * a0, struct ListMenuItem * a1
 static void sub_812B614(struct HelpSystemListMenu * a0, struct ListMenuItem * a1)
 {
     u8 r6 = 0;
-    const u8 * r3 = gUnknown_845B9E0[gUnknown_203B0EC * 5 + gUnknown_3005E9C[1]];
+    const u8 * r3 = gUnknown_845B9E0[sSomeVariable * 5 + gUnknown_3005E9C[1]];
     u8 i;
     for (i = 0; r3[i] != 0xFF; i++)
     {
@@ -1125,7 +1125,7 @@ static void sub_812B614(struct HelpSystemListMenu * a0, struct ListMenuItem * a1
 
 static bool8 sub_812B754(void)
 {
-    if (FlagGet(FLAG_0x4B0) == TRUE && gUnknown_3005E9C[1] == 2)
+    if (FlagGet(FLAG_DEFEATED_BROCK) == TRUE && gUnknown_3005E9C[1] == 2)
         return TRUE;
     return FALSE;
 }
@@ -1150,7 +1150,7 @@ static bool8 sub_812B780(u8 id)
         case 43:
             return TRUE;
         case 4:
-            return FlagGet(FLAG_0x2CF);
+            return FlagGet(FLAG_VISITED_OAKS_LAB);
         case 6:
         case 10:
         case 16:
@@ -1163,7 +1163,7 @@ static bool8 sub_812B780(u8 id)
             return FlagGet(FLAG_WORLD_MAP_VERMILION_CITY);
         case 11:
         case 24:
-            return FlagGet(FLAG_0x8A4);
+            return FlagGet(FLAG_WORLD_MAP_VIRIDIAN_FOREST);
         case 9:
         case 13:
         case 14:
@@ -1175,22 +1175,22 @@ static bool8 sub_812B780(u8 id)
         case 29:
         case 31:
         case 37:
-            return FlagGet(FLAG_0x828);
+            return FlagGet(FLAG_SYS_POKEMON_GET);
         case 21:
         case 23:
-            return FlagGet(FLAG_0x829);
+            return FlagGet(FLAG_SYS_POKEDEX_GET);
         case 12:
         case 25:
         case 27:
         case 30:
         case 32:
         case 33:
-            return FlagGet(FLAG_UNK820);
+            return FlagGet(FLAG_BADGE01_GET);
         case 28:
         case 40:
             return sub_812BB10();
         case 39:
-            return FlagGet(FLAG_0x29B);
+            return FlagGet(FLAG_GOT_FAME_CHECKER);
         case 44:
             return FlagGet(FLAG_WORLD_MAP_PEWTER_CITY);
         }
@@ -1229,7 +1229,7 @@ static bool8 sub_812B780(u8 id)
         case 1:
         case 30:
         case 37:
-            return FlagGet(FLAG_0x829);
+            return FlagGet(FLAG_SYS_POKEDEX_GET);
         case 14:
             return CheckBagHasItem(ITEM_TOWN_MAP, 1);
         case 2:
@@ -1244,21 +1244,21 @@ static bool8 sub_812B780(u8 id)
         case 35:
         case 43:
         case 44:
-            return FlagGet(FLAG_0x828);
+            return FlagGet(FLAG_SYS_POKEMON_GET);
         case 4:
         case 34:
             if (GetKantoPokedexCount(1) > 1)
                 return TRUE;
             return FALSE;
         case 15:
-            return FlagGet(FLAG_UNK820);
+            return FlagGet(FLAG_BADGE01_GET);
         case 16:
         case 17:
             return sub_812BB10();
         case 18:
-            return FlagGet(FLAG_0x271);
+            return FlagGet(FLAG_GOT_BICYCLE);
         case 48:
-            return FlagGet(FLAG_0x82C);
+            return FlagGet(FLAG_SYS_GAME_CLEAR);
         }
         return FALSE;
     }
@@ -1308,7 +1308,7 @@ static bool8 sub_812B780(u8 id)
         case 19:
         case 20:
         case 21:
-            return FlagGet(FLAG_0x828);
+            return FlagGet(FLAG_SYS_POKEMON_GET);
         case 36:
         case 37:
             return sub_812BB10();
@@ -1316,7 +1316,7 @@ static bool8 sub_812B780(u8 id)
         case 15:
         case 18:
         case 39:
-            return FlagGet(FLAG_0x8A4);
+            return FlagGet(FLAG_WORLD_MAP_VIRIDIAN_FOREST);
         }
         return TRUE;
     }
@@ -1325,9 +1325,9 @@ static bool8 sub_812B780(u8 id)
         switch (id)
         {
         case 5:
-            return FlagGet(FLAG_UNK820);
+            return FlagGet(FLAG_BADGE01_GET);
         case 6:
-            return FlagGet(FLAG_0x821);
+            return FlagGet(FLAG_BADGE02_GET);
         }
         return TRUE;
     }
@@ -1341,19 +1341,19 @@ static bool8 sub_812B780(u8 id)
 
 static bool8 sub_812BB10(void)
 {
-    if (FlagGet(FLAG_0x237) == TRUE)
+    if (FlagGet(FLAG_GOT_HM01) == TRUE)
         return TRUE;
-    if (FlagGet(FLAG_0x238) == TRUE)
+    if (FlagGet(FLAG_GOT_HM02) == TRUE)
         return TRUE;
-    if (FlagGet(FLAG_0x239) == TRUE)
+    if (FlagGet(FLAG_GOT_HM03) == TRUE)
         return TRUE;
-    if (FlagGet(FLAG_0x23A) == TRUE)
+    if (FlagGet(FLAG_GOT_HM04) == TRUE)
         return TRUE;
-    if (FlagGet(FLAG_0x23B) == TRUE)
+    if (FlagGet(FLAG_GOT_HM05) == TRUE)
         return TRUE;
-    if (FlagGet(FLAG_0x2EF) == TRUE)
+    if (FlagGet(FLAG_GOT_HM06) == TRUE)
         return TRUE;
-    if (FlagGet(FLAG_0x1F1) == TRUE)
+    if (FlagGet(FLAG_HIDE_FOUR_ISLAND_ICEFALL_CAVE_1F_HM07) == TRUE)
         return TRUE;
     return FALSE;
 }

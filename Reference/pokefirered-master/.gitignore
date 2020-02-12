@@ -10,6 +10,9 @@
 *.exe
 *.fwjpnfont
 *.gba
+*.sgm
+*.sa1
+*.sg1
 *.gbapal
 *.hwjpnfont
 *.i
@@ -39,12 +42,15 @@ cmake-build-*
 ld_script_ruby.txt
 ld_script_sapphire.txt
 sound/**/*.bin
+sound/songs/midi/*.s
 src/*.s
 src/data/items.h
+src/data/wild_encounters.h
 tags
 tools/agbcc
 tools/binutils
-tools/br_ips/br_ips
-tools/br_ips/ips_patch
 types_*.taghl
 !.travis/calcrom/calcrom.pl
+!sound/programmable_wave_samples/*.pcm
+_Deparsed_XSubs.pm
+porymap.project.cfg

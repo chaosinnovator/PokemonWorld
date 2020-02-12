@@ -1,6 +1,6 @@
 ## Prerequisites
 
-| Linux | macOS | Windows 10 (build 18917+) | Windows 10 (1709+) | Windows Vista, 7, 8, 8.1, and 10 (1507, 1511, 1607, 1703)
+| Linux | macOS | Windows 10 (build 18917+) | Windows 10 (1709+) | Windows 8, 8.1, and 10 (1507, 1511, 1607, 1703)
 | ----- | ----- | ------------------------- | ------------------ | ---------------------------------------------------------
 | none | [Xcode Command Line Tools package][xcode] | [Windows Subsystem for Linux 2][wsl2] | [Windows Subsystem for Linux][wsl] | [Cygwin][cygwin]
 
@@ -15,41 +15,63 @@ Make sure that the `build-essential`, `git`, and `libpng-dev` packages are insta
 
 In the case of Cygwin, [include](https://cygwin.com/cygwin-ug-net/setup-net.html#setup-packages) the `make`, `git`, `gcc-core`, `gcc-g++`, and `libpng-devel` packages.
 
+Install the **devkitARM** toolchain of [devkitPro](https://devkitpro.org/wiki/Getting_Started) and add its environment variables. For Windows versions without the Linux subsystem, the devkitPro [graphical installer](https://github.com/devkitPro/installer/releases) includes a preconfigured MSYS2 environment, thus the steps below are not required.
+
+    sudo (dkp-)pacman -S gba-dev
+    export DEVKITPRO=/opt/devkitpro
+    echo "export DEVKITPRO=$DEVKITPRO" >> ~/.bashrc
+    export DEVKITARM=$DEVKITPRO/devkitARM
+    echo "export DEVKITARM=$DEVKITARM" >> ~/.bashrc
+
 
 ## Installation
 
 To set up the repository:
 
-	git clone https://github.com/pret/pokefirered
-	git clone https://github.com/luckytyphlosion/agbcc -b new_layout_with_libs
+    git clone https://github.com/pret/pokefirered
+    git clone https://github.com/pret/agbcc
 
-	cd ./agbcc
-	make
-	make install prefix=../pokefirered
-	make install-sdk prefix=../pokefirered
+    cd ./agbcc
+    sh build.sh
+    sh install.sh ../pokefirered
 
-	cd ../pokefirered
+    cd ../pokefirered
 
 To build **pokefirered.gba**:
 
-	make -j$(nproc)
+    make -j$(nproc)
 
 To confirm it matches the official ROM image while building, do this instead:
 
-	make compare -j$(nproc)
+    make compare -j$(nproc)
 
 If only `.c` or `.s` files were changed, turn off the dependency scanning temporarily. Changes to any other files will be ignored and the build will either fail or not reflect those changes.
 
-	make -j$(nproc) NODEP=1
+    make -j$(nproc) NODEP=1
 
-**Note (until further notice):** If this is your first time building Pokemon FireRed, an unmodified copy of Pokemon FireRed is required in the project root under the name `baserom.gba`. To generate this, you should run the following commands:
+Convenient targets have been defined to build Pokémon LeafGreen and the 1.1 revisions of both games:
 
-    make ips_patch -C tools/br_ips
-	head -c 16777216 /dev/zero > tmp.bin
-	tools/br_ips/ips_patch tmp.bin baserom.ips baserom.gba
-	make compare -j$(nproc)
-	cp pokefirered.gba baserom.gba
+    # LeafGreen 1.0
+    make -j$(nproc) leafgreen
+    # FireRed 1.1
+    make -j$(nproc) firered_rev1
+    # LeafGreen 1.1
+    make -j$(nproc) leafgreen_rev1
 
-Alternatively, you can obtain an unmodified copy of Pokemon FireRed and use that as baserom.gba.  Make sure the SHA1 checksum matches with what's provided in [the README](README.md).
+To confirm these match the respective official ROM images, prefix `compare_` to each target name. For example:
 
-**Note 2:** If the build command is not recognized on Linux, including the Linux environment used within Windows, run `nproc` and replace `$(nproc)` with the returned value (e.g.: `make -j4`). Because `nproc` is not available on macOS, the alternative is `sysctl -n hw.ncpu`.
+    make -j$(nproc) compare_leafgreen
+
+**Note:** If the build command is not recognized on Linux, including the Linux environment used within Windows, run `nproc` and replace `$(nproc)` with the returned value (e.g.: `make -j4`). Because `nproc` is not available on macOS, the alternative is `sysctl -n hw.ncpu`.
+
+### Note for Mac users
+
+The BSD make that comes with Mac XCode can be buggy, so obtain GNU make and sed using [Homebrew](https://brew.sh):
+
+    brew install make gnu-sed
+
+When compiling agbcc, substitute the `build.sh` line for
+
+    gsed 's/^make/gmake/g' build.sh | sh
+
+Finally, use `gmake` instead of `make` to compile the ROM(s).

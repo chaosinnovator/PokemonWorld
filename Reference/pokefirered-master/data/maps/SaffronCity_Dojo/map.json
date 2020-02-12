@@ -2,7 +2,7 @@
   "id": "MAP_SAFFRON_CITY_DOJO",
   "name": "SaffronCity_Dojo",
   "layout": "LAYOUT_SAFFRON_CITY_DOJO",
-  "music": "BGM_FRLG_VIRIDIAN_CITY",
+  "music": "MUS_NIBI",
   "region_map_section": "MAPSEC_SAFFRON_CITY",
   "requires_flash": false,
   "weather": "WEATHER_NONE",
@@ -14,11 +14,11 @@
   "connections": null,
   "object_events": [
     {
-      "graphics_id": "54",
+      "graphics_id": "OBJECT_EVENT_GFX_BLACKBELT",
       "x": 11,
       "y": 10,
       "elevation": 3,
-      "movement_type": "9",
+      "movement_type": "MOVEMENT_TYPE_FACE_LEFT",
       "movement_range_x": 1,
       "movement_range_y": 1,
       "trainer_type": 1,
@@ -27,11 +27,11 @@
       "flag": "0"
     },
     {
-      "graphics_id": "54",
+      "graphics_id": "OBJECT_EVENT_GFX_BLACKBELT",
       "x": 1,
       "y": 10,
       "elevation": 3,
-      "movement_type": "10",
+      "movement_type": "MOVEMENT_TYPE_FACE_RIGHT",
       "movement_range_x": 1,
       "movement_range_y": 1,
       "trainer_type": 1,
@@ -40,11 +40,11 @@
       "flag": "0"
     },
     {
-      "graphics_id": "54",
+      "graphics_id": "OBJECT_EVENT_GFX_BLACKBELT",
       "x": 11,
       "y": 8,
       "elevation": 3,
-      "movement_type": "9",
+      "movement_type": "MOVEMENT_TYPE_FACE_LEFT",
       "movement_range_x": 1,
       "movement_range_y": 1,
       "trainer_type": 1,
@@ -53,11 +53,11 @@
       "flag": "0"
     },
     {
-      "graphics_id": "54",
+      "graphics_id": "OBJECT_EVENT_GFX_BLACKBELT",
       "x": 1,
       "y": 8,
       "elevation": 3,
-      "movement_type": "10",
+      "movement_type": "MOVEMENT_TYPE_FACE_RIGHT",
       "movement_range_x": 1,
       "movement_range_y": 1,
       "trainer_type": 1,
@@ -66,11 +66,11 @@
       "flag": "0"
     },
     {
-      "graphics_id": "54",
+      "graphics_id": "OBJECT_EVENT_GFX_BLACKBELT",
       "x": 6,
       "y": 5,
       "elevation": 3,
-      "movement_type": "8",
+      "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
       "movement_range_x": 1,
       "movement_range_y": 1,
       "trainer_type": 1,
@@ -79,30 +79,30 @@
       "flag": "0"
     },
     {
-      "graphics_id": "92",
+      "graphics_id": "OBJECT_EVENT_GFX_ITEM_BALL",
       "x": 5,
       "y": 3,
       "elevation": 3,
-      "movement_type": "8",
+      "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
       "movement_range_x": 1,
       "movement_range_y": 1,
       "trainer_type": 0,
       "trainer_sight_or_berry_tree_id": 0,
       "script": "SaffronCity_Dojo_EventScript_16EC00",
-      "flag": "96"
+      "flag": "FLAG_HIDE_DOJO_HITMONLEE_BALL"
     },
     {
-      "graphics_id": "92",
+      "graphics_id": "OBJECT_EVENT_GFX_ITEM_BALL",
       "x": 7,
       "y": 3,
       "elevation": 3,
-      "movement_type": "8",
+      "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
       "movement_range_x": 1,
       "movement_range_y": 1,
       "trainer_type": 0,
       "trainer_sight_or_berry_tree_id": 0,
       "script": "SaffronCity_Dojo_EventScript_16EC46",
-      "flag": "97"
+      "flag": "FLAG_HIDE_DOJO_HITMONCHAN_BALL"
     }
   ],
   "warp_events": [
@@ -134,7 +134,7 @@
       "x": 5,
       "y": 5,
       "elevation": 3,
-      "var": "VAR_0x4081",
+      "var": "VAR_MAP_SCENE_SAFFRON_CITY_DOJO",
       "var_value": 0,
       "script": "SaffronCity_Dojo_EventScript_16EBDC"
     },
@@ -143,7 +143,7 @@
       "x": 7,
       "y": 5,
       "elevation": 3,
-      "var": "VAR_0x4081",
+      "var": "VAR_MAP_SCENE_SAFFRON_CITY_DOJO",
       "var_value": 0,
       "script": "SaffronCity_Dojo_EventScript_16EBEE"
     }

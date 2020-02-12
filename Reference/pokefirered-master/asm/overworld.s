@@ -15,11 +15,11 @@ sub_8054BC8: @ 8054BC8
 	movs r0, 0xA4
 	lsls r0, 2
 	adds r4, r0
-	bl sub_8054C04
+	bl ComputeWhiteOutMoneyLoss
 	adds r1, r0, 0
 	adds r0, r4, 0
 	bl RemoveMoney
-	bl sp000_heal_pokemon
+	bl HealPlayerParty
 	bl sub_8054DD8
 	bl sub_80554BC
 	bl WarpIntoMap
@@ -31,17 +31,17 @@ _08054BFC: .4byte gUnknown_81A654B
 _08054C00: .4byte gSaveBlock1Ptr
 	thumb_func_end sub_8054BC8
 
-	thumb_func_start sub_8054C04
-sub_8054C04: @ 8054C04
+	thumb_func_start ComputeWhiteOutMoneyLoss
+ComputeWhiteOutMoneyLoss: @ 8054C04
 	push {r4,lr}
-	bl sub_8054C70
+	bl CountBadgesForOverworldWhiteOutLossCalculation
 	adds r4, r0, 0
 	lsls r4, 24
 	lsrs r4, 24
 	bl GetPlayerPartyHighestLevel
 	lsls r0, 24
 	lsrs r0, 24
-	ldr r1, _08054C40 @ =gUnknown_826D294
+	ldr r1, _08054C40 @ =sWhiteOutMoneyLossMultipliers
 	adds r4, r1
 	ldrb r1, [r4]
 	lsls r1, 2
@@ -62,14 +62,14 @@ _08054C38:
 	pop {r1}
 	bx r1
 	.align 2, 0
-_08054C40: .4byte gUnknown_826D294
+_08054C40: .4byte sWhiteOutMoneyLossMultipliers
 _08054C44: .4byte gSaveBlock1Ptr
-	thumb_func_end sub_8054C04
+	thumb_func_end ComputeWhiteOutMoneyLoss
 
-	thumb_func_start sub_8054C48
-sub_8054C48: @ 8054C48
+	thumb_func_start Special_OverworldWhiteOutGetMoneyLoss
+Special_OverworldWhiteOutGetMoneyLoss: @ 8054C48
 	push {r4,r5,lr}
-	bl sub_8054C04
+	bl ComputeWhiteOutMoneyLoss
 	adds r4, r0, 0
 	ldr r5, _08054C6C @ =gStringVar1
 	bl CountDigits
@@ -85,14 +85,14 @@ sub_8054C48: @ 8054C48
 	bx r0
 	.align 2, 0
 _08054C6C: .4byte gStringVar1
-	thumb_func_end sub_8054C48
+	thumb_func_end Special_OverworldWhiteOutGetMoneyLoss
 
-	thumb_func_start sub_8054C70
-sub_8054C70: @ 8054C70
+	thumb_func_start CountBadgesForOverworldWhiteOutLossCalculation
+CountBadgesForOverworldWhiteOutLossCalculation: @ 8054C70
 	push {r4-r6,lr}
 	movs r6, 0
 	movs r5, 0
-	ldr r4, _08054C9C @ =gUnknown_826D29E
+	ldr r4, _08054C9C @ =sWhiteOutMoneyLossBadgeFlagIDs
 _08054C78:
 	ldrh r0, [r4]
 	bl FlagGet
@@ -112,8 +112,8 @@ _08054C8A:
 	pop {r1}
 	bx r1
 	.align 2, 0
-_08054C9C: .4byte gUnknown_826D29E
-	thumb_func_end sub_8054C70
+_08054C9C: .4byte sWhiteOutMoneyLossBadgeFlagIDs
+	thumb_func_end CountBadgesForOverworldWhiteOutLossCalculation
 
 	thumb_func_start sub_8054CA0
 sub_8054CA0: @ 8054CA0
@@ -473,7 +473,7 @@ _08054F8A:
 	str r2, [sp, 0x4]
 	adds r0, r2, 0
 	adds r1, r5, 0
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	mov r6, r10
 	ldr r1, [r6]
 	mov r2, r8
@@ -749,7 +749,7 @@ warp_shift: @ 8055198
 	str r0, [r2, 0x4]
 	str r1, [r2, 0x8]
 	ldr r2, _080551D0 @ =gUnknown_2031DC4
-	ldr r0, _080551D4 @ =gUnknown_826D2B0
+	ldr r0, _080551D4 @ =sDummyWarpData
 	ldr r1, [r0, 0x4]
 	ldr r0, [r0]
 	str r0, [r2]
@@ -763,7 +763,7 @@ _080551C4: .4byte gUnknown_2031DB4
 _080551C8: .4byte gSaveBlock1Ptr
 _080551CC: .4byte gUnknown_2031DBC
 _080551D0: .4byte gUnknown_2031DC4
-_080551D4: .4byte gUnknown_826D2B0
+_080551D4: .4byte sDummyWarpData
 _080551D8: .4byte gUnknown_2031DCC
 	thumb_func_end warp_shift
 
@@ -821,8 +821,8 @@ _08055232:
 	bx r1
 	thumb_func_end warp_data_is_not_neg_1
 
-	thumb_func_start get_mapheader_by_bank_and_number
-get_mapheader_by_bank_and_number: @ 8055238
+	thumb_func_start Overworld_GetMapHeaderByGroupAndId
+Overworld_GetMapHeaderByGroupAndId: @ 8055238
 	lsls r0, 16
 	lsls r1, 16
 	ldr r2, _0805524C @ =gMapGroups
@@ -835,7 +835,7 @@ get_mapheader_by_bank_and_number: @ 8055238
 	bx lr
 	.align 2, 0
 _0805524C: .4byte gMapGroups
-	thumb_func_end get_mapheader_by_bank_and_number
+	thumb_func_end Overworld_GetMapHeaderByGroupAndId
 
 	thumb_func_start warp1_get_mapheader
 warp1_get_mapheader: @ 8055250
@@ -850,7 +850,7 @@ warp1_get_mapheader: @ 8055250
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	pop {r1}
 	bx r1
 	.align 2, 0
@@ -872,7 +872,7 @@ set_current_map_header_from_sav1_save_old_name: @ 8055274
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	adds r1, r4, 0
 	ldm r0!, {r2,r3,r6}
 	stm r1!, {r2,r3,r6}
@@ -908,7 +908,7 @@ set_current_map_header_from_sav1: @ 80552BC
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	adds r1, r4, 0
 	ldm r0!, {r2,r3,r5}
 	stm r1!, {r2,r3,r5}
@@ -1708,7 +1708,7 @@ sub_8055864: @ 8055864
 	bl TrySetMapSaveWarpStatus
 	bl sub_806E110
 	bl nullsub_74
-	bl sub_806D7E8
+	bl RestartWildEncounterImmunitySteps
 	adds r0, r5, 0
 	adds r1, r4, 0
 	bl sub_810C578
@@ -1717,7 +1717,7 @@ sub_8055864: @ 8055864
 	bl sub_8055CB8
 	bl sav1_reset_battle_music_maybe
 	bl mapheader_run_script_with_tag_x3
-	bl sub_815D8F8
+	bl TryRegenerateRenewableHiddenItems
 	bl not_trainer_hill_battle_pyramid
 	ldr r4, _0805591C @ =gMapHeader
 	ldr r0, [r4]
@@ -1737,7 +1737,7 @@ _080558D4:
 	bl RoamerMove
 	bl sub_8110920
 	bl DoCurrentWeather
-	bl wild_encounter_reset_coro_args
+	bl ResetFieldTasksArgs
 	bl mapheader_run_script_with_tag_x5
 	bl sub_80561B4
 	ldr r1, _0805591C @ =gMapHeader
@@ -1747,7 +1747,7 @@ _080558D4:
 	cmp r0, r1
 	beq _08055914
 	movs r0, 0x1
-	bl sub_8098110
+	bl CreateMapNamePopupIfNotAlreadyRunning
 _08055914:
 	add sp, 0x4
 	pop {r4,r5}
@@ -1771,7 +1771,7 @@ sub_8055920: @ 8055920
 	bl TrySetMapSaveWarpStatus
 	bl sub_806E110
 	bl nullsub_74
-	bl sub_806D7E8
+	bl RestartWildEncounterImmunitySteps
 	ldr r0, _080559A0 @ =gSaveBlock1Ptr
 	ldr r1, [r0]
 	movs r0, 0x4
@@ -1794,7 +1794,7 @@ _08055974:
 	bl sub_8055CB8
 	bl sav1_reset_battle_music_maybe
 	bl mapheader_run_script_with_tag_x3
-	bl sub_815D8F8
+	bl TryRegenerateRenewableHiddenItems
 	bl UpdateLocationHistoryForRoamer
 	bl RoamerMoveToOtherLocationSet
 	bl sub_8110920
@@ -2247,7 +2247,7 @@ _08055CEC: .4byte gSaveBlock1Ptr
 _08055CF0:
 	ldr r0, _08055D00 @ =gSaveBlock1Ptr
 	ldr r0, [r0]
-	ldr r1, _08055D04 @ =gUnknown_83C68E0
+	ldr r1, _08055D04 @ =gMaxFlashLevel
 	ldr r1, [r1]
 _08055CF8:
 	adds r0, 0x30
@@ -2257,7 +2257,7 @@ _08055CFA:
 	bx r0
 	.align 2, 0
 _08055D00: .4byte gSaveBlock1Ptr
-_08055D04: .4byte gUnknown_83C68E0
+_08055D04: .4byte gMaxFlashLevel
 	thumb_func_end sub_8055CB8
 
 	thumb_func_start Overworld_SetFlashLevel
@@ -2266,7 +2266,7 @@ Overworld_SetFlashLevel: @ 8055D08
 	adds r1, r0, 0
 	cmp r1, 0
 	blt _08055D18
-	ldr r0, _08055D28 @ =gUnknown_83C68E0
+	ldr r0, _08055D28 @ =gMaxFlashLevel
 	ldr r0, [r0]
 	cmp r1, r0
 	ble _08055D1A
@@ -2280,12 +2280,12 @@ _08055D1A:
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08055D28: .4byte gUnknown_83C68E0
+_08055D28: .4byte gMaxFlashLevel
 _08055D2C: .4byte gSaveBlock1Ptr
 	thumb_func_end Overworld_SetFlashLevel
 
-	thumb_func_start sav1_get_flash_used_on_map
-sav1_get_flash_used_on_map: @ 8055D30
+	thumb_func_start Overworld_GetFlashLevel
+Overworld_GetFlashLevel: @ 8055D30
 	ldr r0, _08055D3C @ =gSaveBlock1Ptr
 	ldr r0, [r0]
 	adds r0, 0x30
@@ -2293,7 +2293,7 @@ sav1_get_flash_used_on_map: @ 8055D30
 	bx lr
 	.align 2, 0
 _08055D3C: .4byte gSaveBlock1Ptr
-	thumb_func_end sav1_get_flash_used_on_map
+	thumb_func_end Overworld_GetFlashLevel
 
 	thumb_func_start SetCurrentMapLayout
 SetCurrentMapLayout: @ 8055D40
@@ -2336,7 +2336,7 @@ sub_8055D6C: @ 8055D6C
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	ldrh r0, [r0, 0x10]
 	pop {r1}
 	bx r1
@@ -2411,7 +2411,7 @@ _08055DDC:
 	bgt _08055E24
 	ldr r0, _08055E1C @ =gMPlayInfo_BGM
 	ldr r1, [r0]
-	ldr r0, _08055E20 @ =gSong_86E6B0C
+	ldr r0, _08055E20 @ =mus_win_gym
 	cmp r1, r0
 	bne _08055E24
 	movs r0, 0x4
@@ -2421,7 +2421,7 @@ _08055DDC:
 _08055E14: .4byte gSaveBlock1Ptr
 _08055E18: .4byte 0x00004f01
 _08055E1C: .4byte gMPlayInfo_BGM
-_08055E20: .4byte gSong_86E6B0C
+_08055E20: .4byte mus_win_gym
 _08055E24:
 	bl sub_8055D8C
 	lsls r0, 16
@@ -2441,7 +2441,7 @@ _08055E40:
 	lsls r0, 24
 	cmp r0, 0
 	beq _08055E5A
-	ldr r5, _08055E74 @ =0x00000131 @ BGM_FRLG_SURF
+	ldr r5, _08055E74 @ =0x00000131 @ MUS_NAMINORI
 	adds r0, r5, 0
 	bl sub_8056124
 	cmp r0, 0
@@ -2511,7 +2511,7 @@ _08055EA8:
 	bl GetCurrentMapMusic
 	lsls r0, 16
 	lsrs r6, r0, 16
-	ldr r5, _08055F08 @ =0x00000131 @ BGM_FRLG_SURF
+	ldr r5, _08055F08 @ =0x00000131 @ MUS_NAMINORI
 	cmp r6, r5
 	beq _08055F14
 	movs r0, 0x8
@@ -2640,15 +2640,15 @@ _08055FB8:
 _08055FC0: .4byte 0x00004001
 	thumb_func_end sub_8055F88
 
-	thumb_func_start sub_8055FC4
-sub_8055FC4: @ 8055FC4
+	thumb_func_start BGMusicStopped
+BGMusicStopped: @ 8055FC4
 	push {lr}
 	bl IsNotWaitingForBGMStop
 	lsls r0, 24
 	lsrs r0, 24
 	pop {r1}
 	bx r1
-	thumb_func_end sub_8055FC4
+	thumb_func_end BGMusicStopped
 
 	thumb_func_start Overworld_FadeOutMapMusic
 Overworld_FadeOutMapMusic: @ 8055FD4
@@ -2863,7 +2863,7 @@ get_map_light_level_by_bank_and_number: @ 8056158
 	lsls r1, 24
 	asrs r1, 8
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	ldrb r0, [r0, 0x17]
 	pop {r1}
 	bx r1
@@ -2925,7 +2925,7 @@ sub_80561B4: @ 80561B4
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	ldrb r0, [r0, 0x14]
 	pop {r1}
 	bx r1
@@ -3014,7 +3014,7 @@ sav1_saved_warp2_map_get_name: @ 8056238
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	ldrb r0, [r0, 0x14]
 	pop {r1}
 	bx r1
@@ -3036,7 +3036,7 @@ GetCurrentRegionMapSectionId: @ 8056260
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	ldrb r0, [r0, 0x14]
 	pop {r1}
 	bx r1
@@ -3058,7 +3058,7 @@ sav1_map_get_battletype: @ 8056288
 	asrs r1, 24
 	lsls r1, 16
 	lsrs r1, 16
-	bl get_mapheader_by_bank_and_number
+	bl Overworld_GetMapHeaderByGroupAndId
 	ldrb r0, [r0, 0x1B]
 	pop {r1}
 	bx r1
@@ -3282,7 +3282,7 @@ sub_805644C: @ 805644C
 	bl sub_81127F8
 _0805649E:
 	bl ScriptContext2_Enable
-	bl sub_80982EC
+	bl DismissMapNamePopup
 	b _080564BA
 	.align 2, 0
 _080564A8: .4byte gUnknown_3005E88
@@ -3293,7 +3293,7 @@ _080564B0:
 	adds r2, r4, 0
 	bl sub_805B3E0
 _080564BA:
-	bl sub_811092C
+	bl RunQuestLogCB
 	add sp, 0x4
 	pop {r4-r6}
 	pop {r0}
@@ -3323,12 +3323,12 @@ sub_80564C8: @ 80564C8
 	cmp r0, 0x1
 	bne _0805650C
 	bl ScriptContext2_Enable
-	bl sub_80982EC
+	bl DismissMapNamePopup
 	b _08056522
 	.align 2, 0
 _08056508: .4byte gUnknown_3005E90
 _0805650C:
-	bl sub_811092C
+	bl RunQuestLogCB
 	b _08056522
 _08056512:
 	bl sub_8111CD0
@@ -3336,7 +3336,7 @@ _08056512:
 	lsrs r0, 24
 	cmp r0, 0x1
 	bne _08056522
-	bl sub_811092C
+	bl RunQuestLogCB
 _08056522:
 	ldr r0, _08056530 @ =gUnknown_3005E90
 	bl sub_806C888
@@ -3360,7 +3360,7 @@ sub_8056534: @ 8056534
 	lsrs r0, 24
 	cmp r0, 0x1
 	beq _08056554
-	ldr r0, _08056564 @ =gUnknown_203ADFA
+	ldr r0, _08056564 @ =gQuestLogState
 	ldrb r0, [r0]
 	cmp r0, 0x2
 	bne _08056568
@@ -3370,7 +3370,7 @@ _08056554:
 	.align 2, 0
 _0805655C: .4byte gMain
 _08056560: .4byte sub_80565B4
-_08056564: .4byte gUnknown_203ADFA
+_08056564: .4byte gQuestLogState
 _08056568:
 	ldrh r0, [r4, 0x2E]
 	ldrh r1, [r4, 0x2C]
@@ -3522,8 +3522,8 @@ _0805669C: .4byte sub_8056534
 _080566A0: .4byte sub_80565B4
 	thumb_func_end CB2_NewGame
 
-	thumb_func_start c2_whiteout
-c2_whiteout: @ 80566A4
+	thumb_func_start CB2_WhiteOut
+CB2_WhiteOut: @ 80566A4
 	push {lr}
 	sub sp, 0x4
 	ldr r1, _08056708 @ =gMain
@@ -3569,7 +3569,7 @@ _0805670C: .4byte gFieldCallback
 _08056710: .4byte sub_807F5F0
 _08056714: .4byte sub_8056534
 _08056718: .4byte sub_80565B4
-	thumb_func_end c2_whiteout
+	thumb_func_end CB2_WhiteOut
 
 	thumb_func_start CB2_LoadMap
 CB2_LoadMap: @ 805671C
@@ -3754,20 +3754,20 @@ _080568A0: .4byte gFieldCallback
 _080568A4: .4byte sub_807DDD0
 	thumb_func_end c2_8056854
 
-	thumb_func_start sub_80568A8
-sub_80568A8: @ 80568A8
+	thumb_func_start CB2_ReturnToFieldWithOpenMenu
+CB2_ReturnToFieldWithOpenMenu: @ 80568A8
 	push {lr}
 	bl sub_80569BC
 	ldr r1, _080568BC @ =gFieldCallback2
-	ldr r0, _080568C0 @ =sub_807E3BC
+	ldr r0, _080568C0 @ =FieldCB2_ReturnToStartMenuInit
 	str r0, [r1]
 	bl CB2_ReturnToField
 	pop {r0}
 	bx r0
 	.align 2, 0
 _080568BC: .4byte gFieldCallback2
-_080568C0: .4byte sub_807E3BC
-	thumb_func_end sub_80568A8
+_080568C0: .4byte FieldCB2_ReturnToStartMenuInit
+	thumb_func_end CB2_ReturnToFieldWithOpenMenu
 
 	thumb_func_start sub_80568C4
 sub_80568C4: @ 80568C4
@@ -3824,7 +3824,7 @@ sub_8056918: @ 8056918
 	cmp r0, 0x4
 	bne _0805692C
 	movs r0, 0
-	bl sub_8098110
+	bl CreateMapNamePopupIfNotAlreadyRunning
 _0805692C:
 	bl sub_807DF7C
 	pop {r0}
@@ -3841,7 +3841,7 @@ CB2_ContinueSavedGame: @ 8056938
 	bl sub_8056420
 	bl set_current_map_header_from_sav1
 	bl sub_80550A8
-	bl UnfreezeMapObjects
+	bl UnfreezeObjectEvents
 	bl sub_8054E40
 	bl sub_80589E8
 	bl PlayTimeCounter_Start
@@ -3941,16 +3941,16 @@ VBlankCB_Field: @ 8056A14
 	bx r0
 	thumb_func_end VBlankCB_Field
 
-	thumb_func_start sub_8056A34
-sub_8056A34: @ 8056A34
+	thumb_func_start InitCurrentFlashLevelScanlineEffect
+InitCurrentFlashLevelScanlineEffect: @ 8056A34
 	push {lr}
-	bl sav1_get_flash_used_on_map
+	bl Overworld_GetFlashLevel
 	lsls r0, 24
 	lsrs r0, 24
 	cmp r0, 0
 	beq _08056A52
-	bl sub_807F074
-	ldr r2, _08056A58 @ =gUnknown_826D330
+	bl WriteFlashScanlineEffectBuffer
+	ldr r2, _08056A58 @ =gFlashEffectParams
 	ldr r0, [r2]
 	ldr r1, [r2, 0x4]
 	ldr r2, [r2, 0x8]
@@ -3959,8 +3959,8 @@ _08056A52:
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08056A58: .4byte gUnknown_826D330
-	thumb_func_end sub_8056A34
+_08056A58: .4byte gFlashEffectParams
+	thumb_func_end InitCurrentFlashLevelScanlineEffect
 
 	thumb_func_start sub_8056A5C
 sub_8056A5C: @ 8056A5C
@@ -4015,7 +4015,7 @@ _08056ACE:
 	bl sub_812B35C
 	b _08056B62
 _08056AE4:
-	bl sub_8056A34
+	bl InitCurrentFlashLevelScanlineEffect
 	bl sub_8056F1C
 	b _08056B62
 _08056AEE:
@@ -4145,7 +4145,7 @@ _08056BFA:
 _08056BFE:
 	bl mli4_mapscripts_and_other
 	bl sub_8057114
-	ldr r0, _08056C1C @ =gUnknown_203ADFA
+	ldr r0, _08056C1C @ =gQuestLogState
 	ldrb r0, [r0]
 	cmp r0, 0x2
 	beq _08056C16
@@ -4155,9 +4155,9 @@ _08056C16:
 	bl sub_812B35C
 	b _08056CCA
 	.align 2, 0
-_08056C1C: .4byte gUnknown_203ADFA
+_08056C1C: .4byte gQuestLogState
 _08056C20:
-	bl sub_8056A34
+	bl InitCurrentFlashLevelScanlineEffect
 	bl sub_8056F1C
 	b _08056CCA
 _08056C2A:
@@ -4223,7 +4223,7 @@ _08056CA8:
 	cmp r0, 0x4
 	bne _08056CCA
 	movs r0, 0
-	bl sub_8098110
+	bl CreateMapNamePopupIfNotAlreadyRunning
 	b _08056CCA
 	.align 2, 0
 _08056CBC: .4byte gMapHeader
@@ -4346,7 +4346,7 @@ _08056DAE:
 	bl sub_812B35C
 	b _08056E3E
 _08056DC0:
-	bl sub_8056A34
+	bl InitCurrentFlashLevelScanlineEffect
 	bl sub_8056F1C
 	b _08056E3E
 _08056DCA:
@@ -4513,7 +4513,7 @@ _08056F04: .4byte 0x81000800
 	thumb_func_start sub_8056F08
 sub_8056F08: @ 8056F08
 	push {lr}
-	bl sub_8056A34
+	bl InitCurrentFlashLevelScanlineEffect
 	bl sub_8056F1C
 	bl mapdata_load_assets_to_gpu_and_full_redraw
 	pop {r0}
@@ -4648,7 +4648,7 @@ _08057056:
 	bl sub_807B1B8
 	cmp r4, 0
 	bne _0805706A
-	bl sub_806E87C
+	bl SetUpFieldTasks
 _0805706A:
 	bl mapheader_run_script_with_tag_x5
 	pop {r4}
@@ -4734,7 +4734,7 @@ sub_8057100: @ 8057100
 	thumb_func_start sub_8057114
 sub_8057114: @ 8057114
 	push {lr}
-	ldr r2, _08057138 @ =gMapObjects
+	ldr r2, _08057138 @ =gObjectEvents
 	ldr r3, _0805713C @ =gPlayerAvatar
 	ldrb r1, [r3, 0x5]
 	lsls r0, r1, 3
@@ -4750,14 +4750,14 @@ sub_8057114: @ 8057114
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08057138: .4byte gMapObjects
+_08057138: .4byte gObjectEvents
 _0805713C: .4byte gPlayerAvatar
 	thumb_func_end sub_8057114
 
 	thumb_func_start sub_8057140
 sub_8057140: @ 8057140
 	push {lr}
-	ldr r0, _08057158 @ =gUnknown_300502C
+	ldr r0, _08057158 @ =gLocalLinkPlayerId
 	ldrb r0, [r0]
 	bl sub_8058504
 	lsls r0, 24
@@ -4766,13 +4766,13 @@ sub_8057140: @ 8057140
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08057158: .4byte gUnknown_300502C
+_08057158: .4byte gLocalLinkPlayerId
 	thumb_func_end sub_8057140
 
 	thumb_func_start sub_805715C
 sub_805715C: @ 805715C
 	push {lr}
-	ldr r0, _08057174 @ =gUnknown_300502C
+	ldr r0, _08057174 @ =gLocalLinkPlayerId
 	ldrb r0, [r0]
 	bl sub_8058504
 	lsls r0, 24
@@ -4781,7 +4781,7 @@ sub_805715C: @ 805715C
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08057174: .4byte gUnknown_300502C
+_08057174: .4byte gLocalLinkPlayerId
 	thumb_func_end sub_805715C
 
 	thumb_func_start sub_8057178
@@ -4794,7 +4794,7 @@ sub_8057178: @ 8057178
 	adds r1, r4, 0
 	bl GetCameraFocusCoords
 	mov r2, sp
-	ldr r0, _080571A4 @ =gUnknown_300502C
+	ldr r0, _080571A4 @ =gLocalLinkPlayerId
 	ldrb r1, [r0]
 	ldrh r0, [r2]
 	adds r0, r1
@@ -4807,7 +4807,7 @@ sub_8057178: @ 8057178
 	pop {r0}
 	bx r0
 	.align 2, 0
-_080571A4: .4byte gUnknown_300502C
+_080571A4: .4byte gLocalLinkPlayerId
 	thumb_func_end sub_8057178
 
 	thumb_func_start sub_80571A8
@@ -4823,13 +4823,13 @@ sub_80571A8: @ 80571A8
 	bl GetCameraFocusCoords
 	mov r3, sp
 	mov r2, sp
-	ldr r0, _08057224 @ =gUnknown_300502C
+	ldr r0, _08057224 @ =gLocalLinkPlayerId
 	ldrb r1, [r0]
 	ldrh r0, [r2]
 	subs r0, r1
 	strh r0, [r3]
 	movs r6, 0
-	ldr r0, _08057228 @ =gUnknown_3005030
+	ldr r0, _08057228 @ =gFieldLinkPlayerCount
 	mov r8, r4
 	ldrb r0, [r0]
 	cmp r6, r0
@@ -4852,14 +4852,14 @@ _080571D8:
 	adds r4, r7
 	ldrb r3, [r4, 0x13]
 	adds r0, r5, 0
-	bl SpawnLinkPlayerMapObject
+	bl SpawnLinkPlayerObjectEvent
 	ldrb r1, [r4]
 	adds r0, r5, 0
 	bl sub_8058878
 	adds r0, r6, 0x1
 	lsls r0, 16
 	lsrs r6, r0, 16
-	ldr r0, _08057228 @ =gUnknown_3005030
+	ldr r0, _08057228 @ =gFieldLinkPlayerCount
 	ldrb r0, [r0]
 	cmp r6, r0
 	bcc _080571D8
@@ -4872,8 +4872,8 @@ _08057212:
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08057224: .4byte gUnknown_300502C
-_08057228: .4byte gUnknown_3005030
+_08057224: .4byte gLocalLinkPlayerId
+_08057228: .4byte gFieldLinkPlayerCount
 _0805722C: .4byte gLinkPlayers
 	thumb_func_end sub_80571A8
 
@@ -4881,7 +4881,7 @@ _0805722C: .4byte gLinkPlayers
 sub_8057230: @ 8057230
 	push {r4,r5,lr}
 	movs r4, 0
-	ldr r0, _08057264 @ =gUnknown_3005030
+	ldr r0, _08057264 @ =gFieldLinkPlayerCount
 	ldrb r0, [r0]
 	cmp r4, r0
 	bcs _0805725E
@@ -4898,7 +4898,7 @@ _0805723E:
 	adds r0, r4, 0x1
 	lsls r0, 16
 	lsrs r4, r0, 16
-	ldr r0, _08057264 @ =gUnknown_3005030
+	ldr r0, _08057264 @ =gFieldLinkPlayerCount
 	ldrb r0, [r0]
 	cmp r4, r0
 	bcc _0805723E
@@ -4907,7 +4907,7 @@ _0805725E:
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08057264: .4byte gUnknown_3005030
+_08057264: .4byte gFieldLinkPlayerCount
 _08057268: .4byte gLinkPlayers
 	thumb_func_end sub_8057230
 
@@ -5057,7 +5057,7 @@ _080573AE:
 	bl sub_8057114
 	b _08057412
 _080573B8:
-	bl sub_8056A34
+	bl InitCurrentFlashLevelScanlineEffect
 	bl sub_8056F1C
 	b _08057412
 _080573C2:
@@ -5126,7 +5126,7 @@ sub_8057430: @ 8057430
 	bl sub_8056420
 	bl set_current_map_header_from_sav1
 	bl sub_80550A8
-	bl UnfreezeMapObjects
+	bl UnfreezeObjectEvents
 	bl sub_8054E40
 	bl sub_80589E8
 	bl PlayTimeCounter_Start
@@ -5402,11 +5402,11 @@ _0805769C:
 	bl FieldEffectActiveListClear
 	bl sub_8079C08
 	bl sub_807B1B8
-	bl sub_806E87C
+	bl SetUpFieldTasks
 	bl mapheader_run_script_with_tag_x5
 	b _0805772A
 _080576C2:
-	bl sub_8056A34
+	bl InitCurrentFlashLevelScanlineEffect
 	bl sub_8056F1C
 	b _0805772A
 _080576CC:
@@ -5647,7 +5647,7 @@ c1_link_related: @ 8057884
 	cmp r0, 0
 	bne _080578C0
 _0805789E:
-	ldr r0, _080578CC @ =gUnknown_300502C
+	ldr r0, _080578CC @ =gLocalLinkPlayerId
 	ldrb r4, [r0]
 	ldr r0, _080578D0 @ =gLinkPartnersHeldKeys
 	adds r1, r4, 0
@@ -5666,7 +5666,7 @@ _080578C0:
 	bx r0
 	.align 2, 0
 _080578C8: .4byte gWirelessCommType
-_080578CC: .4byte gUnknown_300502C
+_080578CC: .4byte gLocalLinkPlayerId
 _080578D0: .4byte gLinkPartnersHeldKeys
 _080578D4: .4byte gUnknown_3000E84
 	thumb_func_end c1_link_related
@@ -5722,7 +5722,7 @@ sub_8057910: @ 8057910
 	lsrs r0, 24
 	cmp r0, 0x3C
 	bls _0805792E
-	bl sub_80FA190
+	bl LinkRfu_FatalError
 _0805792E:
 	pop {r0}
 	bx r0
@@ -5753,7 +5753,7 @@ sub_8057954: @ 8057954
 	push {r4,lr}
 	lsls r0, 16
 	lsrs r3, r0, 16
-	ldr r0, _08057974 @ =gUnknown_3005030
+	ldr r0, _08057974 @ =gFieldLinkPlayerCount
 	ldrb r2, [r0]
 	movs r1, 0
 	cmp r1, r2
@@ -5767,7 +5767,7 @@ _08057966:
 	movs r0, 0
 	b _08057984
 	.align 2, 0
-_08057974: .4byte gUnknown_3005030
+_08057974: .4byte gFieldLinkPlayerCount
 _08057978: .4byte gUnknown_3000E80
 _0805797C:
 	adds r1, 0x1
@@ -5786,7 +5786,7 @@ sub_805798C: @ 805798C
 	push {r4,lr}
 	lsls r0, 16
 	lsrs r3, r0, 16
-	ldr r0, _080579AC @ =gUnknown_3005030
+	ldr r0, _080579AC @ =gFieldLinkPlayerCount
 	ldrb r2, [r0]
 	movs r1, 0
 	cmp r1, r2
@@ -5800,7 +5800,7 @@ _0805799E:
 	movs r0, 0x1
 	b _080579BC
 	.align 2, 0
-_080579AC: .4byte gUnknown_3005030
+_080579AC: .4byte gFieldLinkPlayerCount
 _080579B0: .4byte gUnknown_3000E80
 _080579B4:
 	adds r1, 0x1
@@ -6453,7 +6453,7 @@ _08057E80:
 	bl sub_8057954
 	cmp r0, 0x1
 	bne _08057E96
-	ldr r0, _08057EA0 @ =gUnknown_81BB9FC
+	ldr r0, _08057EA0 @ =CableClub_EventScript_DoLinkRoomExit
 	bl ScriptContext1_SetupScript
 	ldr r0, _08057EA4 @ =sub_8057E6C
 	bl c1_link_related_func_set
@@ -6463,7 +6463,7 @@ _08057E96:
 	bx r1
 	.align 2, 0
 _08057E9C: .4byte gUnknown_3000E80
-_08057EA0: .4byte gUnknown_81BB9FC
+_08057EA0: .4byte CableClub_EventScript_DoLinkRoomExit
 _08057EA4: .4byte sub_8057E6C
 	thumb_func_end sub_8057E70
 
@@ -6499,7 +6499,7 @@ sub_8057EC0: @ 8057EC0
 	cmp r2, r1
 	bne _08057EE6
 	ldr r1, _08057F08 @ =gUnknown_3000E80
-	ldr r0, _08057F0C @ =gUnknown_300502C
+	ldr r0, _08057F0C @ =gLocalLinkPlayerId
 	ldrb r0, [r0]
 	adds r0, r1
 	ldrb r0, [r0]
@@ -6511,7 +6511,7 @@ _08057EE6:
 	cmp r1, r0
 	bne _08057F14
 	ldr r1, _08057F08 @ =gUnknown_3000E80
-	ldr r0, _08057F0C @ =gUnknown_300502C
+	ldr r0, _08057F0C @ =gLocalLinkPlayerId
 	ldrb r0, [r0]
 	adds r0, r1
 	ldrb r0, [r0]
@@ -6524,7 +6524,7 @@ _08057EFC:
 _08057F00: .4byte gUnknown_3000E84
 _08057F04: .4byte sub_8057E1C
 _08057F08: .4byte gUnknown_3000E80
-_08057F0C: .4byte gUnknown_300502C
+_08057F0C: .4byte gLocalLinkPlayerId
 _08057F10: .4byte sub_8057E10
 _08057F14:
 	movs r0, 0x82
@@ -6798,7 +6798,7 @@ _08058074:
 	cmp r0, 0x80
 	beq _080580FC
 _080580E0:
-	ldr r0, _080580F8 @ =gUnknown_81BB9A3
+	ldr r0, _080580F8 @ =CableClub_EventScript_TooBusyToNotice
 	b _08058122
 	.align 2, 0
 _080580E4: .4byte gDirectionToVectors
@@ -6806,21 +6806,21 @@ _080580E8: .4byte 0xffff0000
 _080580EC: .4byte 0x0000ffff
 _080580F0: .4byte 0xffffff00
 _080580F4: .4byte gUnknown_3000E80
-_080580F8: .4byte gUnknown_81BB9A3
+_080580F8: .4byte CableClub_EventScript_TooBusyToNotice
 _080580FC:
 	adds r0, r2, 0
 	bl sub_8081A34
 	cmp r0, 0
 	bne _08058110
-	ldr r0, _0805810C @ =gUnknown_81BB981
+	ldr r0, _0805810C @ =CableClub_EventScript_ReadTrainerCard
 	b _08058122
 	.align 2, 0
-_0805810C: .4byte gUnknown_81BB981
+_0805810C: .4byte CableClub_EventScript_ReadTrainerCard
 _08058110:
-	ldr r0, _08058114 @ =gUnknown_81BB992
+	ldr r0, _08058114 @ =CableClub_EventScript_ReadTrainerCardColored
 	b _08058122
 	.align 2, 0
-_08058114: .4byte gUnknown_81BB992
+_08058114: .4byte CableClub_EventScript_ReadTrainerCardColored
 _08058118:
 	ldrb r1, [r4, 0xC]
 	ldrb r2, [r4, 0x3]
@@ -6837,62 +6837,62 @@ _08058122:
 sub_805812C: @ 805812C
 	push {lr}
 	adds r1, r0, 0
-	ldr r0, _08058178 @ =gUnknown_81BB8DB
+	ldr r0, _08058178 @ =BattleColosseum_4P_EventScript_PlayerSpot0
 	cmp r1, r0
 	beq _08058172
-	ldr r0, _0805817C @ =gUnknown_81BB8F8
+	ldr r0, _0805817C @ =BattleColosseum_4P_EventScript_PlayerSpot1
 	cmp r1, r0
 	beq _080581B4
-	ldr r0, _08058180 @ =gUnknown_81BB915
+	ldr r0, _08058180 @ =BattleColosseum_4P_EventScript_PlayerSpot2
 	cmp r1, r0
 	beq _08058172
-	ldr r0, _08058184 @ =gUnknown_81BB932
+	ldr r0, _08058184 @ =BattleColosseum_4P_EventScript_PlayerSpot3
 	cmp r1, r0
 	beq _080581B4
-	ldr r0, _08058188 @ =gUnknown_81BB980
+	ldr r0, _08058188 @ =RecordCenter_EventScript_Spot
 	cmp r1, r0
 	beq _08058172
-	ldr r0, _0805818C @ =gUnknown_81BB980
+	ldr r0, _0805818C @ =RecordCenter_EventScript_Spot
 	cmp r1, r0
 	beq _080581B4
-	ldr r0, _08058190 @ =gUnknown_81BB980
+	ldr r0, _08058190 @ =RecordCenter_EventScript_Spot
 	cmp r1, r0
 	beq _08058172
-	ldr r0, _08058194 @ =gUnknown_81BB980
+	ldr r0, _08058194 @ =RecordCenter_EventScript_Spot
 	cmp r1, r0
 	beq _080581B4
-	ldr r0, _08058198 @ =gUnknown_81BB8C3
+	ldr r0, _08058198 @ =BattleColosseum_2P_EventScript_PlayerSpot0
 	cmp r1, r0
 	beq _08058172
-	ldr r0, _0805819C @ =gUnknown_81BB8CF
+	ldr r0, _0805819C @ =BattleColosseum_2P_EventScript_PlayerSpot1
 	cmp r1, r0
 	beq _080581B4
-	ldr r0, _080581A0 @ =gUnknown_81BB950
+	ldr r0, _080581A0 @ =TradeCenter_EventScript_Chair0
 	cmp r1, r0
 	bne _080581A4
 _08058172:
 	movs r0, 0xA
 	b _080581B6
 	.align 2, 0
-_08058178: .4byte gUnknown_81BB8DB
-_0805817C: .4byte gUnknown_81BB8F8
-_08058180: .4byte gUnknown_81BB915
-_08058184: .4byte gUnknown_81BB932
-_08058188: .4byte gUnknown_81BB980
-_0805818C: .4byte gUnknown_81BB980
-_08058190: .4byte gUnknown_81BB980
-_08058194: .4byte gUnknown_81BB980
-_08058198: .4byte gUnknown_81BB8C3
-_0805819C: .4byte gUnknown_81BB8CF
-_080581A0: .4byte gUnknown_81BB950
+_08058178: .4byte BattleColosseum_4P_EventScript_PlayerSpot0
+_0805817C: .4byte BattleColosseum_4P_EventScript_PlayerSpot1
+_08058180: .4byte BattleColosseum_4P_EventScript_PlayerSpot2
+_08058184: .4byte BattleColosseum_4P_EventScript_PlayerSpot3
+_08058188: .4byte RecordCenter_EventScript_Spot
+_0805818C: .4byte RecordCenter_EventScript_Spot
+_08058190: .4byte RecordCenter_EventScript_Spot
+_08058194: .4byte RecordCenter_EventScript_Spot
+_08058198: .4byte BattleColosseum_2P_EventScript_PlayerSpot0
+_0805819C: .4byte BattleColosseum_2P_EventScript_PlayerSpot1
+_080581A0: .4byte TradeCenter_EventScript_Chair0
 _080581A4:
-	ldr r0, _080581B0 @ =gUnknown_81BB95C
+	ldr r0, _080581B0 @ =TradeCenter_EventScript_Chair1
 	cmp r1, r0
 	beq _080581B4
 	movs r0, 0
 	b _080581B6
 	.align 2, 0
-_080581B0: .4byte gUnknown_81BB95C
+_080581B0: .4byte TradeCenter_EventScript_Chair1
 _080581B4:
 	movs r0, 0x9
 _080581B6:
@@ -6938,13 +6938,13 @@ sub_80581F8: @ 80581F8
 	push {lr}
 	movs r0, 0x6
 	bl PlaySE
-	ldr r0, _08058210 @ =gUnknown_81BB9D4
+	ldr r0, _08058210 @ =TradeCenter_ConfirmLeaveRoom
 	bl ScriptContext1_SetupScript
 	bl ScriptContext2_Enable
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08058210: .4byte gUnknown_81BB9D4
+_08058210: .4byte TradeCenter_ConfirmLeaveRoom
 	thumb_func_end sub_80581F8
 
 	thumb_func_start sub_8058214
@@ -6964,13 +6964,13 @@ sub_8058214: @ 8058214
 	thumb_func_start sub_8058230
 sub_8058230: @ 8058230
 	push {lr}
-	ldr r0, _08058240 @ =gUnknown_81BB9F0
+	ldr r0, _08058240 @ =TradeCenter_TerminateLink
 	bl ScriptContext1_SetupScript
 	bl ScriptContext2_Enable
 	pop {r0}
 	bx r0
 	.align 2, 0
-_08058240: .4byte gUnknown_81BB9F0
+_08058240: .4byte TradeCenter_TerminateLink
 	thumb_func_end sub_8058230
 
 	thumb_func_start sub_8058244
@@ -7124,7 +7124,7 @@ _08058350: .4byte gWirelessCommType
 _08058354: .4byte gLink
 _08058358: .4byte 0x00000339
 _0805835C:
-	ldr r0, _08058368 @ =gUnknown_3005450
+	ldr r0, _08058368 @ =Rfu
 	ldr r1, _0805836C @ =0x000008d2
 	adds r0, r1
 	ldrb r0, [r0]
@@ -7132,16 +7132,16 @@ _08058364:
 	pop {r1}
 	bx r1
 	.align 2, 0
-_08058368: .4byte gUnknown_3005450
+_08058368: .4byte Rfu
 _0805836C: .4byte 0x000008d2
 	thumb_func_end sub_805833C
 
-	thumb_func_start ZeroLinkPlayerMapObject
-ZeroLinkPlayerMapObject: @ 8058370
+	thumb_func_start ZeroLinkPlayerObjectEvent
+ZeroLinkPlayerObjectEvent: @ 8058370
 	movs r1, 0
 	str r1, [r0]
 	bx lr
-	thumb_func_end ZeroLinkPlayerMapObject
+	thumb_func_end ZeroLinkPlayerObjectEvent
 
 	thumb_func_start strange_npc_table_clear
 strange_npc_table_clear: @ 8058378
@@ -7156,18 +7156,18 @@ strange_npc_table_clear: @ 8058378
 _08058388: .4byte gUnknown_2031DEC
 	thumb_func_end strange_npc_table_clear
 
-	thumb_func_start ZeroMapObject
-ZeroMapObject: @ 805838C
+	thumb_func_start ZeroObjectEvent
+ZeroObjectEvent: @ 805838C
 	push {lr}
 	movs r1, 0
 	movs r2, 0x24
 	bl memset
 	pop {r0}
 	bx r0
-	thumb_func_end ZeroMapObject
+	thumb_func_end ZeroObjectEvent
 
-	thumb_func_start SpawnLinkPlayerMapObject
-SpawnLinkPlayerMapObject: @ 805839C
+	thumb_func_start SpawnLinkPlayerObjectEvent
+SpawnLinkPlayerObjectEvent: @ 805839C
 	push {r4-r7,lr}
 	mov r7, r10
 	mov r6, r9
@@ -7200,12 +7200,12 @@ SpawnLinkPlayerMapObject: @ 805839C
 	lsls r5, r6, 3
 	adds r5, r6
 	lsls r5, 2
-	ldr r0, _08058444 @ =gMapObjects
+	ldr r0, _08058444 @ =gObjectEvents
 	adds r5, r0
 	adds r0, r4, 0
-	bl ZeroLinkPlayerMapObject
+	bl ZeroLinkPlayerObjectEvent
 	adds r0, r5, 0
-	bl ZeroMapObject
+	bl ZeroObjectEvent
 	movs r2, 0
 	movs r1, 0x1
 	movs r0, 0x1
@@ -7238,7 +7238,7 @@ SpawnLinkPlayerMapObject: @ 805839C
 	adds r0, r5, 0
 	mov r1, r9
 	mov r2, r10
-	bl InitLinkPlayerMapObjectPos
+	bl InitLinkPlayerObjectEventPos
 	pop {r3-r5}
 	mov r8, r3
 	mov r9, r4
@@ -7248,11 +7248,11 @@ SpawnLinkPlayerMapObject: @ 805839C
 	bx r0
 	.align 2, 0
 _08058440: .4byte gUnknown_2031DEC
-_08058444: .4byte gMapObjects
-	thumb_func_end SpawnLinkPlayerMapObject
+_08058444: .4byte gObjectEvents
+	thumb_func_end SpawnLinkPlayerObjectEvent
 
-	thumb_func_start InitLinkPlayerMapObjectPos
-InitLinkPlayerMapObjectPos: @ 8058448
+	thumb_func_start InitLinkPlayerObjectEventPos
+InitLinkPlayerObjectEventPos: @ 8058448
 	push {r4,lr}
 	adds r4, r0, 0
 	adds r0, r1, 0
@@ -7278,11 +7278,11 @@ InitLinkPlayerMapObjectPos: @ 8058448
 	adds r0, 0x8
 	strh r0, [r4, 0xC]
 	adds r0, r4, 0
-	bl FieldObjectUpdateZCoord
+	bl ObjectEventUpdateZCoord
 	pop {r4}
 	pop {r0}
 	bx r0
-	thumb_func_end InitLinkPlayerMapObjectPos
+	thumb_func_end InitLinkPlayerObjectEventPos
 
 	thumb_func_start sub_8058488
 sub_8058488: @ 8058488
@@ -7300,7 +7300,7 @@ sub_8058488: @ 8058488
 	lsls r1, r0, 3
 	adds r1, r0
 	lsls r1, 2
-	ldr r0, _080584B4 @ =gMapObjects
+	ldr r0, _080584B4 @ =gObjectEvents
 	adds r1, r0
 	strb r2, [r1, 0x19]
 _080584AA:
@@ -7308,7 +7308,7 @@ _080584AA:
 	bx r0
 	.align 2, 0
 _080584B0: .4byte gUnknown_2031DEC
-_080584B4: .4byte gMapObjects
+_080584B4: .4byte gObjectEvents
 	thumb_func_end sub_8058488
 
 	thumb_func_start sub_80584B8
@@ -7322,7 +7322,7 @@ sub_80584B8: @ 80584B8
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _080584FC @ =gMapObjects
+	ldr r1, _080584FC @ =gObjectEvents
 	adds r4, r0, r1
 	ldrb r0, [r4, 0x4]
 	cmp r0, 0x40
@@ -7346,7 +7346,7 @@ _080584E4:
 	bx r0
 	.align 2, 0
 _080584F8: .4byte gUnknown_2031DEC
-_080584FC: .4byte gMapObjects
+_080584FC: .4byte gObjectEvents
 _08058500: .4byte gSprites
 	thumb_func_end sub_80584B8
 
@@ -7360,13 +7360,13 @@ sub_8058504: @ 8058504
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _08058520 @ =gMapObjects
+	ldr r1, _08058520 @ =gObjectEvents
 	adds r0, r1
 	ldrb r0, [r0, 0x4]
 	bx lr
 	.align 2, 0
 _0805851C: .4byte gUnknown_2031DEC
-_08058520: .4byte gMapObjects
+_08058520: .4byte gObjectEvents
 	thumb_func_end sub_8058504
 
 	thumb_func_start sub_8058524
@@ -7379,7 +7379,7 @@ sub_8058524: @ 8058524
 	lsls r0, r3, 3
 	adds r0, r3
 	lsls r0, 2
-	ldr r3, _08058548 @ =gMapObjects
+	ldr r3, _08058548 @ =gObjectEvents
 	adds r0, r3
 	ldrh r3, [r0, 0x10]
 	strh r3, [r1]
@@ -7388,7 +7388,7 @@ sub_8058524: @ 8058524
 	bx lr
 	.align 2, 0
 _08058544: .4byte gUnknown_2031DEC
-_08058548: .4byte gMapObjects
+_08058548: .4byte gObjectEvents
 	thumb_func_end sub_8058524
 
 	thumb_func_start sub_805854C
@@ -7401,13 +7401,13 @@ sub_805854C: @ 805854C
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _08058568 @ =gMapObjects
+	ldr r1, _08058568 @ =gObjectEvents
 	adds r0, r1
 	ldrb r0, [r0, 0x19]
 	bx lr
 	.align 2, 0
 _08058564: .4byte gUnknown_2031DEC
-_08058568: .4byte gMapObjects
+_08058568: .4byte gObjectEvents
 	thumb_func_end sub_805854C
 
 	thumb_func_start sub_805856C
@@ -7420,7 +7420,7 @@ sub_805856C: @ 805856C
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _0805858C @ =gMapObjects
+	ldr r1, _0805858C @ =gObjectEvents
 	adds r0, r1
 	ldrb r0, [r0, 0xB]
 	lsls r0, 28
@@ -7428,7 +7428,7 @@ sub_805856C: @ 805856C
 	bx lr
 	.align 2, 0
 _08058588: .4byte gUnknown_2031DEC
-_0805858C: .4byte gMapObjects
+_0805858C: .4byte gObjectEvents
 	thumb_func_end sub_805856C
 
 	thumb_func_start sub_8058590
@@ -7441,7 +7441,7 @@ sub_8058590: @ 8058590
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _080585B4 @ =gMapObjects
+	ldr r1, _080585B4 @ =gObjectEvents
 	adds r0, r1
 	adds r0, 0x21
 	movs r1, 0
@@ -7451,7 +7451,7 @@ sub_8058590: @ 8058590
 	bx lr
 	.align 2, 0
 _080585B0: .4byte gUnknown_2031DEC
-_080585B4: .4byte gMapObjects
+_080585B4: .4byte gObjectEvents
 	thumb_func_end sub_8058590
 
 	thumb_func_start GetLinkPlayerIdAt
@@ -7479,7 +7479,7 @@ _080585DA:
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _08058600 @ =gMapObjects
+	ldr r1, _08058600 @ =gObjectEvents
 	adds r1, r0, r1
 	movs r6, 0x10
 	ldrsh r0, [r1, r6]
@@ -7493,7 +7493,7 @@ _080585DA:
 	b _08058610
 	.align 2, 0
 _080585FC: .4byte gUnknown_2031DEC
-_08058600: .4byte gMapObjects
+_08058600: .4byte gObjectEvents
 _08058604:
 	adds r0, r2, 0x1
 	lsls r0, 24
@@ -7521,7 +7521,7 @@ sub_8058618: @ 8058618
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _0805864C @ =gMapObjects
+	ldr r1, _0805864C @ =gObjectEvents
 	adds r6, r0, r1
 	ldrb r0, [r5]
 	cmp r0, 0
@@ -7535,7 +7535,7 @@ sub_8058618: @ 8058618
 	b _08058674
 	.align 2, 0
 _08058648: .4byte gUnknown_2031DEC
-_0805864C: .4byte gMapObjects
+_0805864C: .4byte gObjectEvents
 _08058650:
 	ldr r4, _0805867C @ =gUnknown_826D374
 	ldr r1, _08058680 @ =gUnknown_826D33C
@@ -7629,7 +7629,7 @@ sub_80586CC: @ 80586CC
 	adds r0, r5, 0
 	mov r2, sp
 	adds r3, r6, 0
-	bl FieldObjectMoveDestCoords
+	bl ObjectEventMoveDestCoords
 	ldrb r0, [r4, 0x2]
 	ldrb r1, [r5, 0x19]
 	mov r2, sp
@@ -7653,7 +7653,7 @@ sub_80586CC: @ 80586CC
 	adds r0, r5, 0
 	bl npc_coords_shift
 	adds r0, r5, 0
-	bl FieldObjectUpdateZCoord
+	bl ObjectEventUpdateZCoord
 	movs r0, 0x1
 	b _0805872C
 _0805872A:
@@ -7780,7 +7780,7 @@ npc_080587EC: @ 80587EC
 	mov r12, r2
 	lsls r3, 16
 	movs r4, 0
-	ldr r0, _08058850 @ =gMapObjects
+	ldr r0, _08058850 @ =gObjectEvents
 	mov r9, r0
 	lsrs r2, r3, 16
 	mov r10, r2
@@ -7820,7 +7820,7 @@ _0805884A:
 	movs r0, 0x1
 	b _0805886A
 	.align 2, 0
-_08058850: .4byte gMapObjects
+_08058850: .4byte gObjectEvents
 _08058854:
 	adds r0, r4, 0x1
 	lsls r0, 24
@@ -7857,7 +7857,7 @@ sub_8058878: @ 8058878
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _080588B8 @ =gMapObjects
+	ldr r1, _080588B8 @ =gObjectEvents
 	adds r4, r0, r1
 	ldrb r0, [r2]
 	cmp r0, 0
@@ -7875,7 +7875,7 @@ sub_8058878: @ 8058878
 	b _080588C6
 	.align 2, 0
 _080588B4: .4byte gUnknown_2031DEC
-_080588B8: .4byte gMapObjects
+_080588B8: .4byte gObjectEvents
 _080588BC:
 	ldrb r0, [r4]
 	lsls r0, 30
@@ -7888,7 +7888,7 @@ _080588C6:
 	movs r2, 0
 	str r2, [sp]
 	movs r3, 0
-	bl AddPseudoEventObject
+	bl AddPseudoObjectEvent
 	strb r0, [r4, 0x4]
 	ldrb r1, [r4, 0x4]
 	lsls r0, r1, 4
@@ -7931,7 +7931,7 @@ SpriteCB_LinkPlayer: @ 805890C
 	lsls r0, r1, 3
 	adds r0, r1
 	lsls r0, 2
-	ldr r1, _08058974 @ =gMapObjects
+	ldr r1, _08058974 @ =gObjectEvents
 	adds r6, r0, r1
 	ldrh r0, [r6, 0xC]
 	strh r0, [r5, 0x20]
@@ -7958,7 +7958,7 @@ SpriteCB_LinkPlayer: @ 805890C
 	cmp r0, 0
 	bne _08058978
 	ldrb r0, [r6, 0x19]
-	bl FieldObjectDirectionToImageAnimId
+	bl ObjectEventDirectionToImageAnimId
 	adds r1, r0, 0
 	lsls r1, 24
 	lsrs r1, 24
@@ -7967,7 +7967,7 @@ SpriteCB_LinkPlayer: @ 805890C
 	b _0805898A
 	.align 2, 0
 _08058970: .4byte gUnknown_2031DEC
-_08058974: .4byte gMapObjects
+_08058974: .4byte gObjectEvents
 _08058978:
 	ldrb r0, [r6, 0x19]
 	bl get_go_image_anim_num
@@ -7979,7 +7979,7 @@ _08058978:
 _0805898A:
 	adds r0, r5, 0
 	movs r1, 0
-	bl sub_8068EB4
+	bl UpdateObjectEventSpriteVisibility
 	ldrb r0, [r6]
 	lsls r0, 29
 	cmp r0, 0

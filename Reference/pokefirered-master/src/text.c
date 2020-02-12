@@ -12,9 +12,10 @@
 #include "window.h"
 #include "graphics.h"
 #include "dynamic_placeholder_text_util.h"
+#include "constants/songs.h"
 
 extern u8 gGlyphInfo[0x90];
-extern const struct OamData gOamData_83AC9D0;
+extern const struct OamData gOamData_AffineOff_ObjNormal_16x16;
 
 static void DecompressGlyphFont3(u16 glyphId, bool32 isJapanese);
 static void DecompressGlyphFont4(u16 glyphId, bool32 isJapanese);
@@ -58,7 +59,7 @@ const struct SpriteTemplate gUnknown_81EA6B4 =
 {
     .tileTag = 0x8000,
     .paletteTag = 0x8000,
-    .oam = &gOamData_83AC9D0,
+    .oam = &gOamData_AffineOff_ObjNormal_16x16,
     .anims = gDummySpriteAnimTable,
     .images = NULL,
     .affineAnims = gDummySpriteAffineAnimTable,
@@ -526,7 +527,7 @@ void TextPrinterClearDownArrow(struct TextPrinter *textPrinter)
 bool8 TextPrinterWaitAutoMode(struct TextPrinter *textPrinter)
 {
     struct TextPrinterSubStruct *subStruct = &textPrinter->subUnion.sub;
-    u8 delay = (gUnknown_203ADFA == 2) ? 50 : 120;
+    u8 delay = (gQuestLogState == 2) ? 50 : 120;
 
     if (subStruct->autoScrollDelay == delay)
     {
@@ -552,7 +553,7 @@ bool16 TextPrinterWaitWithDownArrow(struct TextPrinter *textPrinter)
         if (JOY_NEW(A_BUTTON | B_BUTTON))
         {
             result = TRUE;
-            PlaySE(5);
+            PlaySE(SE_SELECT);
         }
     }
     return result;
@@ -570,7 +571,7 @@ bool16 TextPrinterWait(struct TextPrinter *textPrinter)
         if (JOY_NEW(A_BUTTON | B_BUTTON))
         {
             result = TRUE;
-            PlaySE(5);
+            PlaySE(SE_SELECT);
         }
     }
     return result;
@@ -715,7 +716,7 @@ u16 RenderText(struct TextPrinter *textPrinter)
                 textPrinter->printerTemplate.currentChar++;
                 currChar |= *textPrinter->printerTemplate.currentChar << 8;
                 textPrinter->printerTemplate.currentChar++;
-                if ((u8)(gUnknown_203ADFA - 2u) > 1)
+                if (gQuestLogState != 2 && gQuestLogState != 3)
                     PlayBGM(currChar);
                 return 2;
             case 16:
@@ -1179,7 +1180,7 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
     return width;
 }
 
-u8 RenderTextFont9(u8 *pixels, u8 fontId, u8 *str)
+u8 RenderTextFont9(u8 *pixels, u8 fontId, u8 *str, int a3, int a4, int a5, int a6, int a7)
 {
     u8 shadowColor;
     u8 *strLocal;

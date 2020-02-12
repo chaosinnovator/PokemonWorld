@@ -15,6 +15,7 @@
 #include "field_camera.h"
 #include "trainer_pokemon_sprites.h"
 #include "scanline_effect.h"
+#include "event_object_movement.h"
 #include "constants/songs.h"
 
 typedef bool8 (*TransitionStateFunc)(struct Task *task);
@@ -27,7 +28,7 @@ struct TransitionData
     u16 winOut;
     u16 win0H;
     u16 win0V;
-    u16 unused_A;
+    u16 win1H; // not used
     u16 win1V;
     u16 bldCnt;
     u16 bldAlpha;
@@ -44,9 +45,6 @@ struct TransitionData
 };
 
 static EWRAM_DATA struct TransitionData *sTransitionStructPtr = NULL;
-
-// TODO: Move this declaration to include/event_object_movement.h
-extern const struct OamData gEventObjectBaseOam_32x32;
 
 static bool8 BT_Phase1_FadeOut(struct Task *task);
 static bool8 BT_Phase1_FadeIn(struct Task *task);
@@ -470,7 +468,7 @@ static const struct SpriteTemplate sSpriteTemplate_SlidingPokeball =
 {
     .tileTag = SPRITE_INVALID_TAG,
     .paletteTag = 0x1009,
-    .oam = &gEventObjectBaseOam_32x32,
+    .oam = &gObjectEventBaseOam_32x32,
     .anims = sSpriteAnimTable_SlidingPokeball,
     .images = sSpriteImageTable_SlidingPokeball,
     .affineAnims = sSpriteAffineAnimTable_SlidingPokeball,
@@ -543,7 +541,7 @@ static const struct SpriteTemplate sSpriteTemplateTable_Unused[] =
 // this palette is shared by big pokeball and sliding pokeball
 static const u16 sSlidingPokeballBigPokeballPalette[] = INCBIN_U16("graphics/battle_transitions/sliding_pokeball.gbapal");
 
-static const struct SpritePalette sSpritePalette_SlidingPokeball =
+const struct SpritePalette sSpritePalette_SlidingPokeball =
 {
     .data = sSlidingPokeballBigPokeballPalette,
     .tag = 0x1009,
@@ -857,14 +855,14 @@ static bool8 BT_Phase2BigPokeball_Init(struct Task *task)
     task->tEva = 0;
     task-> tTheta = 0;
     task-> tAmplitude = 0x4000;
-    sTransitionStructPtr->winIn = 0x3F;
+    sTransitionStructPtr->winIn = WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR;
     sTransitionStructPtr->winOut = 0;
-    sTransitionStructPtr->win0H = 240;
-    sTransitionStructPtr->win0V = 160;
+    sTransitionStructPtr->win0H = WIN_RANGE(0, 0xF0);
+    sTransitionStructPtr->win0V = WIN_RANGE(0, 0xA0);
     sTransitionStructPtr->bldCnt = BLDCNT_TGT1_BG0 | BLDCNT_EFFECT_BLEND | BLDCNT_TGT2_BG0 | BLDCNT_TGT2_BG1 | BLDCNT_TGT2_BG2 | BLDCNT_TGT2_BG3 | BLDCNT_TGT2_OBJ | BLDCNT_TGT2_BD;
     sTransitionStructPtr->bldAlpha = (task->tEvb << 8) | task->tEva;
     for (i = 0; i < 160; ++i)
-        gScanlineEffectRegBuffers[1][i] = 240;
+        gScanlineEffectRegBuffers[1][i] = 0xF0;
     SetVBlankCallback(VBCB_BT_Phase2BigPokeball1);
     BT_GetBg0TilemapAndTilesetBase(&tilemapAddr, &tilesetAddr);
     CpuFill16(0, tilemapAddr, 0x800);
@@ -897,7 +895,7 @@ static bool8 BT_Phase2BigPokeball_UpdateWave1IncEva(struct Task *task)
         ++task->tEva;
         task->tInterval = 1; // Broken logic. This makes the condition always TRUE. 
     }
-    sTransitionStructPtr->bldAlpha = (task->tEvb << 8) | task->tEva;
+    sTransitionStructPtr->bldAlpha = BLDALPHA_BLEND(task->tEva, task->tEvb);
     // Increment eva until it reaches 50% coeff
     if (task->tEva > 15)
         ++task->tState;
@@ -1148,13 +1146,11 @@ static bool8 BT_Phase2ClockwiseBlackFade_Init(struct Task *task)
     BT_InitCtrlBlk();
     ScanlineEffect_Clear();
     sTransitionStructPtr->winIn = 0;
-    sTransitionStructPtr->winOut = 0x3F;
-    sTransitionStructPtr->win0H = 0xF0F1;
-    sTransitionStructPtr->win0V = 0x00A0;
+    sTransitionStructPtr->winOut = WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR;
+    sTransitionStructPtr->win0H = WIN_RANGE(0xF0, 0xF1);
+    sTransitionStructPtr->win0V = WIN_RANGE(0, 0xA0);
     for (i = 0; i < 160; ++i)
-    {
-        gScanlineEffectRegBuffers[1][i] = 0xF3F4;
-    }
+        gScanlineEffectRegBuffers[1][i] = WIN_RANGE(0xF3, 0xF4);
     SetVBlankCallback(VBCB_BT_Phase2ClockwiseBlackFade);
     sTransitionStructPtr->trEndPtX = 120;
     ++task->tState;
@@ -1167,7 +1163,7 @@ static bool8 BT_Phase2ClockwiseBlackFade_Step1(struct Task *task)
     BT_DiagonalSegment_InitParams(sTransitionStructPtr->data, 120, 80, sTransitionStructPtr->trEndPtX, -1, 1, 1);
     do
     {
-        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = (sTransitionStructPtr->trCurrentPtX + 1) | 0x7800;
+        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = WIN_RANGE(0x78, sTransitionStructPtr->trCurrentPtX + 1);
     }
     while (!BT_DiagonalSegment_ComputePointOnSegment(sTransitionStructPtr->data, TRUE, TRUE));
 
@@ -1197,7 +1193,7 @@ static bool8 BT_Phase2ClockwiseBlackFade_Step2(struct Task *task)
             left = sTransitionStructPtr->trCurrentPtX;
             right = 240;
         }
-        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = right | (left << 8);
+        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = WIN_RANGE2(left, right);
         if (finished)
             break;
         finished = BT_DiagonalSegment_ComputePointOnSegment(sTransitionStructPtr->data, TRUE, TRUE);
@@ -1211,7 +1207,7 @@ static bool8 BT_Phase2ClockwiseBlackFade_Step2(struct Task *task)
     else
     {
         while (sTransitionStructPtr->trCurrentPtY < sTransitionStructPtr->trEndPtY)
-            gScanlineEffectRegBuffers[0][++sTransitionStructPtr->trCurrentPtY] = right | (left << 8);
+            gScanlineEffectRegBuffers[0][++sTransitionStructPtr->trCurrentPtY] = WIN_RANGE2(left, right);
     }
     ++sTransitionStructPtr->vblankDma;
     return FALSE;
@@ -1265,7 +1261,7 @@ static bool8 BT_Phase2ClockwiseBlackFade_Step4(struct Task *task)
             left = 120;
             right = sTransitionStructPtr->trCurrentPtX;
         }
-        win0H = right | (left << 8);
+        win0H = WIN_RANGE2(left, right);
         gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = win0H;
         if (finished)
             break;
@@ -1280,7 +1276,7 @@ static bool8 BT_Phase2ClockwiseBlackFade_Step4(struct Task *task)
     else
     {
         while (sTransitionStructPtr->trCurrentPtY > sTransitionStructPtr->trEndPtY)
-            gScanlineEffectRegBuffers[0][--sTransitionStructPtr->trCurrentPtY] = right | (left << 8);
+            gScanlineEffectRegBuffers[0][--sTransitionStructPtr->trCurrentPtY] = WIN_RANGE2(left, right);
     }
     ++sTransitionStructPtr->vblankDma;
     return FALSE;
@@ -1301,7 +1297,7 @@ static bool8 BT_Phase2ClockwiseBlackFade_Step5(struct Task *task)
             left = 0;
             right = 240;
         }
-        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = right | (left << 8);
+        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = WIN_RANGE2(left, right);
     }
     while (!BT_DiagonalSegment_ComputePointOnSegment(sTransitionStructPtr->data, TRUE, TRUE));
     sTransitionStructPtr->trEndPtX += 32;
@@ -1431,12 +1427,12 @@ static bool8 BT_Phase2BlackWaveToRight_Init(struct Task *task)
 
     BT_InitCtrlBlk();
     ScanlineEffect_Clear();
-    sTransitionStructPtr->winIn = 0x3F;
+    sTransitionStructPtr->winIn = WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR;
     sTransitionStructPtr->winOut = 0;
-    sTransitionStructPtr->win0H = 240;
-    sTransitionStructPtr->win0V = 160;
+    sTransitionStructPtr->win0H = WIN_RANGE(0, 0xF0);
+    sTransitionStructPtr->win0V = WIN_RANGE(0, 0xA0);
     for (i = 0; i < 160; ++i)
-        gScanlineEffectRegBuffers[1][i] = 242;
+        gScanlineEffectRegBuffers[1][i] = WIN_RANGE(0, 0xF2);
     SetVBlankCallback(VBCB_BT_Phase2BlackWaveToRight);
     ++task->tState;
     return TRUE;
@@ -1460,7 +1456,7 @@ static bool8 BT_Phase2BlackWaveToRight_UpdateWave(struct Task *task)
             left = 0;
         if (left > 240)
             left = 240;
-        *winVal = (left << 8) | (0xF1);
+        *winVal = WIN_RANGE(left, 0xF1);
         if (left < 240)
             nextFunc = FALSE;
     }
@@ -1601,12 +1597,7 @@ static void sub_80D1F64(s16 a1, s16 a2, u8 a3)
             }
         }
     }
-    // PROBLEM #3: We need (a2 << 16) & 0x30000 here. 
-    // Is it because the programmer declared a s32 var to
-    // hold the value of a2 and then cast the result to s16? 
-    // Currently I have to write it explicitly. 
-    // (around line 460 in ASM)
-    if (!a3 || !((a2 << 16) & 0x30000))
+    if (a3 == 0 || a2 % 4 == 0)
     {
         for (i = 0; i < 160; ++i)
             gScanlineEffectRegBuffers[1][i * 2 + a3] = (gScanlineEffectRegBuffers[1][i + 320] << 8) | gScanlineEffectRegBuffers[1][i + 480];
@@ -1620,49 +1611,14 @@ static void sub_80D1F64(s16 a1, s16 a2, u8 a3)
         case 0:
             if (res > 80)
                 res = 80;
-            // PROBLEM #4: 
+            // PROBLEM #3: 
             // (around line 550 in ASM)
-            // Case 0-3 are very similar, so it's very likely
-            // that they have the same problem. 
-            // The code is definitely functional equivalent,
-            // but the vanilla game used some extra shifts and
-            // used unsigned comparison. Another difference is
-            // that I can't figure out a way to make gUnknown_83FA444[a2]
-            // happen outside the loop body. 
-            // It seems that sTransitionStructPtr->data[2] need
-            // to be used in the first statement so that the
-            // struct pointer sTransitionStructPtr will be loaded
-            // early enough. 
-            //
-            // Logically the generated code is following if + do-while structure.
-            // But it seems that it can only make the situation even worse.  
-            /*
-            i = res;
-            if (i > 0)
-            {
-                // This happens before loop body. 
-                s16 unk = gUnknown_83FA444[a2];
-                
-                do
-                {
-                    sTransitionStructPtr->data[2] = ((i * unk) >> 8) + 120;
-                    if (sTransitionStructPtr->data[2] <= 255)
-                    {
-                        sTransitionStructPtr->bg123HOfs = 400 - i;
-                        sTransitionStructPtr->data[10] = gScanlineEffectRegBuffers[1][400 - i];
-                        if (gScanlineEffectRegBuffers[1][560 - i] < sTransitionStructPtr->data[2])
-                            gScanlineEffectRegBuffers[1][560 - i] = 120;
-                        else if (gScanlineEffectRegBuffers[1][400 - i] < sTransitionStructPtr->data[2])
-                            gScanlineEffectRegBuffers[1][400 - i] = sTransitionStructPtr->data[2];
-                    }
-                }
-                while (--i > 0);
-            }
-            */
+            // Case 0 ... 3 are very similar, so it's very likely that they have the same problem. 
+            // Weird shifts around writing to sTransitionStructPtr->data[2], and the following comparison. 
             for (i = res; i > 0; --i)
             {
                 sTransitionStructPtr->data[2] = ((i * gUnknown_83FA444[a2]) >> 8) + 120;
-                if (sTransitionStructPtr->data[2] <= 255)
+                if (sTransitionStructPtr->data[2] <= 255u) // why is this unsigned? 
                 {
                     sTransitionStructPtr->bg123HOfs = 400 - i;
                     sTransitionStructPtr->data[10] = gScanlineEffectRegBuffers[1][400 - i];
@@ -1676,7 +1632,7 @@ static void sub_80D1F64(s16 a1, s16 a2, u8 a3)
         case 1:
             if (res > 80)
                 res = 80; 
-            // same as PROBLEM #4
+            // same as PROBLEM #3
             for (i = res; i > 0; --i)
             {
                 s16 unkVal;
@@ -1694,7 +1650,7 @@ static void sub_80D1F64(s16 a1, s16 a2, u8 a3)
         case 2:
             if (res < -79)
                 res = -79;
-            // same as PROBLEM #4
+            // same as PROBLEM #3
             for (i = res; i <= 0; ++i)
             {
                 sTransitionStructPtr->data[2] = ((i * gUnknown_83FA444[a2]) >> 8) + 120;
@@ -1712,7 +1668,7 @@ static void sub_80D1F64(s16 a1, s16 a2, u8 a3)
         case 3:
             if (res < -79)
                 res = -79; 
-            // same as PROBLEM #4
+            // same as PROBLEM #3
             for (i = res; i <= 0; ++i)
             {
                 sTransitionStructPtr->data[2] = ((i * gUnknown_83FA444[a2]) >> 8) + 120;
@@ -2529,10 +2485,10 @@ static bool8 BT_Phase2AntiClockwiseSpiral_Init(struct Task *task)
     BT_InitCtrlBlk();
     ScanlineEffect_Clear();
     sTransitionStructPtr->winIn = 0;
-    sTransitionStructPtr->winOut = 0x3F;
-    sTransitionStructPtr->win0H = 0x7878;
-    sTransitionStructPtr->win0V = 0x3070;
-    sTransitionStructPtr->win1V = 0x1090;
+    sTransitionStructPtr->winOut = WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR;
+    sTransitionStructPtr->win0H = WIN_RANGE(0x78, 0x78);
+    sTransitionStructPtr->win0V = WIN_RANGE(0x30, 0x70);
+    sTransitionStructPtr->win1V = WIN_RANGE(0x10, 0x90);
     sTransitionStructPtr->counter = 0;
     sub_80D1F64(0, 0, FALSE);
     sub_80D1F64(0, 0, TRUE);
@@ -2665,11 +2621,11 @@ static bool8 BT_Phase2Mugshot_Init(struct Task *task)
     task->tTheta = 0;
     task->tbg0HOfsOpponent = 1;
     task->tbg0HOfsPlayer = 239;
-    sTransitionStructPtr->winIn = 0x3F;
-    sTransitionStructPtr->winOut = 0x3E;
-    sTransitionStructPtr->win0V = 160;
+    sTransitionStructPtr->winIn = WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR;
+    sTransitionStructPtr->winOut = WININ_WIN0_BG1 | WININ_WIN0_BG2 | WININ_WIN0_BG3 | WININ_WIN0_OBJ | WININ_WIN0_CLR;
+    sTransitionStructPtr->win0V = WIN_RANGE(0, 0xA0);
     for (i = 0; i < 160; ++i)
-        gScanlineEffectRegBuffers[1][i] = 0xF0F1;
+        gScanlineEffectRegBuffers[1][i] = WIN_RANGE(0xF0, 0xF1);
     SetVBlankCallback(VBCB_BT_Phase2Mugshot1_Slide);
     ++task->tState;
     return FALSE;
@@ -2756,7 +2712,7 @@ static bool8 BT_Phase2Mugshot_StartSpriteSlide(struct Task *task)
     BT_SetSpriteAsOpponentOrPlayer(task->tOpponentSpriteId, FALSE);
     BT_SetSpriteAsOpponentOrPlayer(task->tPlayerSpriteId, TRUE);
     BT_StartSpriteSlide(task->tOpponentSpriteId);
-    PlaySE(SE_C_MAKU_U);
+    PlaySE(SE_BT_START);
     ++sTransitionStructPtr->vblankDma;
     return FALSE;
 }
@@ -2784,7 +2740,7 @@ static bool8 BT_Phase2Mugshot_WaitForPlayerInPlace(struct Task *task)
         DmaStop(0);
         memset(gScanlineEffectRegBuffers[0], 0, 320);
         memset(gScanlineEffectRegBuffers[1], 0, 320);
-        SetGpuReg(REG_OFFSET_WIN0H, 0xF0);
+        SetGpuReg(REG_OFFSET_WIN0H, WIN_RANGE(0, 0xF0));
         SetGpuReg(REG_OFFSET_BLDY, 0);
         ++task->tState;
         task->tCounter = 0;
@@ -3026,9 +2982,9 @@ static bool8 BT_Phase2SlicedScreen_Init(struct Task *task)
     ScanlineEffect_Clear();
     task->tAcc = 256;
     task->tJerk = 1;
-    sTransitionStructPtr->winIn = 0x3F;
+    sTransitionStructPtr->winIn = WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR;
     sTransitionStructPtr->winOut = 0;
-    sTransitionStructPtr->win0V = 160;
+    sTransitionStructPtr->win0V = WIN_RANGE(0, 0xA0);
     for (i = 0; i < 160; ++i)
     {
         gScanlineEffectRegBuffers[1][i] = sTransitionStructPtr->bg123HOfs;
@@ -3065,7 +3021,7 @@ static bool8 BT_Phase2SlicedScreen_UpdateOffsets(struct Task *task)
         else
         {
             *ofsBuffer = sTransitionStructPtr->bg123HOfs - task->tSpeed;
-            *win0HBuffer = (task->tSpeed << 8) | 0xF1;
+            *win0HBuffer = WIN_RANGE(task->tSpeed, 0xF1);
         }
     }
     if (task->tSpeed > 0xEF)
@@ -3126,9 +3082,9 @@ static bool8 BT_Phase2WhiteFadeInStripes_Init(struct Task *task)
     ScanlineEffect_Clear();
     sTransitionStructPtr->bldCnt = BLDCNT_TGT1_BG0 | BLDCNT_TGT1_BG1 | BLDCNT_TGT1_BG2 | BLDCNT_TGT1_BG3 | BLDCNT_TGT1_OBJ | BLDCNT_TGT1_BD | BLDCNT_EFFECT_LIGHTEN;
     sTransitionStructPtr->bldY = 0;
-    sTransitionStructPtr->winIn = 0x1E;
-    sTransitionStructPtr->winOut = 0x3F;
-    sTransitionStructPtr->win0V = 160;
+    sTransitionStructPtr->winIn = WINOUT_WIN01_BG1 | WINOUT_WIN01_BG2 | WINOUT_WIN01_BG3 | WINOUT_WIN01_OBJ;
+    sTransitionStructPtr->winOut = WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WININ_WIN0_CLR;
+    sTransitionStructPtr->win0V = WIN_RANGE(0, 0xA0);
     for (i = 0; i < 160; ++i)
     {
         gScanlineEffectRegBuffers[1][i] = 0;
@@ -3177,10 +3133,10 @@ static bool8 BT_Phase2WhiteFadeInStripes_Stop(struct Task *task)
     DmaStop(0);
     SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
-    sTransitionStructPtr->win0H = 240;
+    sTransitionStructPtr->win0H = WIN_RANGE(0, 240);
     sTransitionStructPtr->bldY = 0;
     sTransitionStructPtr->bldCnt = BLDCNT_TGT1_BG0 | BLDCNT_TGT1_BG1 | BLDCNT_TGT1_BG2 | BLDCNT_TGT1_BG3 | BLDCNT_TGT1_OBJ | BLDCNT_TGT1_BD | BLDCNT_EFFECT_DARKEN;
-    sTransitionStructPtr->winIn = 0x3F;
+    sTransitionStructPtr->winIn = WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WININ_WIN0_CLR;
     sTransitionStructPtr->counter = 0;
     SetVBlankCallback(VBCB_BT_Phase2WhiteFadeInStripes2);
     ++task->tState;
@@ -3351,11 +3307,11 @@ static bool8 BT_Phase2BlackDoodles_Init(struct Task *task)
 
     BT_InitCtrlBlk();
     ScanlineEffect_Clear();
-    sTransitionStructPtr->winIn = 0x3F;
+    sTransitionStructPtr->winIn = WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR;
     sTransitionStructPtr->winOut = 0;
-    sTransitionStructPtr->win0V = 0xA0;
+    sTransitionStructPtr->win0V = WIN_RANGE(0, 0xA0);
     for (i = 0; i < 160; ++i)
-        gScanlineEffectRegBuffers[0][i] = 0x00F0;
+        gScanlineEffectRegBuffers[0][i] = WIN_RANGE(0, 0xF0);
     CpuSet(gScanlineEffectRegBuffers[0], gScanlineEffectRegBuffers[1], 160);
     SetVBlankCallback(VBCB_BT_Phase2BlackDoodles);
     ++task->tState;
@@ -3394,7 +3350,7 @@ static bool8 BT_Phase2BlackDoodles_DrawSingleBrush(struct Task *task)
             if (right <= left)
                 right = left;
         }
-        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = right | (left << 8);
+        gScanlineEffectRegBuffers[0][sTransitionStructPtr->trCurrentPtY] = WIN_RANGE2(left, right);
         if (nextFunc)
         {
             ++task->tState;

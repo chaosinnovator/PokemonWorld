@@ -16,6 +16,41 @@ static const bool8 sTileSurfable[METATILE_COUNT] = {
     [MB_SOUTHWARD_CURRENT] = TRUE
 };
 
+static const u8 sTileBitAttributes[] = {
+    0x00,
+    0x01,
+    0x02,
+    0x04,
+    0x08,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00
+};
+
 bool8 MetatileBehavior_UnusedReturnTrue(u8 metatileBehavior)
 {
     return TRUE;
@@ -69,7 +104,7 @@ bool8 MetatileBehavior_IsMB21OrSand(u8 metatileBehavior)
         return FALSE;
 }
 
-bool8 MetatileBehavior_IsMB21OrWaterfallBottom(u8 metatileBehavior)
+bool8 MetatileBehavior_IsSandOrDeepSand(u8 metatileBehavior)
 {
     if(metatileBehavior == MB_21 || metatileBehavior == MB_WATERFALL_BOTTOM)
         return TRUE;
@@ -428,11 +463,11 @@ bool8 MetatileBehavior_IsTallGrass_2(u8 metatileBehavior)
         return FALSE;
 }
 
-bool8 MetatileBehavior_ReturnFalse_3(u8 metatileBehavior) { return FALSE; }
+bool8 MetatileBehavior_IsLongGrass(u8 metatileBehavior) { return FALSE; }
 bool8 MetatileBehavior_ReturnFalse_4(u8 metatileBehavior) { return FALSE; }
 bool8 MetatileBehavior_ReturnFalse_5(u8 metatileBehavior) { return FALSE; }
-bool8 MetatileBehavior_ReturnFalse_6(u8 metatileBehavior) { return FALSE; }
-bool8 MetatileBehavior_ReturnFalse_7(u8 metatileBehavior) { return FALSE; }
+bool8 MetatileBehavior_IsBridge(u8 metatileBehavior) { return FALSE; }
+bool8 MetatileBehavior_GetBridgeType(u8 metatileBehavior) { return FALSE; }
 
 bool8 MetatileBehavior_UnusedIsMB_01(u8 metatileBehavior)
 {
@@ -450,7 +485,7 @@ bool8 MetatileBehavior_UnusedIsTallGrass(u8 metatileBehavior)
         return FALSE;
 }
 
-bool8 MetatileBehavior_IsMB0B(u8 metatileBehavior)
+bool8 MetatileBehavior_IsIndoorEncounter(u8 metatileBehavior)
 {
     if(metatileBehavior == MB_0B)
         return TRUE;
@@ -458,7 +493,7 @@ bool8 MetatileBehavior_IsMB0B(u8 metatileBehavior)
         return FALSE;
 }
 
-bool8 MetatileBehavior_IsMB0C(u8 metatileBehavior)
+bool8 MetatileBehavior_IsMountain(u8 metatileBehavior)
 {
     if(metatileBehavior == MB_0C)
         return TRUE;
@@ -736,7 +771,7 @@ bool8 MetatileBehavior_UnusedReturnFalse_13(u8 metatileBehavior) { return FALSE;
 
 bool8 sub_805A2BC(u8 arg1, u8 arg2)
 {
-    if(gUnknown_8353068[arg1] & arg2)
+    if(sTileBitAttributes[arg1] & arg2)
         return TRUE;
     else
         return FALSE;

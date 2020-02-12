@@ -13,8 +13,8 @@ u8 player_get_direction_upper_nybble(void);
 u8 player_get_x22(void);
 
 void sub_808D074(u8);
-void sub_805C270();
-void sub_805C780();
+void sub_805C270(void);
+void sub_805C780(void);
 void GetXYCoordsOneStepInFrontOfPlayer(s16 *xPtr, s16 *yPtr);
 u8 sub_805C808(u8);
 void SetPlayerAvatarStateMask(u8 mask);
@@ -33,5 +33,8 @@ void sub_805DC04(void);
 void sub_805DAB0(void);
 bool32 sub_805DAD0(void);
 bool32 sub_805DC24(void);
+bool8 PartyHasMonWithSurf(void);
+bool8 IsPlayerSurfingNorth(void);
+void player_get_pos_including_state_based_drift(s16 *x, s16 *y);
 
 #endif //GUARD_FIELD_PLAYER_AVATAR_H

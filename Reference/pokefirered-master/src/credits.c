@@ -188,6 +188,7 @@ struct CreditsTaskData
 };
 
 static EWRAM_DATA struct CreditsResources * sCreditsMgr = NULL;
+EWRAM_DATA bool8 gHasHallOfFameRecords = FALSE;
 
 static void CB2_Credits(void);
 static s32 RollCredits(void);
@@ -750,7 +751,7 @@ static void CB2_Credits(void)
         sCreditsMgr->unk_1D++;
         break;
     case 2:
-        FlagClear(0x4000);
+        FlagClear(FLAG_SPECIAL_FLAG_0x4000);
         gDisableMapMusicChangeOnMapLoad = MUSIC_DISABLE_OFF;
         Free(sCreditsMgr);
         SoftReset(RESET_ALL);
@@ -797,7 +798,7 @@ static bool32 DoOverworldMapScrollScene(UNUSED u8 unused)
     switch (sCreditsMgr->subseqno)
     {
     case 0:
-        FlagSet(0x4000);
+        FlagSet(FLAG_SPECIAL_FLAG_0x4000);
         gDisableMapMusicChangeOnMapLoad = MUSIC_DISABLE_KEEP;
         sCreditsMgr->ovwldseqno = 0;
         sCreditsMgr->subseqno++;
@@ -919,7 +920,7 @@ static s32 RollCredits(void)
             case CREDITSSCRCMD_MON:
                 sCreditsMgr->mainseqno = CREDITSSCENE_MON_DESTROY_ASSETS;
                 sCreditsMgr->whichMon = sCreditsScript[sCreditsMgr->scrcmdidx].param;
-                fade_screen(1, 0);
+                FadeScreen(1, 0);
                 break;
             case CREDITSSCRCMD_THEENDGFX:
                 sCreditsMgr->mainseqno = CREDITSSCENE_THEEND_DESTROY_ASSETS;
@@ -1341,7 +1342,7 @@ static s32 RollCredits(void)
                 "\tstrb r0, [r2, 0x9]\n"
                 "\tmovs r0, 0x1\n"
                 "\tmovs r1, 0\n"
-                "\tbl fade_screen\n"
+                "\tbl FadeScreen\n"
                 "\tb _080F3E94\n"
                 "\t.align 2, 0\n"
                 "_080F3E50: .4byte sCreditsMgr\n"

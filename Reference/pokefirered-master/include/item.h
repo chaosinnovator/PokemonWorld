@@ -37,14 +37,12 @@ void CopyItemNameHandlePlural(u16 itemId, u8 *string, u32 quantity);
 bool8 IsBagPocketNonEmpty(u8 pocket);
 bool8 CheckBagHasItem(u16 itemId, u16 count);
 bool8 CheckBagHasSpace(u16 itemId, u16 count);
-bool8 AddBagItem(u16 itemId, u16 count);
 bool8 RemoveBagItem(u16 itemId, u16 count);
 u8 GetPocketByItemId(u16 itemId);
 void ClearItemSlots(struct ItemSlot *itemSlots, u8 b);
 u8 CountUsedPCItemSlots(void);
 bool8 CheckPCHasItem(u16 itemId, u16 count);
 bool8 AddPCItem(u16 itemId, u16 count);
-void RemovePCItem(u8 index, u16 count);
 void SwapRegisteredBike(void);
 const u8 *ItemId_GetName(u16 itemId);
 u16 ItemId_GetId(u16 itemId);
@@ -64,18 +62,22 @@ u8 ItemId_GetSecondaryId(u16 itemId);
 u16 itemid_get_market_price(u16 itemId);
 void ClearBag(void);
 void ClearPCItemSlots(void);
-void sub_809A824(u16 itemId);
+void TrySetObtainedItemQuestLogEvent(u16 itemId);
 bool8 AddBagItem(u16 itemId, u16 amount);
 
 void SortPocketAndPlaceHMsFirst(struct BagPocket * pocket);
 u16 BagGetItemIdByPocketPosition(u8 pocketId, u16 itemId);
 u16 BagGetQuantityByPocketPosition(u8 pocketId, u16 itemId);
+u16 BagGetQuantityByItemId(u16 item);
 bool8 itemid_is_unique(u16 itemId);
 void BagPocketCompaction(struct ItemSlot * slots, u8 capacity);
 u16 GetPcItemQuantity(u16 *);
+void SetBagPocketsPointers(void);
 
 void ItemPcCompaction(void);
-void RemoveItemFromPC(u16 itemId, u16 quantity);
+void RemovePCItem(u16 itemId, u16 quantity);
 void SortAndCompactBagPocket(struct BagPocket * pocket);
+u8 CountItemsInPC(void);
+void ApplyNewEncryptionKeyToBagItems_(u32 newKey);
 
 #endif // GUARD_ITEM_H

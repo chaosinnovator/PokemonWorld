@@ -6,6 +6,8 @@
 #include "load_save.h"
 #include "task.h"
 #include "link.h"
+#include "save_failed_screen.h"
+#include "fieldmap.h"
 #include "gba/flash_internal.h"
 
 #define FILE_SIGNATURE 0x08012025  // signature value to determine if a sector is in use
@@ -66,13 +68,6 @@ const struct SaveSectionOffsets gSaveSectionOffsets[] =
     SAVEBLOCK_CHUNK(struct PokemonStorage, 8)
 };
 
-extern void DoSaveFailedScreen(u8 saveType); // save_failed_screen
-extern void sub_800AB9C(void); // link
-extern bool8 IsLinkTaskFinished(void); // link
-extern void save_serialize_map(void); // fieldmap
-extern void sub_804C1C0(void); // load_save
-extern void sav2_gender2_inplace_and_xFE(void); // load_save
-
 // Sector num to begin writing save data. Sectors are rotated each time the game is saved. (possibly to avoid wear on flash memory?)
 u16 gFirstSaveSector;
 u32 gPrevSaveCounter;
@@ -85,7 +80,7 @@ u16 gSaveUnusedVar;
 u16 gSaveFileStatus;
 void (*gGameContinueCallback)(void);
 struct SaveBlockChunk gRamSaveSectionLocations[0xE];
-u16 gUnknown_3005420;
+u16 gSaveSucceeded;
 
 EWRAM_DATA struct SaveSection gSaveDataBuffer = {0};
 EWRAM_DATA u32 gSaveUnusedVar2 = 0;
@@ -677,7 +672,7 @@ u8 HandleSavingData(u8 saveType)
         for(i = 0; i < 5; i++)
             save_write_to_flash(i, gRamSaveSectionLocations);
         break;
-    case EREADER_SAVE:
+    case SAVE_EREADER:
         SaveSerializedGame();
         save_write_to_flash(0, gRamSaveSectionLocations);
         break;
@@ -702,11 +697,11 @@ u8 TrySavingData(u8 saveType)
         else
             goto OK; // really?
     }
-    gUnknown_3005420 = 0xFF;
+    gSaveSucceeded = 0xFF;
     return 0xFF;
 
 OK:
-    gUnknown_3005420 = 1;
+    gSaveSucceeded = 1;
     return 1;
 }
 
@@ -724,7 +719,7 @@ bool8 sub_80DA3D8(void)
 {
     u8 retVal = sub_80D9AA4(0xE, gRamSaveSectionLocations);
     if (gDamagedSaveSectors)
-        DoSaveFailedScreen(0);
+        DoSaveFailedScreen(SAVE_NORMAL);
     if (retVal == 0xFF)
         return 1;
     else
@@ -735,7 +730,7 @@ u8 sub_80DA40C(void)
 {
     sub_80D9B04(0xE, gRamSaveSectionLocations);
     if (gDamagedSaveSectors)
-        DoSaveFailedScreen(0);
+        DoSaveFailedScreen(SAVE_NORMAL);
     return 0;
 }
 
@@ -743,7 +738,7 @@ u8 sub_80DA434(void)
 {
     sav12_xor_get(0xE, gRamSaveSectionLocations);
     if (gDamagedSaveSectors)
-        DoSaveFailedScreen(0);
+        DoSaveFailedScreen(SAVE_NORMAL);
     return 0;
 }
 
@@ -774,34 +769,34 @@ bool8 sub_80DA4A0(void)
         retVal = TRUE;
     }
     if (gDamagedSaveSectors)
-        DoSaveFailedScreen(1);
+        DoSaveFailedScreen(SAVE_LINK);
     return retVal;
 }
 
-u8 Save_LoadGameData(u8 a1)
+u8 Save_LoadGameData(u8 saveType)
 {
     u8 result;
 
     if (gFlashMemoryPresent != TRUE)
     {
-        gSaveFileStatus = 4;
-        return 0xFF;
+        gSaveFileStatus = SAVE_STATUS_NO_FLASH;
+        return SAVE_STATUS_ERROR;
     }
 
     UpdateSaveAddresses();
-    switch (a1)
+    switch (saveType)
     {
-    case 0:
+    case SAVE_NORMAL:
     default:
         result = sub_80D9E14(0xFFFF, gRamSaveSectionLocations);
         LoadSerializedGame();
         gSaveFileStatus = result;
         gGameContinueCallback = 0;
         break;
-    case 3:
-        result = sub_80DA120(0x1C, gDecompressionBuffer, 0xF80);
-        if(result == 1)
-            result = sub_80DA120(0x1D, gDecompressionBuffer + 0xF80, 0xF80);
+    case SAVE_HALL_OF_FAME:
+        result = sub_80DA120(SECTOR_HOF(0), gDecompressionBuffer, 0xF80);
+        if (result == SAVE_STATUS_OK)
+            result = sub_80DA120(SECTOR_HOF(1), gDecompressionBuffer + 0xF80, 0xF80);
         break;
     }
 
@@ -814,7 +809,7 @@ u32 TryCopySpecialSaveSection(u8 sector, u8* dst)
     s32 size;
     u8* savData;
 
-    if (sector != 30 && sector != 31)
+    if (sector != SECTOR_TTOWER(0) && sector != SECTOR_TTOWER(1))
         return 0xFF;
     ReadFlash(sector, 0, (u8 *)&gSaveDataBuffer, sizeof(struct SaveSection));
     if (*(u32*)(&gSaveDataBuffer.data[0]) != 0xB39D)
@@ -835,7 +830,7 @@ u32 TryWriteSpecialSaveSection(u8 sector, u8* src)
     u8* savData;
     void* savDataBuffer;
 
-    if (sector != 30 && sector != 31)
+    if (sector != SECTOR_TTOWER(0) && sector != SECTOR_TTOWER(1))
         return 0xFF;
 
     savDataBuffer = &gSaveDataBuffer;
@@ -872,7 +867,7 @@ void sub_80DA634(u8 taskId)
         }
         break;
     case 3:
-        sub_804C1C0();
+        SetContinueGameWarpStatusToDynamicWarp();
         sub_80DA3AC();
         gTasks[taskId].data[0] = 4;
         break;
@@ -894,7 +889,7 @@ void sub_80DA634(u8 taskId)
         gTasks[taskId].data[0] = 7;
         break;
     case 7:
-        sav2_gender2_inplace_and_xFE();
+        ClearContinueGameWarpStatus2();
         sub_800AB9C();
         gTasks[taskId].data[0] = 8;
         break;

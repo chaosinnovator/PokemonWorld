@@ -24,8 +24,8 @@ sub_8097874: @ 8097874
 	bx r1
 	thumb_func_end sub_8097874
 
-	thumb_func_start sub_8097898
-sub_8097898: @ 8097898
+	thumb_func_start SetUpFieldMove_Cut
+SetUpFieldMove_Cut: @ 8097898
 	push {r4-r7,lr}
 	mov r7, r8
 	push {r7}
@@ -33,7 +33,7 @@ sub_8097898: @ 8097898
 	ldr r4, _080978CC @ =gUnknown_2039874
 	movs r0, 0
 	strb r0, [r4]
-	bl sub_80CCD84
+	bl CutMoveRuinValleyCheck
 	lsls r0, 24
 	lsrs r0, 24
 	cmp r0, 0x1
@@ -138,7 +138,7 @@ _08097970:
 	.align 2, 0
 _0809797C: .4byte gPlayerFacingPosition
 _08097980: .4byte 0x0000ffff
-	thumb_func_end sub_8097898
+	thumb_func_end SetUpFieldMove_Cut
 
 	thumb_func_start sub_8097984
 sub_8097984: @ 8097984
@@ -189,13 +189,13 @@ sub_80979D0: @ 80979D0
 	lsls r0, 24
 	lsrs r0, 24
 	str r0, [r1]
-	ldr r0, _080979EC @ =gUnknown_81BDF6B
+	ldr r0, _080979EC @ =EventScript_FldEffCut
 	bl ScriptContext1_SetupScript
 	pop {r0}
 	bx r0
 	.align 2, 0
 _080979E8: .4byte gFieldEffectArguments
-_080979EC: .4byte gUnknown_81BDF6B
+_080979EC: .4byte EventScript_FldEffCut
 	thumb_func_end sub_80979D0
 
 	thumb_func_start sub_80979F0
@@ -232,7 +232,7 @@ sub_8097A20: @ 8097A20
 	ldrb r0, [r0]
 	cmp r0, 0x1
 	bne _08097A3C
-	bl sub_80CCDD0
+	bl CutMoveOpenDottedHoleDoor
 	b _08097A42
 	.align 2, 0
 _08097A38: .4byte gUnknown_2039874

@@ -22,7 +22,11 @@ extern ScrCmdFunc gMysteryEventScriptCmdTable[];
 extern ScrCmdFunc gMysteryEventScriptCmdTableEnd[];
 
 #define LANGUAGE_MASK 0x1
+#if defined(FIRERED)
 #define VERSION_MASK 0x1
+#elif defined(LEAFGREEN)
+#define VERSION_MASK 0x2
+#endif
 
 EWRAM_DATA static struct ScriptContext sMysteryEventScriptContext = {0};
 
@@ -67,12 +71,12 @@ static bool32 RunMysteryEventScriptCommand(struct ScriptContext *ctx)
         return FALSE;
 }
 
-void sub_80DA89C(u8 *script)
+void MEventScript_InitContext(u8 *script)
 {
     InitMysteryEventScript(&sMysteryEventScriptContext, script);
 }
 
-bool32 sub_80DA8B0(u32 *a0)
+bool32 MEventScript_Run(u32 *a0)
 {
     bool32 ret = RunMysteryEventScriptCommand(&sMysteryEventScriptContext);
     *a0 = sMysteryEventScriptContext.data[2];
@@ -83,8 +87,8 @@ bool32 sub_80DA8B0(u32 *a0)
 u32 RunMysteryEventScript(u8 *script)
 {
     u32 ret;
-    sub_80DA89C(script);
-    while (sub_80DA8B0(&ret));
+    MEventScript_InitContext(script);
+    while (MEventScript_Run(&ret));
 
     return ret;
 }
@@ -247,7 +251,7 @@ bool8 MEScrCmd_givepokemon(struct ScriptContext *ctx)
     if (species == SPECIES_EGG)
         StringCopyN(gStringVar1, gText_EggNickname, POKEMON_NAME_LENGTH + 1);
     else
-        StringCopyN(gStringVar1, gText_Pokemon, POKEMON_NAME_LENGTH + 1);
+        StringCopyN(gStringVar1, gStartMenuText_Pokemon, POKEMON_NAME_LENGTH + 1);
 
     if (gPlayerPartyCount == PARTY_SIZE)
     {
@@ -281,7 +285,7 @@ bool8 MEScrCmd_givepokemon(struct ScriptContext *ctx)
 bool8 MEScrCmd_addtrainer(struct ScriptContext *ctx)
 {
     u32 data = ScriptReadWord(ctx) - ctx->data[1] + ctx->data[0];
-    memcpy(gSaveBlock2Ptr->unk_B0.field_3F0, (void *)data, 0xBC);
+    memcpy(&gSaveBlock2Ptr->battleTower.ereaderTrainer, (void *)data, sizeof(struct BattleTowerEReaderTrainer));
     ValidateEReaderTrainer();
     StringExpandPlaceholders(gStringVar4, gText_MysteryGiftNewTrainer);
     ctx->data[2] = 2;

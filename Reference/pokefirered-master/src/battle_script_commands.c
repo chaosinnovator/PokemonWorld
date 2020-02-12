@@ -48,6 +48,7 @@
 #include "constants/abilities.h"
 #include "constants/pokemon.h"
 #include "constants/trainers.h"
+#include "constants/map_types.h"
 
 #define DEFENDER_IS_PROTECTED ((gProtectStructs[gBattlerTarget].protected) && (gBattleMoves[gCurrentMove].flags & FLAG_PROTECT_AFFECTED))
 
@@ -1222,7 +1223,7 @@ static void atk04_critcalc(void)
         critChance = NELEMS(sCriticalHitChance) - 1;
     if ((gBattleMons[gBattlerTarget].ability != ABILITY_BATTLE_ARMOR && gBattleMons[gBattlerTarget].ability != ABILITY_SHELL_ARMOR)
      && !(gStatuses3[gBattlerAttacker] & STATUS3_CANT_SCORE_A_CRIT)
-     && !(gBattleTypeFlags & BATTLE_TYPE_OLDMAN_TUTORIAL)
+     && !(gBattleTypeFlags & BATTLE_TYPE_OLD_MAN_TUTORIAL)
      && !(Random() % sCriticalHitChance[critChance])
      && (!(gBattleTypeFlags & BATTLE_TYPE_FIRST_BATTLE) || sub_80EB2E0(1))
      && !(gBattleTypeFlags & BATTLE_TYPE_POKEDUDE))
@@ -2832,7 +2833,7 @@ static void atk19_tryfaintmon(void)
             gBattlescriptCurrInstr = BS_ptr;
             if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
             {
-                gHitMarker |= HITMARKER_x400000;
+                gHitMarker |= HITMARKER_PLAYER_FAINTED;
                 if (gBattleResults.playerFaintCounter < 0xFF)
                     ++gBattleResults.playerFaintCounter;
                 AdjustFriendshipOnBattleFaint(gActiveBattler);
@@ -3165,7 +3166,7 @@ static void atk23_getexp(void)
                  && !gBattleStruct->wildVictorySong)
                 {
                     BattleStopLowHpSound();
-                    PlayBGM(BGM_FRLG_KACHI_WILD_POKEMON);
+                    PlayBGM(MUS_WIN_YASEI);
                     ++gBattleStruct->wildVictorySong;
                 }
                 if (GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_HP))
@@ -3772,7 +3773,7 @@ static void atk45_playanimation(void)
     if (gBattlescriptCurrInstr[2] == B_ANIM_STATS_CHANGE
      || gBattlescriptCurrInstr[2] == B_ANIM_SNATCH_MOVE
      || gBattlescriptCurrInstr[2] == B_ANIM_SUBSTITUTE_FADE
-     || gBattlescriptCurrInstr[2] == B_ANIM_x19)
+     || gBattlescriptCurrInstr[2] == B_ANIM_SILPH_SCOPED)
     {
         BtlController_EmitBattleAnimation(0, gBattlescriptCurrInstr[2], *argumentPtr);
         MarkBattlerForControllerExec(gActiveBattler);
@@ -4414,7 +4415,7 @@ static void atk4E_switchinanim(void)
          && !(gBattleTypeFlags & 
               (BATTLE_TYPE_LINK
             | BATTLE_TYPE_LEGENDARY
-            | BATTLE_TYPE_OLDMAN_TUTORIAL
+            | BATTLE_TYPE_OLD_MAN_TUTORIAL
             | BATTLE_TYPE_POKEDUDE
             | BATTLE_TYPE_EREADER_TRAINER
             | BATTLE_TYPE_GHOST)))
@@ -4503,7 +4504,7 @@ static void atk4F_jumpifcantswitch(void)
 static void sub_8024398(u8 arg0)
 {
     *(gBattleStruct->field_58 + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-    BtlController_EmitChoosePokemon(0, PARTY_MUST_CHOOSE_MON, arg0, 0, gBattleStruct->field_60[gActiveBattler]);
+    BtlController_EmitChoosePokemon(0, PARTY_ACTION_SEND_OUT, arg0, 0, gBattleStruct->field_60[gActiveBattler]);
     MarkBattlerForControllerExec(gActiveBattler);
 }
 
@@ -4737,11 +4738,11 @@ static void atk50_openpartyscreen(void)
     }
     else
     {
-        if (gBattlescriptCurrInstr[1] & 0x80)
-            hitmarkerFaintBits = PARTY_CHOOSE_MON; // Used here as the caseId for the EmitChoose function.
+        if (gBattlescriptCurrInstr[1] & OPEN_PARTY_ALLOW_CANCEL)
+            hitmarkerFaintBits = PARTY_ACTION_CHOOSE_MON; // Used here as the caseId for the EmitChoose function.
         else
-            hitmarkerFaintBits = PARTY_MUST_CHOOSE_MON;
-        battlerId = GetBattlerForBattleScript(gBattlescriptCurrInstr[1] & ~(0x80));
+            hitmarkerFaintBits = PARTY_ACTION_SEND_OUT;
+        battlerId = GetBattlerForBattleScript(gBattlescriptCurrInstr[1] & ~(OPEN_PARTY_ALLOW_CANCEL));
         if (gSpecialStatuses[battlerId].flag40)
         {
             gBattlescriptCurrInstr += 6;
@@ -5044,7 +5045,7 @@ static void atk5A_yesnoboxlearnmove(void)
     case 3:
         if (!gPaletteFade.active && gMain.callback2 == BattleMainCB2)
         {
-            u8 movePosition = sub_8138B2C();
+            u8 movePosition = GetMoveSlotToReplace();
 
             if (movePosition == 4)
             {
@@ -5175,7 +5176,7 @@ static void atk5D_getmoneyreward(void)
     // The whole function is using wrong registers. 
     if (gBattleOutcome == B_OUTCOME_WON)
     {
-        if (gTrainerBattleOpponent_A == 0x400)
+        if (gTrainerBattleOpponent_A == TRAINER_SECRET_BASE)
         {
             moneyReward = 20 * gBattleResources->secretBase->party.levels[0] * gBattleStruct->moneyMultiplier;
         }
@@ -5229,7 +5230,7 @@ static void atk5D_getmoneyreward(void)
     }
     else
     {
-        moneyReward = sub_8054C04();
+        moneyReward = ComputeWhiteOutMoneyLoss();
     }
     PREPARE_WORD_NUMBER_BUFFER(gBattleTextBuff1, 5, moneyReward);
     if (moneyReward)
@@ -5411,7 +5412,7 @@ static void atk5D_getmoneyreward(void)
         bl AddMoney\n\
         b _08025A00\n\
     _080259FA:\n\
-        bl sub_8054C04\n\
+        bl ComputeWhiteOutMoneyLoss\n\
         adds r4, r0, 0\n\
     _08025A00:\n\
         ldr r1, _08025A40 @ =gBattleTextBuff1\n\
@@ -5830,7 +5831,7 @@ static void DrawLevelUpWindow1(void)
 {
     u16 currStats[NUM_STATS];
 
-    GetMonLevelUpWindowStats(&gPlayerParty[gBattleStruct->expGetterMonId], currStats);
+    BufferMonStatsToTaskData(&gPlayerParty[gBattleStruct->expGetterMonId], currStats);
     DrawLevelUpWindowPg1(12, gBattleResources->beforeLvlUp->stats, currStats, 0xE, 0xD, 0xF);
 }
 
@@ -5838,7 +5839,7 @@ static void DrawLevelUpWindow2(void)
 {
     u16 currStats[NUM_STATS];
 
-    GetMonLevelUpWindowStats(&gPlayerParty[gBattleStruct->expGetterMonId], currStats);
+    BufferMonStatsToTaskData(&gPlayerParty[gBattleStruct->expGetterMonId], currStats);
     DrawLevelUpWindowPg2(12, currStats, 0xE, 0xD, 0xF);
 }
 
@@ -6145,12 +6146,12 @@ static void atk76_various(void)
                 *choicedMove = MOVE_NONE;
         }
         break;
-    case VARIOUS_CASE_7:
+    case VARIOUS_RESET_PLAYER_FAINTED_FLAG:
         if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_DOUBLE))
          && gBattleTypeFlags & BATTLE_TYPE_TRAINER
          && gBattleMons[0].hp != 0
          && gBattleMons[1].hp != 0)
-            gHitMarker &= ~(HITMARKER_x400000);
+            gHitMarker &= ~(HITMARKER_PLAYER_FAINTED);
         break;
     case VARIOUS_CASE_8:
         i = 0; // redundant
@@ -6182,7 +6183,7 @@ static void atk76_various(void)
             }
         }
         break;
-    case VARIOUS_CASE_11:
+    case VARIOUS_CHECK_POKEFLUTE:
         gBattleCommunication[MULTISTRING_CHOOSER] = 0;
         monToCheck = 0;
         for (i = 0; i < gBattlersCount; ++i)
@@ -6235,7 +6236,7 @@ static void atk76_various(void)
             gBattleCommunication[5] = 1;
         }
         break;
-    case VARIOUS_CASE_12:
+    case VARIOUS_WAIT_FANFARE:
         if (!IsFanfareTaskInactive())
             return;
         break;
@@ -7063,7 +7064,7 @@ static void atk8F_forcerandomswitch(void)
         u8 valid;
         u8 val;
 
-        if (!GetBattlerSide(gBattlerTarget))
+        if (GetBattlerSide(gBattlerTarget) == B_SIDE_PLAYER)
             party = gPlayerParty;
         else
             party = gEnemyParty;
@@ -7139,8 +7140,8 @@ static void atk8F_forcerandomswitch(void)
             *(gBattleStruct->monToSwitchIntoId + gBattlerTarget) = i;
             if (!IsMultiBattle())
                 sub_8013F6C(gBattlerTarget);
-            sub_8127EC4(gBattlerTarget, i, 0);
-            sub_8127EC4(gBattlerTarget ^ 2, i, 1);
+            SwitchPartyOrderLinkMulti(gBattlerTarget, i, 0);
+            SwitchPartyOrderLinkMulti(gBattlerTarget ^ 2, i, 1);
         }
     }
     else
@@ -7351,7 +7352,7 @@ static void atk95_setsandstorm(void)
 
 static void atk96_weatherdamage(void)
 {
-    if (((gBattleTypeFlags & (BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_GHOST)) == BATTLE_TYPE_GHOST)
+    if (IS_BATTLE_TYPE_GHOST_WITHOUT_SCOPE(gBattleTypeFlags)
      && (GetBattlerSide(gBattlerAttacker) == B_SIDE_OPPONENT))
     {
         gBattleMoveDamage = 0;
@@ -8809,7 +8810,7 @@ static void atkD2_tryswapitems(void) // trick
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER_TOWER
      || (GetBattlerSide(gBattlerAttacker) == B_SIDE_OPPONENT
          && !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_BATTLE_TOWER | BATTLE_TYPE_EREADER_TRAINER))
-         && gTrainerBattleOpponent_A != 0x400))
+         && gTrainerBattleOpponent_A != TRAINER_SECRET_BASE))
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
     }
@@ -8820,7 +8821,7 @@ static void atkD2_tryswapitems(void) // trick
 
         // you can't swap items if they were knocked off in regular battles
         if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_BATTLE_TOWER | BATTLE_TYPE_EREADER_TRAINER))
-         && gTrainerBattleOpponent_A != 0x400
+         && gTrainerBattleOpponent_A != TRAINER_SECRET_BASE
          && (gWishFutureKnock.knockedOffMons[sideAttacker] & gBitTable[gBattlerPartyIndexes[gBattlerAttacker]]
             || gWishFutureKnock.knockedOffMons[sideTarget] & gBitTable[gBattlerPartyIndexes[gBattlerTarget]]))
         {
@@ -9436,11 +9437,11 @@ static void atkEF_handleballthrow(void)
             MarkBattlerForControllerExec(gActiveBattler);
             gBattlescriptCurrInstr = BattleScript_TrainerBallBlock;
         }
-        else if (gBattleTypeFlags & (BATTLE_TYPE_POKEDUDE | BATTLE_TYPE_OLDMAN_TUTORIAL))
+        else if (gBattleTypeFlags & (BATTLE_TYPE_POKEDUDE | BATTLE_TYPE_OLD_MAN_TUTORIAL))
         {
             BtlController_EmitBallThrowAnim(0, BALL_3_SHAKES_SUCCESS);
             MarkBattlerForControllerExec(gActiveBattler);
-            gBattlescriptCurrInstr = gUnknown_81D9A88;
+            gBattlescriptCurrInstr = BattleScript_OldMan_Pokedude_CaughtMessage;
         }
         else
         {
@@ -9451,7 +9452,6 @@ static void atkEF_handleballthrow(void)
                 catchRate = gBattleStruct->safariCatchFactor * 1275 / 100;
             else
                 catchRate = gBaseStats[gBattleMons[gBattlerTarget].species].catchRate;
-
             if (gLastUsedItem > ITEM_SAFARI_BALL)
             {
                 switch (gLastUsedItem)
@@ -9515,7 +9515,7 @@ static void atkEF_handleballthrow(void)
                 else
                 {
                     if (gBattleResults.catchAttempts[gLastUsedItem - ITEM_ULTRA_BALL] < 0xFF)
-                        gBattleResults.catchAttempts[gLastUsedItem - ITEM_ULTRA_BALL]++;
+                        ++gBattleResults.catchAttempts[gLastUsedItem - ITEM_ULTRA_BALL];
                 }
             }
             if (odds > 254) // mon caught
@@ -9563,17 +9563,17 @@ static void atkF0_givecaughtmon(void)
 {
     if (GiveMonToPlayer(&gEnemyParty[gBattlerPartyIndexes[gBattlerAttacker ^ BIT_SIDE]]) != MON_GIVEN_TO_PARTY)
     {
-        if (!sub_80CC7B4())
+        if (!ShouldShowBoxWasFullMessage())
         {
             gBattleCommunication[MULTISTRING_CHOOSER] = 0;
-            StringCopy(gStringVar1, GetBoxNamePtr(VarGet(VAR_0x4037)));
+            StringCopy(gStringVar1, GetBoxNamePtr(VarGet(VAR_PC_BOX_TO_SEND_MON)));
             GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattlerAttacker ^ BIT_SIDE]], MON_DATA_NICKNAME, gStringVar2);
         }
         else
         {
-            StringCopy(gStringVar1, GetBoxNamePtr(VarGet(VAR_0x4037)));
+            StringCopy(gStringVar1, GetBoxNamePtr(VarGet(VAR_PC_BOX_TO_SEND_MON))); // box the mon was sent to
             GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattlerAttacker ^ BIT_SIDE]], MON_DATA_NICKNAME, gStringVar2);
-            StringCopy(gStringVar3, GetBoxNamePtr(get_unknown_box_id()));
+            StringCopy(gStringVar3, GetBoxNamePtr(GetPCBoxToSendMon())); //box the mon was going to be sent to
             gBattleCommunication[MULTISTRING_CHOOSER] = 2;
         }
         if (FlagGet(FLAG_SYS_NOT_SOMEONES_PC))
@@ -9629,7 +9629,7 @@ static void atkF2_displaydexinfo(void)
         }
         break;
     case 3:
-        sub_800F34C();
+        InitBattleBgsVideo();
         LoadBattleTextboxAndBackground();
         gBattle_BG3_X = 0x100;
         ++gBattleCommunication[0];

@@ -25,13 +25,13 @@
 
 static EWRAM_DATA void * sBg3TilemapBuffer = NULL;
 
-static void CB2_SetUpSeaGallopScene(void);
+static void CB2_SetUpSeagallopScene(void);
 static void VBlankCB_SeaGallop(void);
 static void MainCB2_SeaGallop(void);
-static void Task_SeaGallop_0(u8 taskId);
-static void Task_SeaGallop_1(u8 taskId);
-static void Task_SeaGallop_2(u8 taskId);
-static void Task_SeaGallop_3(void);
+static void Task_Seagallop_0(u8 taskId);
+static void Task_Seagallop_1(u8 taskId);
+static void Task_Seagallop_2(u8 taskId);
+static void Task_Seagallop_3(void);
 static void ResetGPU(void);
 static void ResetAllAssets(void);
 static void SetDispcnt(void);
@@ -64,7 +64,7 @@ static const struct BgTemplate sBGTemplates[] = {
     }
 };
 
-static const s8 sSeaGallopSpawnTable[][4] = {
+static const s8 sSeag[][4] = {
                                    // Map                     X     Y
     [SEAGALLOP_VERMILION_CITY]  = {MAP(VERMILION_CITY),      0x17, 0x20},
     [SEAGALLOP_ONE_ISLAND]      = {MAP(ONE_ISLAND_HARBOR),   0x08, 0x05},
@@ -176,14 +176,14 @@ static const struct SpriteTemplate sWakeSpriteTemplate = {
     SpriteCB_Wake
 };
 
-void ScrSpecial_SeaGallopFerry(void)
+void DoSeagallopFerryScene(void)
 {
     SetVBlankCallback(NULL);
-    sub_812B478();
-    SetMainCallback2(CB2_SetUpSeaGallopScene);
+    HelpSystem_Disable();
+    SetMainCallback2(CB2_SetUpSeagallopScene);
 }
 
-static void CB2_SetUpSeaGallopScene(void)
+static void CB2_SetUpSeagallopScene(void)
 {
     void ** ptr;
     switch (gMain.state)
@@ -248,7 +248,7 @@ static void CB2_SetUpSeaGallopScene(void)
         SetGpuReg(REG_OFFSET_WINOUT, 0x00);
         SetGpuReg(REG_OFFSET_WIN0H, 0x00F0);
         SetGpuReg(REG_OFFSET_WIN0V, 0x1888);
-        CreateTask(Task_SeaGallop_0, 8);
+        CreateTask(Task_Seagallop_0, 8);
         SetMainCallback2(MainCB2_SeaGallop);
         gMain.state = 0;
         break;
@@ -270,9 +270,9 @@ static void MainCB2_SeaGallop(void)
     UpdatePaletteFade();
 }
 
-static void Task_SeaGallop_0(u8 taskId)
+static void Task_Seagallop_0(u8 taskId)
 {
-    gTasks[taskId].func = Task_SeaGallop_1;
+    gTasks[taskId].func = Task_Seagallop_1;
 }
 
 static void ScrollBG(void)
@@ -287,7 +287,7 @@ static void ScrollBG(void)
     }
 }
 
-static void Task_SeaGallop_1(u8 taskId)
+static void Task_Seagallop_1(u8 taskId)
 {
     struct Task * task = &gTasks[taskId];
 
@@ -296,29 +296,29 @@ static void Task_SeaGallop_1(u8 taskId)
     {
         Overworld_FadeOutMapMusic();
         sub_807DC18();
-        task->func = Task_SeaGallop_2;
+        task->func = Task_Seagallop_2;
     }
 }
 
-static void Task_SeaGallop_2(u8 taskId)
+static void Task_Seagallop_2(u8 taskId)
 {
     ScrollBG();
-    if (sub_8055FC4() && !gPaletteFade.active)
+    if (BGMusicStopped() && !gPaletteFade.active)
     {
-        Task_SeaGallop_3();
-        sub_812B484();
+        Task_Seagallop_3();
+        HelpSystem_Enable();
         DestroyTask(taskId);
     }
 }
 
-static void Task_SeaGallop_3(void)
+static void Task_Seagallop_3(void)
 {
     const s8 * warpInfo;
 
-    if (gSpecialVar_0x8006 >= NELEMS(sSeaGallopSpawnTable))
+    if (gSpecialVar_0x8006 >= NELEMS(sSeag))
         gSpecialVar_0x8006 = 0;
 
-    warpInfo = sSeaGallopSpawnTable[gSpecialVar_0x8006];
+    warpInfo = sSeag[gSpecialVar_0x8006];
     SetWarpDestination(warpInfo[0], warpInfo[1], -1, warpInfo[2], warpInfo[3]);
     PlayRainStoppingSoundEffect();
     PlaySE(SE_KAIDAN);
@@ -459,7 +459,8 @@ static bool8 GetDirectionOfTravel(void)
     return (sTravelDirectionMatrix[gSpecialVar_0x8004] >> gSpecialVar_0x8006) & 1;
 }
 
-u8 sub_8147500(void)
+// For "All aboard SEAGALLOP HI-SPEED ##" text
+u8 GetSeagallopNumber(void)
 {
     u16 originId, destId;
 
@@ -478,21 +479,34 @@ u8 sub_8147500(void)
     if (originId == SEAGALLOP_BIRTH_ISLAND || destId == SEAGALLOP_BIRTH_ISLAND)
         return 12;
 
-    if ((originId == SEAGALLOP_ONE_ISLAND || originId == SEAGALLOP_TWO_ISLAND || originId == SEAGALLOP_THREE_ISLAND) && (destId == SEAGALLOP_ONE_ISLAND || destId == SEAGALLOP_TWO_ISLAND || destId == SEAGALLOP_THREE_ISLAND))
+    if ((originId == SEAGALLOP_ONE_ISLAND 
+      || originId == SEAGALLOP_TWO_ISLAND 
+      || originId == SEAGALLOP_THREE_ISLAND) 
+      && (destId == SEAGALLOP_ONE_ISLAND 
+       || destId == SEAGALLOP_TWO_ISLAND 
+       || destId == SEAGALLOP_THREE_ISLAND))
         return 2;
 
-    if ((originId == SEAGALLOP_FOUR_ISLAND || originId == SEAGALLOP_FIVE_ISLAND) && (destId == SEAGALLOP_FOUR_ISLAND || destId == SEAGALLOP_FIVE_ISLAND))
+    if ((originId == SEAGALLOP_FOUR_ISLAND 
+      || originId == SEAGALLOP_FIVE_ISLAND) 
+      && (destId == SEAGALLOP_FOUR_ISLAND 
+       || destId == SEAGALLOP_FIVE_ISLAND))
         return 3;
 
-    if ((originId == SEAGALLOP_SIX_ISLAND || originId == SEAGALLOP_SEVEN_ISLAND) && (destId == SEAGALLOP_SIX_ISLAND || destId == SEAGALLOP_SEVEN_ISLAND))
+    if ((originId == SEAGALLOP_SIX_ISLAND 
+      || originId == SEAGALLOP_SEVEN_ISLAND) 
+      && (destId == SEAGALLOP_SIX_ISLAND 
+       || destId == SEAGALLOP_SEVEN_ISLAND))
         return 5;
 
     return 6;
 }
 
-bool8 sub_8147594(void)
+bool8 IsPlayerLeftOfVermilionSailor(void)
 {
-    if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(VERMILION_CITY) && gSaveBlock1Ptr->location.mapNum == MAP_NUM(VERMILION_CITY) && gSaveBlock1Ptr->pos.x < 24)
+    if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(VERMILION_CITY) 
+       && gSaveBlock1Ptr->location.mapNum == MAP_NUM(VERMILION_CITY) 
+       && gSaveBlock1Ptr->pos.x < 24)
         return TRUE;
 
     return FALSE;

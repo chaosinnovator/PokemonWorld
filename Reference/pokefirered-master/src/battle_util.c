@@ -1382,12 +1382,12 @@ u8 AtkCanceller_UnableToUseMove(void)
             ++gBattleStruct->atkCancellerTracker;
             break;
         case CANCELLER_GHOST: // GHOST in pokemon tower
-            if ((gBattleTypeFlags & (BATTLE_TYPE_GHOST | BATTLE_TYPE_LEGENDARY)) == BATTLE_TYPE_GHOST)
+            if (IS_BATTLE_TYPE_GHOST_WITHOUT_SCOPE(gBattleTypeFlags))
             {
                 if (GetBattlerSide(gBattlerAttacker) == B_SIDE_PLAYER)
-                    gBattlescriptCurrInstr = gUnknown_81D9180;
+                    gBattlescriptCurrInstr = BattleScript_TooScaredToMove;
                 else
-                    gBattlescriptCurrInstr = gUnknown_81D9192;
+                    gBattlescriptCurrInstr = BattleScript_GhostGetOutGetOut;
                 gBattleCommunication[MULTISTRING_CHOOSER] = 0;
                 effect = 1;
             }
@@ -1616,7 +1616,7 @@ u8 AbilityBattleEffects(u8 caseID, u8 battler, u8 ability, u8 special, u16 moveA
         if (!moveArg)
             moveArg = gCurrentMove;
         GET_MOVE_TYPE(moveArg, moveType);
-        if ((gBattleTypeFlags & (BATTLE_TYPE_GHOST | BATTLE_TYPE_LEGENDARY)) == BATTLE_TYPE_GHOST
+        if (IS_BATTLE_TYPE_GHOST_WITHOUT_SCOPE(gBattleTypeFlags)
          && (gLastUsedAbility == ABILITY_INTIMIDATE || gLastUsedAbility == ABILITY_TRACE))
             return effect;
         switch (caseID)
@@ -3116,14 +3116,14 @@ u8 IsMonDisobedient(void)
         return 0;
     if (HasObedientBitSet(gBattlerAttacker)) // only if species is Mew or Deoxys
     {
-        if (!IsOtherTrainer(gBattleMons[gBattlerAttacker].otId, gBattleMons[gBattlerAttacker].otName) || FlagGet(FLAG_0x827))
+        if (!IsOtherTrainer(gBattleMons[gBattlerAttacker].otId, gBattleMons[gBattlerAttacker].otName) || FlagGet(FLAG_BADGE08_GET))
             return 0;
         obedienceLevel = 10;
-        if (FlagGet(FLAG_0x821))
+        if (FlagGet(FLAG_BADGE02_GET))
             obedienceLevel = 30;
-        if (FlagGet(FLAG_0x823))
+        if (FlagGet(FLAG_BADGE04_GET))
             obedienceLevel = 50;
-        if (FlagGet(FLAG_0x825))
+        if (FlagGet(FLAG_BADGE06_GET))
             obedienceLevel = 70;
     }
     if (gBattleMons[gBattlerAttacker].level <= obedienceLevel)
